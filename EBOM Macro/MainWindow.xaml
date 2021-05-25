@@ -1,0 +1,180 @@
+﻿<Window x:Class="EBOM_Macro.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EBOM_Macro"
+        mc:Ignorable="d"
+        Title="Macro"
+        DataContext="{x:Static local:ConfigurationState.State}"
+        Icon="eBOMb.ico"
+        d:DesignHeight="427" d:DesignWidth="658">
+    <Window.Resources>
+        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"/>
+
+        <Style TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        </Style>
+
+        <Viewbox x:Key="Clear" x:Shared="False">
+            <Canvas Width="352" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M242.72,256L342.79,155.93C355.07,143.65,355.07,123.74,342.79,111.45L320.55,89.21C308.27,76.93,288.36,76.93,276.07,89.21L176,189.28 75.93,89.21C63.65,76.93,43.74,76.93,31.45,89.21L9.21,111.45C-3.07,123.73,-3.07,143.64,9.21,155.93L109.28,256 9.21,356.07C-3.07,368.35,-3.07,388.26,9.21,400.55L31.45,422.79C43.73,435.07,63.65,435.07,75.93,422.79L176,322.72 276.07,422.79C288.35,435.07,308.27,435.07,320.55,422.79L342.79,400.55C355.07,388.27,355.07,368.36,342.79,356.07L242.72,256z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="Cancel" x:Shared="False">
+            <Canvas Width="512" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M256,8C119,8 8,119 8,256 8,393 119,504 256,504 393,504 504,393 504,256 504,119 393,8 256,8z M256,456C145.5,456 56,366.5 56,256 56,145.5 145.5,56 256,56 366.5,56 456,145.5 456,256 456,366.5 366.5,456 256,456z M357.8,193.8L295.6,256 357.8,318.2C362.5,322.9,362.5,330.5,357.8,335.2L335.2,357.8C330.5,362.5,322.9,362.5,318.2,357.8L256,295.6 193.8,357.8C189.1,362.5,181.5,362.5,176.8,357.8L154.2,335.2C149.5,330.5,149.5,322.9,154.2,318.2L216.4,256 154.2,193.8C149.5,189.1,149.5,181.5,154.2,176.8L176.8,154.2C181.5,149.5,189.1,149.5,193.8,154.2L256,216.4 318.2,154.2C322.9,149.5,330.5,149.5,335.2,154.2L357.8,176.8C362.5,181.5,362.5,189.1,357.8,193.8z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="FileImportIcon" x:Shared="False">
+            <Canvas Width="384" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M224,136L224,0 24,0C10.7,0,0,10.7,0,24L0,488C0,501.3,10.7,512,24,512L360,512C373.3,512,384,501.3,384,488L384,160 248,160C234.8,160,224,149.2,224,136z M289.18,352.01L224,352.01 224,432.01C224,440.85,216.84,448.01,208,448.01L176,448.01C167.16,448.01,160,440.85,160,432.01L160,352.01 94.82,352.01C80.54,352.01,73.41,334.72,83.55,324.65L179.97,228.95C186.62,222.34,197.36,222.34,204.01,228.95L300.43,324.65C310.58,334.72,303.46,352.01,289.18,352.01z M377,105L279.1,7C274.6,2.5,268.5,0,262.1,0L256,0 256,128 384,128 384,121.9C384,115.6,381.5,109.5,377,105z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="FileDownload" x:Shared="False">
+            <Canvas Width="384" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M224,136L224,0 24,0C10.7,0,0,10.7,0,24L0,488C0,501.3,10.7,512,24,512L360,512C373.3,512,384,501.3,384,488L384,160 248,160C234.8,160,224,149.2,224,136z M300.45,347.36L204.03,443.06C197.38,449.67,186.64,449.67,179.99,443.06L83.57,347.36C73.42,337.29,80.54,320,94.82,320L160,320 160,240C160,231.16,167.16,224,176,224L208,224C216.84,224,224,231.16,224,240L224,320 289.18,320C303.46,320,310.58,337.29,300.45,347.36z M377,105L279.1,7C274.6,2.5,268.5,0,262.1,0L256,0 256,128 384,128 384,121.9C384,115.6,381.5,109.5,377,105z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="OpenFolder" x:Shared="False">
+            <Canvas Width="576" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M572.694,292.093L500.27,416.248A63.997,63.997,0,0,1,444.989,448L45.025,448C26.502,448,14.961,427.907,24.294,411.907L96.718,287.752A64,64,0,0,1,152,256L551.964,256C570.487,256,582.028,276.093,572.694,292.093z M152,224L480,224 480,176C480,149.49,458.51,128,432,128L272,128 208,64 48,64C21.49,64,0,85.49,0,112L0,390.046 69.077,271.628C86.214,242.25,117.989,224,152,224z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="DSDownload" x:Shared="False">
+            <Canvas Width="460.088" Height="460.088">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}">
+                    <Path.Data>
+                        <PathGeometry Figures="M25.555,139.872h257.526V88.761H25.555C11.442,88.761,0,100.203,0,114.316C0,128.429,11.442,139.872,25.555,139.872z M25.555,242.429h257.526v-51.111H25.555C11.442,191.318,0,202.76,0,216.874C0,230.988,11.442,242.429,25.555,242.429z M25.555,293.874v0.001C11.442,293.875,0,305.316,0,319.43s11.442,25.555,25.555,25.555h178.91     c-2.021-6.224-3.088-12.789-3.088-19.523c0-11.277,2.957-22.094,8.48-31.588H25.555z M450.623,302.611c-12.62-12.621-33.083-12.621-45.704,0l-26.535,26.535V52.926c0-17.849-14.469-32.317-32.318-32.317     s-32.318,14.469-32.318,32.317v276.22l-26.535-26.535c-12.621-12.62-33.083-12.621-45.704,0     c-12.621,12.621-12.621,33.083,0,45.704l81.7,81.699c12.596,12.6,33.084,12.643,45.714,0l81.7-81.699     C463.243,335.694,463.244,315.232,450.623,302.611z" />
+                    </Path.Data>
+                </Path>
+            </Canvas>
+        </Viewbox>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <ProgressBar Value="{Binding ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
+                
+                <Button IsEnabled="{Binding ExportButtonsAreActive}" Visibility="{Binding ExportDSButtonVisibility}" Command="{Binding SaveDSList}" Content="{StaticResource DSDownload}" ToolTip="Save DS list" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                
+                <Button Visibility="{Binding ExportCancelButtonVisibility}" Command="{Binding CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+
+                <Button IsEnabled="{Binding ExportButtonsAreActive}" Visibility="{Binding ExportXMLButtonVisibility}" Command="{Binding SaveXML}" Content="{StaticResource FileDownload}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+            </Grid>
+
+            <Grid>
+                <TextBlock Text="Placeholder" Visibility="Hidden" FontSize="11"/>
+                <TextBlock Text="{Binding ExportMessage}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Top"/>
+            </Grid>
+        </StackPanel>
+
+        <Grid IsEnabled="{Binding InputsAreActive}" Margin="0,10,0,0" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="100" Width="2*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition MinWidth="100" Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" FlowDirection="RightToLeft">
+                <StackPanel FlowDirection="LeftToRight" Margin="5,0,10,0">
+
+                    <StackPanel>
+                        <TextBlock Text="Path to EBOM report: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox x:Name="EbomReportPathTextBox" Text="{Binding EBOMReportPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True"/>
+                            <Button x:Name="EbomReportPathButton" Grid.Column="1" Command="{Binding BrowseEBOMReport}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+
+                        </Grid>
+
+                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding EBOMReportReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
+
+                        <TextBlock Text="{Binding EBOMReportReadMessage}" TextWrapping="Wrap" FontSize="11"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,5,0,0">
+                        <TextBlock Text="Program: *"/>
+                        
+                        <Grid Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}">
+                            <TextBox TextWrapping="NoWrap" Text="{Binding Program, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,5,0,0">
+                        <TextBlock Text="Path to LDI folder: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Text="{Binding LDIFolderPath}" VerticalAlignment="Center" IsReadOnly="True"/>
+                            <Button Grid.Column="1" Command="{Binding BrowseLDIFolder}" Content="{StaticResource OpenFolder}" ToolTip="Select LDI folder" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,5,0,0">
+                        <TextBlock Text="Path to DS list:" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox x:Name="ExistingDataPathTextBox" Text="{Binding ExistingDataPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="1,1,0,1" SnapsToDevicePixels="True"/>
+
+                            <Border BorderThickness="0,1,1,1" BorderBrush="{Binding ElementName=ExistingDataPathTextBox, Path=BorderBrush}" Grid.Column="1" Height="{Binding ElementName=ExistingDataPathTextBox, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Self}, Path=Height}" VerticalAlignment="Center" SnapsToDevicePixels="True">
+                                <Button Visibility="{Binding ClearExistingDataButtonVisibility}" BorderThickness="0" Command="{Binding ClearExistingData}" Content="{StaticResource Clear}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="{x:Null}"/>
+                            </Border>
+
+                            <Button Grid.Column="2" Command="{Binding BrowseExistingData}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+
+                        </Grid>
+
+                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ExistingDataReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
+
+                        <TextBlock Text="{Binding ExistingDataReadMessage}" TextWrapping="Wrap" FontSize="11"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
+            
+            <TreeView ItemsSource="{Binding RootItems}" Grid.Column="2" BorderThickness="0" Margin="5,0,10,0">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding ChildrenOrdered}">
+                        <TextBlock Text="{Binding Title}" Background="{Binding BackgroundColour}"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Grid>
+    </Grid>
+</Window>
