@@ -9,8 +9,6 @@
         public string Name { get; set; }
 
         public string CPSC { get; set; }
-        
-        //public Item.ItemType Type { get; set; }
 
         public string ExternalId { get; set; }
 

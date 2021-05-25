@@ -106,7 +106,6 @@ namespace EBOM_Macro
 
             var programObservable = this.WhenAnyValue(x => x.Program)
                 .Throttle(TimeSpan.FromMilliseconds(200))
-                //.Where(p => !string.IsNullOrWhiteSpace(p))
                 .Select(p => p?.Trim().ToUpper() ?? "")
                 .DistinctUntilChanged();
 

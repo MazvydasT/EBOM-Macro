@@ -8,11 +8,8 @@ namespace EBOM_Macro
     {
         public static double Clamp(this double value, double min, double max) => Math.Min(Math.Max(value, min), max);
 
-        //public static Vector3D GetTimsEulerZYX(this Matrix3D matrix) => new Vector3D(Math.Atan2(matrix.M32, matrix.M33), -Math.Asin(matrix.M31), Math.Atan2(matrix.M21, matrix.M11));
-
-
-        // https://github.com/mrdoob/three.js/blob/master/src/math/Euler.js#L104
         
+        // https://github.com/mrdoob/three.js/blob/master/src/math/Euler.js#L104
         public static Vector3D GetEulerZYX(this Matrix3D matrix)
         {
             var m31 = matrix.M31;
@@ -34,28 +31,6 @@ namespace EBOM_Macro
 
             return new Vector3D(x, y, z);
         }
-
-        /*public static Vector3D GetEulerXYZ(this Matrix3D matrix)
-        {
-            var m13 = matrix.M13;
-
-            double x, z;
-            var y = Math.Asin(m13.Clamp(-1.0, 1.0));
-
-            if (Math.Abs(m13) < 0.9999999)
-            {
-                x = Math.Atan2(-matrix.M23, matrix.M33);
-                z = Math.Atan2(-matrix.M12, matrix.M11);
-            }
-
-            else
-            {
-                x = Math.Atan2(matrix.M32, matrix.M22);
-                z = 0;
-            }
-
-            return new Vector3D(x, y, z);
-        }*/
 
         public static Vector3D GetTranslation(this Matrix3D matrix) => new Vector3D(matrix.M14, matrix.M24, matrix.M34);
 

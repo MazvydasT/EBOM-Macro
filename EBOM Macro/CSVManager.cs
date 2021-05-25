@@ -24,15 +24,15 @@ namespace EBOM_Macro
             Level3
         };
 
-        public static async Task<List<Item>> GetItems(string pathToEBOMReport, /*string program,*/ IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        public static async Task<List<Item>> GetItems(string pathToEBOMReport, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(pathToEBOMReport, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return await GetItems(fileStream, /*program,*/ progress, cancellationToken);
+                return await GetItems(fileStream, progress, cancellationToken);
             }
         }
 
-        private static async Task<List<Item>> GetItems(Stream ebomReportStream, /*string program,*/ IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task<List<Item>> GetItems(Stream ebomReportStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -121,15 +121,6 @@ namespace EBOM_Macro
                     }
                 }
 
-                /*var duplicateDSs = items.Where(i => i.IsDS).GroupBy(i => i.GetHash()).Where(g => g.Count() > 1).OrderByDescending(g => g.Count()).ToArray();//.SelectMany(g => g.Skip(1)).ToArray();
-
-                foreach(var dss in duplicateDSs)
-                {
-                    var ds = dss.First();
-
-                    Debug.WriteLine($"{ds}\t{dss.Count()}");
-                }*/
-
                 var itemsCount = items.Count;
                 var progressSoFar = progressValue;
 
@@ -180,12 +171,7 @@ namespace EBOM_Macro
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                         }
-
-                        /*var ds = item.GetDS();
-                        var dsNumberAndRev = $"{ds.Number}_{ds.Version}";
-
-                        item.ExternalId = $"{item.PhysicalId}" + (item.IsDS ? "" : $"_{item.Parent?.PhysicalId}") + $"_{dsNumberAndRev}_" + (item.Children.Count > 0 ? "c" : "i");*/
-
+                        
                         var item = items[index];
 
                         var physicalIds = string.Join("_", item.GetDSToSelfPath().Select(i => i.PhysicalId));
@@ -210,53 +196,6 @@ namespace EBOM_Macro
                 //#####################
                 // END Set External Ids
                 //#####################
-
-                /*var level3PHs = CreatePHsForCPSCLevel(items.Where(i => i.Parent == null), program, CPSCLevels.Level3);
-                var level2PHs = CreatePHsForCPSCLevel(level3PHs, program, CPSCLevels.Level2);
-                var level1PHs = CreatePHsForCPSCLevel(level2PHs, program, CPSCLevels.Level1);
-
-                var root = new Item
-                {
-                    Number = $"PRG-{program}",
-                    Name = $"PROGRAM NODE FOR {program}"
-                };
-                root.Children.AddRange(level1PHs.OrderBy(i => i.Number).Select(i =>
-                {
-                    i.Parent = root;
-
-                    return i;
-                }));
-
-                var placeHolders = level1PHs.Concat(level2PHs).Concat(level3PHs).Prepend(root)
-                    .Select(i =>
-                    {
-                        i.ExternalId = $"{i.Number}_c";
-
-                        return i;
-                    });
-
-                items.InsertRange(0, placeHolders);*/
-
-                /*var asd = items.Where(i => i.Children.Count > 0).GroupBy(i => i.ExternalId).Where(g => g.Count() > 1).ToDictionary(
-                    g => g.Key,
-                    g => g.GroupBy(i => i.GetAbsoluteTransformation()).Where(gr => gr.Count() > 1).ToDictionary(gr => gr.Key, gr => gr.ToArray())
-                ).Where(p => p.Value.Count > 1).ToDictionary(p => p.Key, p => p.Value);
-
-                foreach(var extIdP in asd)
-                {
-                    foreach(var xformMatP in extIdP.Value)
-                    {
-                        Debug.WriteLine($"{extIdP.Key}\t{string.Join("/", xformMatP.Value.First().DSToSelfPath().Select(i => i.PhysicalId))}\t{xformMatP.Key}");
-                    }
-                }*/
-
-                /*var instances = items.Where(i => i.Children.Count == 0)
-                    .Where(i => i.GetDS() != null)
-                    .GroupBy(i => $"{i.Number} ({i.GetDS().Number}/{i.GetDS().Version})")
-                    .Where(g => g.Count() > 1)
-                    .Select(g => new { Number = g.Key, Values = g.GroupBy(i => $"{i.Prefix}-{i.Base}-{i.Suffix}/{i.Version} - {i.Name} ({i.Owner})").ToList() })
-                    .Where(p => p.Values.Count > 1)
-                    .ToDictionary(p => p.Number, p => p.Values.Select(g => g.Key).ToList());*/
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -395,8 +334,6 @@ namespace EBOM_Macro
 
                                 State = Item.ItemState.Redundant
                             };
-
-                            //item.MatchingItem = item;
 
                             items[record.ExternalId] = item;
 
