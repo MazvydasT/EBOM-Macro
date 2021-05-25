@@ -259,7 +259,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AppState.cs" />
     <Compile Include="ConfigurationState.cs" />
     <Compile Include="CSVManager.cs" />
     <Compile Include="DSListRecord.cs" />
