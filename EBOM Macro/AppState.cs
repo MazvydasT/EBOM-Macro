@@ -8,15 +8,16 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using static EBOM_Macro.Item;
 
 namespace EBOM_Macro
 {
-    public sealed class ConfigurationState : ReactiveObject
+    public sealed class AppState : ReactiveObject
     {
-        public static ConfigurationState State { get; } = new ConfigurationState();
+        public static AppState State { get; } = new AppState();
 
 
         [Reactive] public string EBOMReportPath { get; set; }
@@ -57,7 +58,7 @@ namespace EBOM_Macro
         public ReactiveCommand<Unit, Unit> SaveXML { get; }
         public ReactiveCommand<Unit, Unit> CancelExport { get; }
 
-        private ConfigurationState()
+        private AppState()
         {
             var itemsObservable = this.WhenAnyValue(x => x.EBOMReportPath)
                 .Where(path => !string.IsNullOrWhiteSpace(path))
@@ -163,74 +164,109 @@ namespace EBOM_Macro
             var allItemsObservable = Observable.CombineLatest(phsObservable, itemsObservable, (data, items) => new { Items = data.PHs.Concat(items), Count = data.Count + items.Count })
                 .Replay(1).RefCount();
 
-            Observable.CombineLatest(allItemsObservable, existingItemsObservable, (allItems, existingItems) =>
+            var stateSetItemsObservable = Observable.CombineLatest(allItemsObservable, existingItemsObservable, (allItems, existingItems) =>
             {
-                var processedWithHierarchy = new HashSet<Item>(allItems.Count);
-
-                foreach (var item in allItems.Items)
+                return Observable.FromAsync(token => Task.Factory.StartNew((cancellationToken) =>
                 {
-                    if (processedWithHierarchy.Contains(item)) continue;
-
-                    item.State = ItemState.New;
-                    item.RedundantChildren = null;
-
-                    if (existingItems.TryGetValue(item.ExternalId, out Item matchingItem))
+                    if (existingItems.Count == 0)
                     {
-                        if(item.Type == ItemType.DS && matchingItem.Children.Count == 0)
+                        foreach(var item in allItems.Items)
                         {
-                            ItemState state;
-
-                            if (item.GetHash() != matchingItem.GetHash()) state = ItemState.ModifiedWithHierarchy;
-                            else state = ItemState.UnchangedWithHierarchy;
-
-                            processedWithHierarchy.UnionWith(item.GetSelfAndDescendants().Select(i =>
+                            if(item.Parent == null)
                             {
-                                i.State = state;
+                                item.IsChecked = true;
+                            }
 
-                                return i;
-                            }));
-
-                            continue;
+                            item.State = ItemState.New;
+                            item.RedundantChildren = null;
                         }
-
-                        if (item.CombinedAttributes != matchingItem.CombinedAttributes)
-                        {
-                            item.State = ItemState.Modified;
-                            continue;
-                        }
-
-                        var childrenHashSet = item.Children.Select(i => i.ExternalId).ToHashSet();
-                        var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.ExternalId)).ToList();
-
-                        if (redundantItems.Count > 0)
-                        {
-                            item.State = ItemState.Modified;
-                            item.RedundantChildren = redundantItems;
-                            continue;
-                        }
-
-                        item.State = ItemState.Unchanged;
                     }
-                }
 
-                var unchangedItems = allItems.Items.Where(i => i.State == ItemState.Unchanged);
-
-                foreach (var unchangedItem in unchangedItems)
-                {
-                    if(unchangedItem.GetSelfAndDescendants().Where(i => i.State == ItemState.Modified || i.State == ItemState.ModifiedWithHierarchy).Count() > 0)
+                    else
                     {
-                        unchangedItem.State = ItemState.HasModifiedDescendants;
-                    }
-                }
+                        var processedWithHierarchy = new HashSet<Item>(allItems.Count);
 
-                return allItems;
-            }).Subscribe();
+                        foreach (var item in allItems.Items)
+                        {
+                            ((CancellationToken)cancellationToken).ThrowIfCancellationRequested();
+
+                            item.IsChecked = false;
+                            item.RedundantChildren = null;
+
+                            if (processedWithHierarchy.Contains(item)) continue;
+
+                            item.State = ItemState.New;
+
+                            if (existingItems.TryGetValue(item.ExternalId, out Item matchingItem))
+                            {
+                                if (item.Type == ItemType.DS && matchingItem.Children.Count == 0)
+                                {
+                                    ItemState state;
+
+                                    if (item.GetHash() != matchingItem.GetHash()) state = ItemState.Modified;
+                                    else state = ItemState.Unchanged;
+
+                                    processedWithHierarchy.UnionWith(item.GetSelfAndDescendants().Select(i =>
+                                    {
+                                        i.State = state;
+                                        i.RedundantChildren = null;
+
+                                        return i;
+                                    }));
+                                }
+
+                                else if (item.CombinedAttributes != matchingItem.CombinedAttributes)
+                                {
+                                    item.State = ItemState.Modified;
+                                }
+
+                                else
+                                {
+                                    var childrenHashSet = item.Children.Select(i => i.ExternalId).ToHashSet();
+                                    var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.ExternalId)).ToList();
+
+                                    if (redundantItems.Count > 0)
+                                    {
+                                        item.State = ItemState.Modified;
+                                        item.RedundantChildren = redundantItems;
+                                    }
+
+                                    else
+                                    {
+                                        item.State = ItemState.Unchanged;
+                                    }
+                                }
+                            }
+                        }
+
+                        foreach (var item in allItems.Items)
+                        {
+                            ((CancellationToken)cancellationToken).ThrowIfCancellationRequested();
+
+                            if (item.State == ItemState.Unchanged)
+                            {
+                                if (item.GetSelfAndDescendants().Where(i => i.State == ItemState.Modified).Count() > 0)
+                                {
+                                    item.State = ItemState.HasModifiedDescendants;
+                                }
+                            }
+
+                            if (item.State == ItemState.New || item.State == ItemState.Modified)
+                            {
+                                item.SelectWithoutDescendants.Execute(null);
+                            }
+                        }
+                    }
+
+                    return allItems;
+                }, token, token));//.StartWith(new { Items = Enumerable.Empty<Item>(), Count = 0 });
+            }).Switch()/*.Replay(1).RefCount()*/.Subscribe();
 
             this.WhenAnyValue(x => x.ExistingDataPath)
                 .Select(v => string.IsNullOrWhiteSpace(v) ? Visibility.Collapsed : Visibility.Visible)
                 .ToPropertyEx(this, x => x.ClearExistingDataButtonVisibility);
 
-            phsObservable.Select(phs => phs.PHs.Any() ? rootObservable : Observable.Return(Enumerable.Empty<Item>()))
+            phsObservable.Select(data => data.Count > 0 ? rootObservable : Observable.Return(Enumerable.Empty<Item>()))
                 .DistinctUntilChanged()
                 .Switch()
                 .ToPropertyEx(this, x => x.RootItems);
@@ -242,7 +278,7 @@ namespace EBOM_Macro
                 .Replay(1).RefCount();
 
             Observable.CombineLatest(
-                phsObservable.Select(phs => phs.PHs.Any()),
+                phsObservable.Select(data => data.Count > 0),
                 exportIsRunningObservable,
                 this.WhenAnyValue(x => x.LDIFolderPath).Select(v => Directory.Exists(v)),
                 

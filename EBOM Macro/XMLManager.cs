@@ -45,7 +45,7 @@ namespace EBOM_Macro
                 var filePathTracker = new Dictionary<string, string>();
 
                 long progressValue = 0;
-                var i = 0;
+                var itemIndex = 0;
 
                 xmlWriter.WriteStartDocument(true);
                 xmlWriter.WriteStartElement("Data");
@@ -55,11 +55,12 @@ namespace EBOM_Macro
                 {
                     foreach (var item in items)
                     {
-                        ++i;
+                        ++itemIndex;
 
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (item.State == Item.ItemState.Unchanged || item.State == Item.ItemState.UnchangedWithHierarchy) continue;
+                        //if (item.State == Item.ItemState.Unchanged /*|| item.State == Item.ItemState.UnchangedWithHierarchy*/) continue;
+                        if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
 
                         var childCount = item.Children.Count;
 
@@ -278,7 +279,7 @@ namespace EBOM_Macro
                             }
                         }
 
-                        var newProgressValue = i * PROGRESS_MAX / itemCount;
+                        var newProgressValue = itemIndex * PROGRESS_MAX / itemCount;
 
                         if (newProgressValue > progressValue)
                         {

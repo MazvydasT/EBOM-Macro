@@ -259,10 +259,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ConfigurationState.cs" />
+    <Compile Include="CSVManager2.cs" />
+    <Compile Include="DSListRecord2.cs" />
+    <Compile Include="InputState.cs" />
+    <Compile Include="AppState.cs" />
+    <Compile Include="Command.cs" />
     <Compile Include="CSVManager.cs" />
     <Compile Include="DSListRecord.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="Item2.cs" />
+    <Compile Include="ProgressState.cs" />
     <Compile Include="ProgressUpdate.cs" />
     <Compile Include="EBOMReportRecord.cs" />
     <Compile Include="Extensions.cs" />

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Forms;
-using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using System.Windows;
 
 namespace EBOM_Macro
 {
@@ -13,6 +10,8 @@ namespace EBOM_Macro
         public MainWindow()
         {
             InitializeComponent();
+
+            var state = InputState.State;
         }
     }
 }

@@ -42,9 +42,8 @@ namespace EBOM_Macro
             yield return vector.Z;
         }
 
-        public static IEnumerable<T> Yield<T>(this T item)
-        {
-            yield return item;
-        }
+        public static IEnumerable<T> Yield<T>(this T item) { yield return item; }
+
+        public static double NextDouble(this Random random, double min, double max) => random.NextDouble() * (max - min) + min;
     }
 }

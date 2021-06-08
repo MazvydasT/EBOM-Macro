@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:EBOM_Macro"
         mc:Ignorable="d"
         Title="Macro"
-        DataContext="{x:Static local:ConfigurationState.State}"
+        DataContext="{x:Static local:AppState.State}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
     <Window.Resources>
@@ -15,6 +15,12 @@
         <Style TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
+
+        <Viewbox x:Key="Target" x:Shared="False">
+            <Canvas Width="496" Height="512">
+                <Path Fill="Black" Data="M248,8C111.03,8 0,119.03 0,256 0,392.97 111.03,504 248,504 384.97,504 496,392.97 496,256 496,119.03 384.97,8 248,8z M248,440C146.31,440 64,357.71 64,256 64,154.31 146.29,72 248,72 349.69,72 432,154.29 432,256 432,357.69 349.71,440 248,440z M248,128C177.31,128 120,185.31 120,256 120,326.69 177.31,384 248,384 318.69,384 376,326.69 376,256 376,185.31 318.69,128 248,128z M248,320C212.71,320 184,291.29 184,256 184,220.71 212.71,192 248,192 283.29,192 312,220.71 312,256 312,291.29 283.29,320 248,320z"/>
+            </Canvas>
+        </Viewbox>
 
         <Viewbox x:Key="Clear" x:Shared="False">
             <Canvas Width="352" Height="512">
@@ -167,11 +173,37 @@
             </ScrollViewer>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
-            
+
             <TreeView ItemsSource="{Binding RootItems}" Grid.Column="2" BorderThickness="0" Margin="5,0,10,0">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding ChildrenOrdered}">
-                        <TextBlock Text="{Binding Title}" Background="{Binding BackgroundColour}"/>
+                        <Grid Background="{Binding BackgroundColour}">
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Height="24" Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            
+                            <Grid Margin="2,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <CheckBox Visibility="{Binding CheckBoxVisibility}" IsChecked="{Binding IsChecked}" VerticalAlignment="Center"/>
+
+                                <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                                    <TextBlock Text="{Binding Title}"/>
+                                    <Grid Visibility="{Binding StrikethroughVisibility}" Height="1" Background="#A5000000" VerticalAlignment="Center" Margin="{Binding StrikethroughOffset}" RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <TransformGroup>
+                                                <RotateTransform Angle="{Binding StrikethroughAngle}"/>
+                                            </TransformGroup>
+                                        </Grid.RenderTransform>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>

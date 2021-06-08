@@ -1,21 +1,17 @@
 ﻿namespace EBOM_Macro
 {
-    public struct DSListRecord
+    public struct DSListRecord2
     {
-        public string PartNumber { get; set; }
+        public string Number { get; set; }
 
         public double Version { get; set; }
 
         public string Name { get; set; }
 
-        public string CPSC { get; set; }
+        public int Level { get; set; }
 
         public string ExternalId { get; set; }
 
-        public string ParentExternalId { get; set; }
-
         public string Hash { get; set; }
-
-        
     }
 }
