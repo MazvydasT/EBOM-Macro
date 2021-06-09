@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro
 {
-    public static class Extensions
+    public static class MatrixExtensions
     {
-        public static double Clamp(this double value, double min, double max) => Math.Min(Math.Max(value, min), max);
-
-        
         // https://github.com/mrdoob/three.js/blob/master/src/math/Euler.js#L104
         public static Vector3D GetEulerZYX(this Matrix3D matrix)
         {
@@ -33,17 +29,5 @@ namespace EBOM_Macro
         }
 
         public static Vector3D GetTranslation(this Matrix3D matrix) => new Vector3D(matrix.M14, matrix.M24, matrix.M34);
-
-        public static double Item(this Vector3D vector, int index) => index <= 0 ? vector.X : (index == 1 ? vector.Y : vector.Z);
-        public static IEnumerable<double> Items(this Vector3D vector)
-        {
-            yield return vector.X;
-            yield return vector.Y;
-            yield return vector.Z;
-        }
-
-        public static IEnumerable<T> Yield<T>(this T item) { yield return item; }
-
-        public static double NextDouble(this Random random, double min, double max) => random.NextDouble() * (max - min) + min;
     }
 }

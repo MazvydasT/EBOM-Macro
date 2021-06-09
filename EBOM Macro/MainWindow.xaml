@@ -122,13 +122,13 @@
                         <TextBlock Text="{Binding EBOMReportReadMessage}" TextWrapping="Wrap" FontSize="11"/>
                     </StackPanel>
 
-                    <StackPanel Margin="0,5,0,0">
+                    <!--<StackPanel Margin="0,5,0,0">
                         <TextBlock Text="Program: *"/>
                         
                         <Grid Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}">
                             <TextBox TextWrapping="NoWrap" Text="{Binding Program, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                         </Grid>
-                    </StackPanel>
+                    </StackPanel>-->
 
                     <StackPanel Margin="0,5,0,0">
                         <TextBlock Text="Path to LDI folder: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
@@ -167,6 +167,12 @@
                         <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ExistingDataReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
 
                         <TextBlock Text="{Binding ExistingDataReadMessage}" TextWrapping="Wrap" FontSize="11"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,5,0,0">
+                        <TextBlock Text="External Id prefix:"/>
+
+                        <TextBox Text="{Binding ExternalIdPrefix, UpdateSourceTrigger=PropertyChanged}" Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" TextWrapping="NoWrap" HorizontalAlignment="Left" />
                     </StackPanel>
 
                 </StackPanel>

@@ -142,9 +142,9 @@ namespace EBOM_Macro
                 {
                     var blank = new Dictionary<string, Item>(0);
 
-                    if (string.IsNullOrWhiteSpace(path)) return Observable.Return(blank);
-
-                    return Observable.FromAsync(token => CSVManager.DSListToItems(path, new Progress<ProgressUpdate>(progress =>
+                    return string.IsNullOrWhiteSpace(path)
+                        ? Observable.Return(blank)
+                        : Observable.FromAsync(token => CSVManager.DSListToItems(path, new Progress<ProgressUpdate>(progress =>
                     {
                         ExistingDataReadProgress = (double)progress.Value / progress.Max;
                         ExistingDataReadMessage = progress.Message;
@@ -201,10 +201,7 @@ namespace EBOM_Macro
                             {
                                 if (item.Type == ItemType.DS && matchingItem.Children.Count == 0)
                                 {
-                                    ItemState state;
-
-                                    if (item.GetHash() != matchingItem.GetHash()) state = ItemState.Modified;
-                                    else state = ItemState.Unchanged;
+                                    var state = item.GetHash() != matchingItem.GetHash() ? ItemState.Modified : ItemState.Unchanged;
 
                                     processedWithHierarchy.UnionWith(item.GetSelfAndDescendants().Select(i =>
                                     {
@@ -223,7 +220,10 @@ namespace EBOM_Macro
                                 else
                                 {
                                     var childrenHashSet = item.Children.Select(i => i.ExternalId).ToHashSet();
+                                    var matchingItemChildrenHashSet = matchingItem.Children.Select(i => i.ExternalId).ToHashSet();
+                                    
                                     var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.ExternalId)).ToList();
+                                    var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.ExternalId)).Count();
 
                                     if (redundantItems.Count > 0)
                                     {
@@ -233,7 +233,7 @@ namespace EBOM_Macro
 
                                     else
                                     {
-                                        item.State = ItemState.Unchanged;
+                                        item.State = newItemsCount > 0 ? ItemState.Modified : ItemState.Unchanged;
                                     }
                                 }
                             }

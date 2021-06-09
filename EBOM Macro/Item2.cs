@@ -1,16 +1,17 @@
-﻿using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro
 {
     public class Item2
     {
+        public enum ItemType
+        {
+            DS,
+            PH,
+            PartAsy
+        }
+
         public string Number { get; set; }
         public string Name { get; set; }
         public double Version { get; set; }
@@ -28,7 +29,9 @@ namespace EBOM_Macro
         public Item2 Parent { get; set; }
         public List<Item2> Children { get; } = new List<Item2>();
 
-        public string ExternalId { get; set; }
-        public string Hash { get; set; }
+        //public string ExternalId { get; set; }
+        //public string Hash { get; set; }
+
+        public ItemType Type { get; set; }
     }
 }

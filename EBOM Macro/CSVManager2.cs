@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +13,12 @@ namespace EBOM_Macro
 {
     public static class CSVManager2
     {
-        private const long PROGRESS_MAX = 200;
-        private static readonly Encoding ENCODING = Encoding.GetEncoding("Windows-1252");
+        const long PROGRESS_MAX = 200;
+        static readonly Encoding ENCODING = Encoding.GetEncoding("Windows-1252");
 
-        public static async Task<(Item2 Root, IReadOnlyCollection<Item2> PHs, IReadOnlyCollection<Item2> Items)> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<Items2Container> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(pathToEBOMReport) || !File.Exists(pathToEBOMReport)) return await Task.FromResult<(Item2 Root, IReadOnlyCollection<Item2> PHs, IReadOnlyCollection<Item2> Items)>(default);
+            if (string.IsNullOrWhiteSpace(pathToEBOMReport) || !File.Exists(pathToEBOMReport)) return default;
 
             using (var fileStream = new FileStream(pathToEBOMReport, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -27,7 +26,7 @@ namespace EBOM_Macro
             }
         }
 
-        static async Task<(Item2 Root, IReadOnlyCollection<Item2> PHs, IReadOnlyCollection<Item2> Items)> ReadEBOMReport(Stream ebomReportStream, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        static async Task<Items2Container> ReadEBOMReport(Stream ebomReportStream, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             return await Task.Factory.StartNew(() =>
             {
@@ -109,7 +108,9 @@ namespace EBOM_Macro
 
                                 PhysicalId = record.PhysicalId,
 
-                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item2 parent) ? parent : null)
+                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item2 parent) ? parent : null),
+
+                                Type = level == 0 ? Item2.ItemType.DS : Item2.ItemType.PartAsy
                             };
 
                             item.Parent?.Children.Add(item);
@@ -131,7 +132,8 @@ namespace EBOM_Macro
                                     level3Placeholder = new Item2
                                     {
                                         Number = $"PH-{program}-{cpscLevel3Number}",
-                                        Name = cpscLevel3Name
+                                        Name = cpscLevel3Name,
+                                        Type = Item2.ItemType.PH
                                     };
 
                                     placeholderLookup.Add(cpscLevel3Number, level3Placeholder);
@@ -147,7 +149,8 @@ namespace EBOM_Macro
                                         level2Placeholder = new Item2
                                         {
                                             Number = $"PH-{program}-{cpscLevel2Number}",
-                                            Name = cpscLevel2Name
+                                            Name = cpscLevel2Name,
+                                            Type = Item2.ItemType.PH
                                         };
 
                                         placeholderLookup.Add(cpscLevel2Number, level2Placeholder);
@@ -163,7 +166,8 @@ namespace EBOM_Macro
                                             level1Placeholder = new Item2
                                             {
                                                 Number = $"PH-{program}-{cpscLevel1Number}",
-                                                Name = cpscLevel1Name
+                                                Name = cpscLevel1Name,
+                                                Type = Item2.ItemType.PH
                                             };
 
                                             placeholderLookup.Add(cpscLevel1Number, level1Placeholder);
@@ -173,7 +177,8 @@ namespace EBOM_Macro
                                                 root = new Item2
                                                 {
                                                     Number = vehicleLineTitle,
-                                                    Name = vehicleLineName
+                                                    Name = vehicleLineName,
+                                                    Type = Item2.ItemType.PH
                                                 };
 
                                                 //items.Add(root);
@@ -222,14 +227,14 @@ namespace EBOM_Macro
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Done" });
 
-                    return (root, placeholderLookup.Values, items.AsReadOnly());
+                    return new Items2Container { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly() };
                 }
-            });
+            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static async Task<Dictionary<string, Item2>> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<IReadOnlyDictionary<string, Item2>> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(dsListPath) || !File.Exists(dsListPath)) return await Task.FromResult<Dictionary<string, Item2>>(null);
+            if (string.IsNullOrWhiteSpace(dsListPath) || !File.Exists(dsListPath))  return default;
 
             using (var fileStream = new FileStream(dsListPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -237,7 +242,7 @@ namespace EBOM_Macro
             }
         }
 
-        static async Task<Dictionary<string, Item2>> ReadDSList(Stream dsListStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task<IReadOnlyDictionary<string, Item2>> ReadDSList(Stream dsListStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             return await Task.Factory.StartNew(() =>
             {
@@ -267,7 +272,7 @@ namespace EBOM_Macro
                                 Version = record.Version,
                                 Name = record.Name,
 
-                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item2 parent) ? parent : null)
+                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out var parent) ? parent : null)
                             };
 
                             item.Parent?.Children.Add(item);
@@ -318,7 +323,7 @@ namespace EBOM_Macro
             }
         }
 
-        static async Task WriteDSList(Stream stream, (Item2 Root, IReadOnlyCollection<Item2> PHs) items, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        private static async Task WriteDSList(Stream stream, (Item2 Root, IReadOnlyCollection<Item2> PHs) items, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             await Task.Factory.StartNew(() =>
             {
