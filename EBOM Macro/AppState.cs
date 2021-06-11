@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using EBOM_Macro.Extensions;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;

@@ -4,9 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EBOM_Macro"
+        xmlns:converters="clr-namespace:EBOM_Macro.Converters"
+        xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
+        xmlns:states="clr-namespace:EBOM_Macro.States"
         mc:Ignorable="d"
         Title="Macro"
-        DataContext="{x:Static local:AppState.State}"
+        DataContext="{x:Static states:InputState.State}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
     <Window.Resources>
@@ -15,6 +18,20 @@
         <Style TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
+
+        <DataTemplate x:Key="BlankDataTemplate"/>
+
+        <DataTemplate x:Key="StrikethroughTemplate">
+            <Grid Margin="{Binding Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <RotateTransform Angle="{Binding Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}"/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+            </Grid>
+        </DataTemplate>
+
+        <templateSelectors:State2StrikethroughTemplateSelector x:Key="State2StrikethroughTemplateSelector" BlankTemplate="{StaticResource BlankDataTemplate}" StrikethroughTemplate="{StaticResource StrikethroughTemplate}"/>
 
         <Viewbox x:Key="Target" x:Shared="False">
             <Canvas Width="496" Height="512">
@@ -78,13 +95,37 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <ProgressBar Value="{Binding ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
-                
-                <Button IsEnabled="{Binding ExportButtonsAreActive}" Visibility="{Binding ExportDSButtonVisibility}" Command="{Binding SaveDSList}" Content="{StaticResource DSDownload}" ToolTip="Save DS list" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                <ProgressBar DataContext="{x:Static states:ProgressState.State}" Value="{Binding ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
+
+                <Button x:Name="ExportDSListButton" Visibility="{Binding ExportDSButtonVisibility}" Command="{Binding SaveDSList}" Content="{StaticResource DSDownload}" ToolTip="Save DS list" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{converters:DSListExportEnabledConverter}">
+                            <Binding Path="Root.IsChecked" FallbackValue="false" Mode="OneWay"/>
+                            
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="EBOMReportReadProgress" Mode="OneWay"/>
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="EBOMReportReadError" Mode="OneWay"/>
+                            
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="ExistingDataReadProgress" Mode="OneWay"/>
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="ExistingDataReadError" Mode="OneWay"/>
+                            
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="ComparisonProgress" Mode="OneWay"/>
+
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="ExportProgress" Mode="OneWay"/>
+                            <Binding Source="{x:Static states:ProgressState.State}" Path="ExportError" Mode="OneWay"/>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
                 
                 <Button Visibility="{Binding ExportCancelButtonVisibility}" Command="{Binding CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
 
-                <Button IsEnabled="{Binding ExportButtonsAreActive}" Visibility="{Binding ExportXMLButtonVisibility}" Command="{Binding SaveXML}" Content="{StaticResource FileDownload}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                <Button Visibility="{Binding ExportXMLButtonVisibility}" Command="{Binding SaveXML}" Content="{StaticResource FileDownload}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{converters:XMLExportEnabledConverter}">
+                            <Binding ElementName="ExportDSListButton" Path="IsEnabled" Mode="OneWay"/>
+                            <Binding Path="LDIFolderPath" Mode="OneWay"/>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
             </Grid>
 
             <Grid>
@@ -113,13 +154,13 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox x:Name="EbomReportPathTextBox" Text="{Binding EBOMReportPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True"/>
-                            <Button x:Name="EbomReportPathButton" Grid.Column="1" Command="{Binding BrowseEBOMReport}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                            <Button x:Name="EbomReportPathButton" Grid.Column="1" Command="{Binding BrowseEBOMReport, Mode=OneTime}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
 
                         </Grid>
+                        
+                        <ProgressBar DataContext="{x:Static states:ProgressState.State}" Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding EBOMReportReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
 
-                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding EBOMReportReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
-
-                        <TextBlock Text="{Binding EBOMReportReadMessage}" TextWrapping="Wrap" FontSize="11"/>
+                        <TextBlock DataContext="{x:Static states:ProgressState.State}" Text="{Binding EBOMReportReadMessage}" TextWrapping="Wrap" FontSize="11"/>
                     </StackPanel>
 
                     <!--<StackPanel Margin="0,5,0,0">
@@ -140,7 +181,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Text="{Binding LDIFolderPath}" VerticalAlignment="Center" IsReadOnly="True"/>
-                            <Button Grid.Column="1" Command="{Binding BrowseLDIFolder}" Content="{StaticResource OpenFolder}" ToolTip="Select LDI folder" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                            <Button Grid.Column="1" Command="{Binding BrowseLDIFolder, Mode=OneTime}" Content="{StaticResource OpenFolder}" ToolTip="Select LDI folder" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
                         </Grid>
                     </StackPanel>
 
@@ -156,23 +197,25 @@
 
                             <TextBox x:Name="ExistingDataPathTextBox" Text="{Binding ExistingDataPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="1,1,0,1" SnapsToDevicePixels="True"/>
 
-                            <Border BorderThickness="0,1,1,1" BorderBrush="{Binding ElementName=ExistingDataPathTextBox, Path=BorderBrush}" Grid.Column="1" Height="{Binding ElementName=ExistingDataPathTextBox, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Self}, Path=Height}" VerticalAlignment="Center" SnapsToDevicePixels="True">
-                                <Button Visibility="{Binding ClearExistingDataButtonVisibility}" BorderThickness="0" Command="{Binding ClearExistingData}" Content="{StaticResource Clear}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="{x:Null}"/>
+                            <Border BorderThickness="0,1,1,1" BorderBrush="{Binding ElementName=ExistingDataPathTextBox, Path=BorderBrush}" Grid.Column="1" Height="{Binding ElementName=ExistingDataPathTextBox, Path=ActualHeight}" Width="Auto" VerticalAlignment="Center" SnapsToDevicePixels="True">
+                                <Button Visibility="{Binding ExistingDataPath, Converter={converters:String2ButtonVisibilityConverter}}" Command="{Binding ClearExistingData, Mode=OneTime}" Content="{StaticResource Clear}" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" BorderThickness="0" VerticalAlignment="Stretch" BorderBrush="{x:Null}"/>
                             </Border>
 
-                            <Button Grid.Column="2" Command="{Binding BrowseExistingData}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                            <Button Grid.Column="2" Command="{Binding BrowseExistingData, Mode=OneTime}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
 
                         </Grid>
 
-                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ExistingDataReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
+                        <ProgressBar DataContext="{x:Static states:ProgressState.State}" Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ExistingDataReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
 
-                        <TextBlock Text="{Binding ExistingDataReadMessage}" TextWrapping="Wrap" FontSize="11"/>
+                        <TextBlock DataContext="{x:Static states:ProgressState.State}" Text="{Binding ExistingDataReadMessage}" TextWrapping="Wrap" FontSize="11"/>
                     </StackPanel>
 
                     <StackPanel Margin="0,5,0,0">
-                        <TextBlock Text="External Id prefix:"/>
+                        <TextBlock Text="ExternalId prefix:"/>
 
-                        <TextBox Text="{Binding ExternalIdPrefix, UpdateSourceTrigger=PropertyChanged}" Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" TextWrapping="NoWrap" HorizontalAlignment="Left" />
+                        <Grid Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}">
+                            <TextBox Text="{Binding ExternalIdPrefix, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" TextWrapping="NoWrap" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Grid>
                     </StackPanel>
 
                 </StackPanel>
@@ -180,15 +223,22 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
 
-            <TreeView ItemsSource="{Binding RootItems}" Grid.Column="2" BorderThickness="0" Margin="5,0,10,0">
+            <TreeView ItemsSource="{Binding Root, Converter={converters:TreeViewItemSourceConverter}, Mode=OneWay}" Grid.Column="2" BorderThickness="0" Margin="5,0,10,0">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding ChildrenOrdered}">
-                        <Grid Background="{Binding BackgroundColour}">
-                            <Grid.ContextMenu>
+                    <HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate.ItemsSource>
+                            <MultiBinding Converter="{converters:ItemChildrenConverter}">
+                                <Binding Path="Children" Mode="OneTime"/>
+                                <Binding Path="RedundantChildren" Mode="OneWay"/>
+                            </MultiBinding>
+                        </HierarchicalDataTemplate.ItemsSource>
+
+                        <Grid Background="{Binding State, Converter={converters:State2ColourConverter}, Mode=OneWay}">
+                            <!--<Grid.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Height="24" Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
                                 </ContextMenu>
-                            </Grid.ContextMenu>
+                            </Grid.ContextMenu>-->
                             
                             <Grid Margin="2,0">
                                 <Grid.ColumnDefinitions>
@@ -196,17 +246,11 @@
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
 
-                                <CheckBox Visibility="{Binding CheckBoxVisibility}" IsChecked="{Binding IsChecked}" VerticalAlignment="Center"/>
+                                <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
 
                                 <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                                    <TextBlock Text="{Binding Title}"/>
-                                    <Grid Visibility="{Binding StrikethroughVisibility}" Height="1" Background="#A5000000" VerticalAlignment="Center" Margin="{Binding StrikethroughOffset}" RenderTransformOrigin="0.5,0.5">
-                                        <Grid.RenderTransform>
-                                            <TransformGroup>
-                                                <RotateTransform Angle="{Binding StrikethroughAngle}"/>
-                                            </TransformGroup>
-                                        </Grid.RenderTransform>
-                                    </Grid>
+                                    <TextBlock Text="{Binding Mode=OneTime}"/>
+                                    <ContentPresenter Content="{Binding State, Mode=OneTime}" ContentTemplateSelector="{StaticResource State2StrikethroughTemplateSelector}"/>
                                 </Grid>
                             </Grid>
                         </Grid>

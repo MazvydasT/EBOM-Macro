@@ -10,8 +10,6 @@ namespace EBOM_Macro
         public MainWindow()
         {
             InitializeComponent();
-
-            var state = InputState.State;
         }
     }
 }

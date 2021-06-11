@@ -1,4 +1,5 @@
-﻿using PropertyChanged;
+﻿using EBOM_Macro.Extensions;
+using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

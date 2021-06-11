@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EBOM_Macro
+namespace EBOM_Macro.Extensions
 {
     public static class GenericExtensions
     {

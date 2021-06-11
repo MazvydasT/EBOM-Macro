@@ -44,9 +44,9 @@ namespace EBOM_Macro
         [Name("PART_NUMBER")]
         public string PartNumber { get; set; }
 
-        public string CPSCLevel1 => $"{CPSC} - ";
+        public string CPSCLevel1 => $"{CPSC.Substring(0, 2).PadRight(6, '0')} - ";
         public string CPSCLevel2 => $"{CPSC.Substring(0, 4).PadRight(6, '0')} - ";
-        public string CPSCLevel3 => $"{CPSC.Substring(0, 2).PadRight(6, '0')} - ";
+        public string CPSCLevel3 => $"{CPSC} - ";
 
         public MaturityState Maturity => CPSC == "013501" ? MaturityState.IN_WORK : MaturityState.FROZEN;
     }

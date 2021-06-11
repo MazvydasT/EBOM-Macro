@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
-namespace EBOM_Macro
+namespace EBOM_Macro.Extensions
 {
     public static class VectorExtensions
     {

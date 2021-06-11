@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using EBOM_Macro.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,7 +19,9 @@ namespace EBOM_Macro
 
         public static async Task<Items2Container> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(pathToEBOMReport) || !File.Exists(pathToEBOMReport)) return default;
+            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
+
+            if (string.IsNullOrWhiteSpace(pathToEBOMReport)) return default;
 
             using (var fileStream = new FileStream(pathToEBOMReport, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -48,7 +51,6 @@ namespace EBOM_Macro
                     var streamLength = stream.Length;
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
-
 
                     /// <summary><c>vehicleLineTitle</c> should be obtained from source CSV</summary>
                     var vehicleLineTitle = "EBOM";
@@ -129,11 +131,14 @@ namespace EBOM_Macro
 
                                 if (level3Placeholder == null)
                                 {
+                                    var level3PHNumber = $"PH-{program}-{cpscLevel3Number}";
+
                                     level3Placeholder = new Item2
                                     {
-                                        Number = $"PH-{program}-{cpscLevel3Number}",
+                                        Number = level3PHNumber,
                                         Name = cpscLevel3Name,
-                                        Type = Item2.ItemType.PH
+                                        Type = Item2.ItemType.PH,
+                                        BaseExternalId = $"{level3PHNumber}_c"
                                     };
 
                                     placeholderLookup.Add(cpscLevel3Number, level3Placeholder);
@@ -146,11 +151,14 @@ namespace EBOM_Macro
 
                                     if (level2Placeholder == null)
                                     {
+                                        var level2PHNumber = $"PH-{program}-{cpscLevel2Number}";
+
                                         level2Placeholder = new Item2
                                         {
-                                            Number = $"PH-{program}-{cpscLevel2Number}",
+                                            Number = level2PHNumber,
                                             Name = cpscLevel2Name,
-                                            Type = Item2.ItemType.PH
+                                            Type = Item2.ItemType.PH,
+                                            BaseExternalId = $"{level2PHNumber}_c"
                                         };
 
                                         placeholderLookup.Add(cpscLevel2Number, level2Placeholder);
@@ -163,11 +171,14 @@ namespace EBOM_Macro
 
                                         if (level1Placeholder == null)
                                         {
+                                            var level1PHNumber = $"PH-{program}-{cpscLevel1Number}";
+
                                             level1Placeholder = new Item2
                                             {
-                                                Number = $"PH-{program}-{cpscLevel1Number}",
+                                                Number = level1PHNumber,
                                                 Name = cpscLevel1Name,
-                                                Type = Item2.ItemType.PH
+                                                Type = Item2.ItemType.PH,
+                                                BaseExternalId = $"{level1PHNumber}_c"
                                             };
 
                                             placeholderLookup.Add(cpscLevel1Number, level1Placeholder);
@@ -176,35 +187,30 @@ namespace EBOM_Macro
                                             {
                                                 root = new Item2
                                                 {
-                                                    Number = vehicleLineTitle,
-                                                    Name = vehicleLineName,
-                                                    Type = Item2.ItemType.PH
+                                                    Number = vehicleLineName,
+                                                    Name = vehicleLineTitle,
+                                                    Type = Item2.ItemType.PH,
+                                                    BaseExternalId = $"{vehicleLineTitle}_c"
                                                 };
-
-                                                //items.Add(root);
                                             }
 
                                             level1Placeholder.Parent = root;
                                             root.Children.Add(level1Placeholder);
-
-                                            //items.Add(level1Placeholder);
                                         }
 
                                         level2Placeholder.Parent = level1Placeholder;
                                         level1Placeholder.Children.Add(level2Placeholder);
-
-                                        //items.Add(level2Placeholder);
                                     }
 
                                     level3Placeholder.Parent = level2Placeholder;
                                     level2Placeholder.Children.Add(level3Placeholder);
-
-                                    //items.Add(level3Placeholder);
                                 }
 
                                 item.Parent = level3Placeholder;
                                 level3Placeholder.Children.Add(item);
                             }
+
+                            if (items.Count > 1) Item2Manager.SetBaseExternalId(items[items.Count - 2]);
 
                             if (progress != null)
                             {
@@ -218,6 +224,8 @@ namespace EBOM_Macro
                                 }
                             }
                         }
+
+                        if (items.Count > 0) Item2Manager.SetBaseExternalId(items[items.Count - 1]);
                     }
 
                     catch (HeaderValidationException headerValidationException)
@@ -234,7 +242,9 @@ namespace EBOM_Macro
 
         public static async Task<IReadOnlyDictionary<string, Item2>> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(dsListPath) || !File.Exists(dsListPath))  return default;
+            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
+
+            if (string.IsNullOrWhiteSpace(dsListPath))  return default;
 
             using (var fileStream = new FileStream(dsListPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -250,6 +260,8 @@ namespace EBOM_Macro
 
                 var streamLength = dsListStream.Length;
                 long progressValue = 0;
+
+                progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
 
                 using (var streamReader = new StreamReader(dsListStream))
                 using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
@@ -309,6 +321,8 @@ namespace EBOM_Macro
 
         public static async Task WriteDSList(string dsListPath, (Item2 Root, IReadOnlyCollection<Item2> PHs) items, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
+            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
+
             using (var fileStream = new FileStream(dsListPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
             {
                 try
@@ -337,6 +351,8 @@ namespace EBOM_Macro
                 var index = 0;
                 long progressValue = 0;
 
+                progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+
                 using (var streamWriter = new StreamWriter(stream))
                 using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
                 {
@@ -350,8 +366,8 @@ namespace EBOM_Macro
 
                         csvWriter.WriteRecord(new DSListRecord2
                         {
-                            ExternalId = item.ExternalId,
-                            Hash = item.Hash,
+                            //ExternalId = item.ExternalId,
+                            //Hash = item.Hash,
                             Level = level,
                             Name = item.Name,
                             Number = item.Number,

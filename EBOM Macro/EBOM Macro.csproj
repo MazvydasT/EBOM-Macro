@@ -259,21 +259,32 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\XMLExportEnabledConverter.cs" />
+    <Compile Include="Converters\DSListExportEnabledConverter.cs" />
+    <Compile Include="Converters\ItemChildrenConverter.cs" />
+    <Compile Include="Converters\TreeViewItemSourceConverter.cs" />
+    <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
+    <Compile Include="Converters\State2ColourConverter.cs" />
+    <Compile Include="Converters\State2CheckBoxVisibilityConverter.cs" />
+    <Compile Include="TemplateSelectors\State2StrikethroughTemplateSelector.cs" />
+    <Compile Include="Converters\StrikethroughAngleConverter.cs" />
     <Compile Include="CSVManager2.cs" />
     <Compile Include="Extensions\DoubleExtensions.cs" />
     <Compile Include="DSListRecord2.cs" />
-    <Compile Include="InputState.cs" />
+    <Compile Include="Extensions\FreezableExtensions.cs" />
+    <Compile Include="Converters\StrikethroughOffsetConverter.cs" />
+    <Compile Include="States\InputState.cs" />
     <Compile Include="AppState.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CSVManager.cs" />
     <Compile Include="DSListRecord.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="Item2.cs" />
-    <Compile Include="Extensions\Item2Extensions.cs" />
+    <Compile Include="Item2Methods.cs" />
     <Compile Include="Item2Manager.cs" />
     <Compile Include="Items2Container.cs" />
     <Compile Include="Extensions\MatrixExtensions.cs" />
-    <Compile Include="ProgressState.cs" />
+    <Compile Include="States\ProgressState.cs" />
     <Compile Include="ProgressUpdate.cs" />
     <Compile Include="EBOMReportRecord.cs" />
     <Compile Include="Extensions\GenericExtensions.cs" />
