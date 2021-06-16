@@ -3,9 +3,9 @@ using ReactiveUI.Fody.Helpers;
 using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
-namespace EBOM_Macro
+namespace EBOM_Macro.Models
 {
-    public partial class Item2 : ReactiveObject
+    public partial class Item : ReactiveObject
     {
         public enum ItemType
         {
@@ -37,19 +37,20 @@ namespace EBOM_Macro
 
         public string PhysicalId { get; set; }
 
-        public Item2 Parent { get; set; }
-        public List<Item2> Children { get; } = new List<Item2>();
-        public IReadOnlyCollection<Item2> RedundantChildren { get; set; }
+        public EBOMReportRecord.MaturityState Maturity { get; set; }
+
+        public Item Parent { get; set; }
+        public List<Item> Children { get; } = new List<Item>();
+        public IReadOnlyCollection<Item> RedundantChildren { get; set; }
 
         public string BaseExternalId { get; set; }
-        //public string ExternalId { get; set; }
-        //public string Hash { get; set; }
 
         public ItemType Type { get; set; }
         [Reactive] public ItemState State { get; set; } = ItemState.New;
 
         bool? isChecked;
-        public bool? IsChecked {
+        public bool? IsChecked
+        {
             get => isChecked;
             set => SetIsChecked(value, true, true);
         }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using EBOM_Macro.Models;
+using System;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Markup;
-using System.Windows.Media;
 
 namespace EBOM_Macro.Converters
 {
@@ -16,13 +12,13 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            switch((Item2.ItemState)value)
+            switch ((Item.ItemState)value)
             {
-                case Item2.ItemState.New: return StaticResources.GreenBrush.Clone();
-                case Item2.ItemState.Redundant: return StaticResources.RedBrush.Clone();
-                case Item2.ItemState.Unchanged: return StaticResources.ClearBrush.Clone();
-                case Item2.ItemState.Modified: return StaticResources.OrangeBrush.Clone();
-                case Item2.ItemState.HasModifiedDescendants: return StaticResources.GreyBrush.Clone();
+                case Item.ItemState.New: return StaticResources.GreenBrush.Clone();
+                case Item.ItemState.Redundant: return StaticResources.RedBrush.Clone();
+                case Item.ItemState.Unchanged: return StaticResources.ClearBrush.Clone();
+                case Item.ItemState.Modified: return StaticResources.OrangeBrush.Clone();
+                case Item.ItemState.HasModifiedDescendants: return StaticResources.GreyBrush.Clone();
                 default: return StaticResources.ClearBrush.Clone();
             }
         }

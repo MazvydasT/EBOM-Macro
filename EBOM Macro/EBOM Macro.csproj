@@ -259,6 +259,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\InputsEnabledConverter.cs" />
+    <Compile Include="Converters\TreeViewIsEnabledConverter.cs" />
+    <Compile Include="Converters\IsIndeterminateConverter.cs" />
+    <Compile Include="Converters\TreeViewVisibilityConverter.cs" />
+    <Compile Include="Converters\ExportCancelButtonVisibilityConverter.cs" />
+    <Compile Include="Converters\ExportButtonVisibilityConverter.cs" />
     <Compile Include="Converters\XMLExportEnabledConverter.cs" />
     <Compile Include="Converters\DSListExportEnabledConverter.cs" />
     <Compile Include="Converters\ItemChildrenConverter.cs" />
@@ -266,33 +272,32 @@
     <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
     <Compile Include="Converters\State2ColourConverter.cs" />
     <Compile Include="Converters\State2CheckBoxVisibilityConverter.cs" />
+    <Compile Include="Models\ExistingDataContainer.cs" />
+    <Compile Include="States\AppState.cs" />
+    <Compile Include="States\OutputState.cs" />
     <Compile Include="TemplateSelectors\State2StrikethroughTemplateSelector.cs" />
     <Compile Include="Converters\StrikethroughAngleConverter.cs" />
-    <Compile Include="CSVManager2.cs" />
+    <Compile Include="Managers\CSVManager.cs" />
     <Compile Include="Extensions\DoubleExtensions.cs" />
-    <Compile Include="DSListRecord2.cs" />
+    <Compile Include="Models\DSListRecord.cs" />
     <Compile Include="Extensions\FreezableExtensions.cs" />
     <Compile Include="Converters\StrikethroughOffsetConverter.cs" />
     <Compile Include="States\InputState.cs" />
-    <Compile Include="AppState.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="CSVManager.cs" />
-    <Compile Include="DSListRecord.cs" />
-    <Compile Include="Item.cs" />
-    <Compile Include="Item2.cs" />
-    <Compile Include="Item2Methods.cs" />
-    <Compile Include="Item2Manager.cs" />
-    <Compile Include="Items2Container.cs" />
+    <Compile Include="Models\Item.cs" />
+    <Compile Include="Models\ItemMethods.cs" />
+    <Compile Include="Managers\ItemManager.cs" />
+    <Compile Include="Models\ItemsContainer.cs" />
     <Compile Include="Extensions\MatrixExtensions.cs" />
     <Compile Include="States\ProgressState.cs" />
-    <Compile Include="ProgressUpdate.cs" />
-    <Compile Include="EBOMReportRecord.cs" />
+    <Compile Include="Models\ProgressUpdate.cs" />
+    <Compile Include="Models\EBOMReportRecord.cs" />
     <Compile Include="Extensions\GenericExtensions.cs" />
     <Compile Include="Extensions\RandomExtensions.cs" />
     <Compile Include="StaticResources.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Extensions\VectorExtensions.cs" />
-    <Compile Include="XMLManager.cs" />
+    <Compile Include="Managers\XMLManager.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

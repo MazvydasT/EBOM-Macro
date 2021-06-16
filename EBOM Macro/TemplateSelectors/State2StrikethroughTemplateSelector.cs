@@ -1,10 +1,6 @@
-﻿using System;
-using System.Globalization;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Markup;
-using static EBOM_Macro.Item2;
+using static EBOM_Macro.Models.Item;
 
 namespace EBOM_Macro.TemplateSelectors
 {

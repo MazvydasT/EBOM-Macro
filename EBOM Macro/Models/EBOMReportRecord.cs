@@ -1,7 +1,7 @@
 ﻿
 using CsvHelper.Configuration.Attributes;
 
-namespace EBOM_Macro
+namespace EBOM_Macro.Models
 {
     public struct EBOMReportRecord
     {

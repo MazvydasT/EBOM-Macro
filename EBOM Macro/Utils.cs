@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Management;
 using System.Text.RegularExpressions;
@@ -24,7 +23,7 @@ namespace EBOM_Macro
                 var stringValue = stringValues[i];
                 if (double.TryParse(stringValue, out double doubleValue))
                 {
-                    switch(i)
+                    switch (i)
                     {
                         case 0:
                             matrix.M11 = doubleValue;
@@ -81,7 +80,7 @@ namespace EBOM_Macro
                     throw new ArgumentException($"Value '{stringValue}' at index {i} of input '{matrixString}' is not numeric.", nameof(matrixString));
                 }
             }
-            
+
             return matrix;
         }
 
@@ -123,28 +122,6 @@ namespace EBOM_Macro
                 {
                     return null;
                 }
-            }
-        }
-
-        public static IEnumerable<Item> AssignNumberNameAndId(IEnumerable<Item> items, Item root, string program)
-        {
-            foreach(var item in items)
-            {
-                if (item != root)
-                {
-                    item.Number = $"PH-{program}-{item.CPSC}";
-                    item.Name = "";
-                }
-
-                else
-                {
-                    item.Number = $"PRG-{program}";
-                    item.Name = $"PROGRAM NODE FOR {program}";
-                }
-
-                item.ExternalId = $"{item.Number}_c";
-
-                yield return item;
             }
         }
     }

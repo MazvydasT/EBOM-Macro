@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using EBOM_Macro.Extensions;
+using EBOM_Macro.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,17 +11,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EBOM_Macro
+namespace EBOM_Macro.Managers
 {
-    public static class CSVManager2
+    public static class CSVManager
     {
         const long PROGRESS_MAX = 200;
-        static readonly Encoding ENCODING = Encoding.GetEncoding("Windows-1252");
+        static readonly Encoding EBOM_REPORT_ENCODING = Encoding.GetEncoding("Windows-1252");
+        static readonly Encoding DS_LIST_ENCODING = new UTF8Encoding(false);
 
-        public static async Task<Items2Container> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ItemsContainer> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
-
             if (string.IsNullOrWhiteSpace(pathToEBOMReport)) return default;
 
             using (var fileStream = new FileStream(pathToEBOMReport, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -29,11 +29,11 @@ namespace EBOM_Macro
             }
         }
 
-        static async Task<Items2Container> ReadEBOMReport(Stream ebomReportStream, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        static async Task<ItemsContainer> ReadEBOMReport(Stream ebomReportStream, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             return await Task.Factory.StartNew(() =>
             {
-                var items = new List<Item2>();
+                var items = new List<Item>();
 
                 long progressValue = 0;
 
@@ -42,7 +42,7 @@ namespace EBOM_Macro
                 {
                     BadDataFound = null,
                     Delimiter = ",",
-                    Encoding = ENCODING,
+                    Encoding = EBOM_REPORT_ENCODING,
                     TrimOptions = TrimOptions.Trim,
                     WhiteSpaceChars = new[] { ' ', '\t', '\'' }
                 }))
@@ -62,10 +62,10 @@ namespace EBOM_Macro
 
                     var records = csvReader.GetRecords<EBOMReportRecord>();
 
-                    var levelTracker = new Dictionary<int, Item2>();
+                    var levelTracker = new Dictionary<int, Item>();
                     var dsPhysicalIdTracker = new HashSet<string>();
-                    var placeholderLookup = new Dictionary<string, Item2>();
-                    Item2 root = null;
+                    var placeholderLookup = new Dictionary<string, Item>();
+                    Item root = null;
 
                     var cpscSplitChars = new[] { '-' };
 
@@ -94,7 +94,7 @@ namespace EBOM_Macro
 
                             if (skipRecords) continue;
 
-                            var item = new Item2
+                            var item = new Item
                             {
                                 Number = record.PartNumber,
                                 Version = record.Version,
@@ -110,9 +110,11 @@ namespace EBOM_Macro
 
                                 PhysicalId = record.PhysicalId,
 
-                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item2 parent) ? parent : null),
+                                Maturity = record.Maturity,
 
-                                Type = level == 0 ? Item2.ItemType.DS : Item2.ItemType.PartAsy
+                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item parent) ? parent : null),
+
+                                Type = level == 0 ? Item.ItemType.DS : Item.ItemType.PartAsy
                             };
 
                             item.Parent?.Children.Add(item);
@@ -127,18 +129,19 @@ namespace EBOM_Macro
                                 var cpscLevel3Number = cpscLevel3Parts?.Length > 0 ? cpscLevel3Parts[0].Trim() : "";
                                 var cpscLevel3Name = cpscLevel3Parts?.Length > 1 ? cpscLevel3Parts[1].Trim() : "";
 
-                                placeholderLookup.TryGetValue(cpscLevel3Number, out Item2 level3Placeholder);
+                                placeholderLookup.TryGetValue(cpscLevel3Number, out Item level3Placeholder);
 
                                 if (level3Placeholder == null)
                                 {
                                     var level3PHNumber = $"PH-{program}-{cpscLevel3Number}";
 
-                                    level3Placeholder = new Item2
+                                    level3Placeholder = new Item
                                     {
                                         Number = level3PHNumber,
                                         Name = cpscLevel3Name,
-                                        Type = Item2.ItemType.PH,
-                                        BaseExternalId = $"{level3PHNumber}_c"
+                                        Type = Item.ItemType.PH,
+                                        BaseExternalId = $"{level3PHNumber}_c",
+                                        Maturity = EBOMReportRecord.MaturityState.FROZEN
                                     };
 
                                     placeholderLookup.Add(cpscLevel3Number, level3Placeholder);
@@ -147,18 +150,19 @@ namespace EBOM_Macro
                                     var cpscLevel2Number = cpscLevel2Parts?.Length > 0 ? cpscLevel2Parts[0].Trim() : "";
                                     var cpscLevel2Name = cpscLevel2Parts?.Length > 1 ? cpscLevel2Parts[1].Trim() : "";
 
-                                    placeholderLookup.TryGetValue(cpscLevel2Number, out Item2 level2Placeholder);
+                                    placeholderLookup.TryGetValue(cpscLevel2Number, out Item level2Placeholder);
 
                                     if (level2Placeholder == null)
                                     {
                                         var level2PHNumber = $"PH-{program}-{cpscLevel2Number}";
 
-                                        level2Placeholder = new Item2
+                                        level2Placeholder = new Item
                                         {
                                             Number = level2PHNumber,
                                             Name = cpscLevel2Name,
-                                            Type = Item2.ItemType.PH,
-                                            BaseExternalId = $"{level2PHNumber}_c"
+                                            Type = Item.ItemType.PH,
+                                            BaseExternalId = $"{level2PHNumber}_c",
+                                            Maturity = EBOMReportRecord.MaturityState.FROZEN
                                         };
 
                                         placeholderLookup.Add(cpscLevel2Number, level2Placeholder);
@@ -167,30 +171,32 @@ namespace EBOM_Macro
                                         var cpscLevel1Number = cpscLevel1Parts?.Length > 0 ? cpscLevel1Parts[0].Trim() : "";
                                         var cpscLevel1Name = cpscLevel1Parts?.Length > 1 ? cpscLevel1Parts[1].Trim() : "";
 
-                                        placeholderLookup.TryGetValue(cpscLevel1Number, out Item2 level1Placeholder);
+                                        placeholderLookup.TryGetValue(cpscLevel1Number, out Item level1Placeholder);
 
                                         if (level1Placeholder == null)
                                         {
                                             var level1PHNumber = $"PH-{program}-{cpscLevel1Number}";
 
-                                            level1Placeholder = new Item2
+                                            level1Placeholder = new Item
                                             {
                                                 Number = level1PHNumber,
                                                 Name = cpscLevel1Name,
-                                                Type = Item2.ItemType.PH,
-                                                BaseExternalId = $"{level1PHNumber}_c"
+                                                Type = Item.ItemType.PH,
+                                                BaseExternalId = $"{level1PHNumber}_c",
+                                                Maturity = EBOMReportRecord.MaturityState.FROZEN
                                             };
 
                                             placeholderLookup.Add(cpscLevel1Number, level1Placeholder);
 
                                             if (root == null)
                                             {
-                                                root = new Item2
+                                                root = new Item
                                                 {
                                                     Number = vehicleLineName,
                                                     Name = vehicleLineTitle,
-                                                    Type = Item2.ItemType.PH,
-                                                    BaseExternalId = $"{vehicleLineTitle}_c"
+                                                    Type = Item.ItemType.PH,
+                                                    BaseExternalId = $"{vehicleLineTitle}_c",
+                                                    Maturity = EBOMReportRecord.MaturityState.FROZEN
                                                 };
                                             }
 
@@ -210,7 +216,7 @@ namespace EBOM_Macro
                                 level3Placeholder.Children.Add(item);
                             }
 
-                            if (items.Count > 1) Item2Manager.SetBaseExternalId(items[items.Count - 2]);
+                            if (items.Count > 1) ItemManager.SetBaseExternalId(items[items.Count - 2]);
 
                             if (progress != null)
                             {
@@ -225,7 +231,7 @@ namespace EBOM_Macro
                             }
                         }
 
-                        if (items.Count > 0) Item2Manager.SetBaseExternalId(items[items.Count - 1]);
+                        if (items.Count > 0) ItemManager.SetBaseExternalId(items[items.Count - 1]);
                     }
 
                     catch (HeaderValidationException headerValidationException)
@@ -235,16 +241,14 @@ namespace EBOM_Macro
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Done" });
 
-                    return new Items2Container { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly() };
+                    return new ItemsContainer { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly() };
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static async Task<IReadOnlyDictionary<string, Item2>> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ExistingDataContainer> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
-
-            if (string.IsNullOrWhiteSpace(dsListPath))  return default;
+            if (string.IsNullOrWhiteSpace(dsListPath)) return default;
 
             using (var fileStream = new FileStream(dsListPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -252,39 +256,48 @@ namespace EBOM_Macro
             }
         }
 
-        private static async Task<IReadOnlyDictionary<string, Item2>> ReadDSList(Stream dsListStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task<ExistingDataContainer> ReadDSList(Stream dsListStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             return await Task.Factory.StartNew(() =>
             {
-                var items = new Dictionary<string, Item2>();
+                var items = new Dictionary<string, Item>();
+                var externalIdPrefix = "";
 
                 var streamLength = dsListStream.Length;
                 long progressValue = 0;
 
-                progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
-
-                using (var streamReader = new StreamReader(dsListStream))
+                using (var streamReader = new StreamReader(dsListStream, DS_LIST_ENCODING))
                 using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
                 {
-                    var records = csvReader.GetRecords<DSListRecord2>();
-
-                    var levelTracker = new Dictionary<int, Item2>();
+                    var levelTracker = new Dictionary<int, Item>();
 
                     try
                     {
+                        csvReader.Read();
+
+                        externalIdPrefix = csvReader.GetField(1);
+                        csvReader.Read();
+                        csvReader.ReadHeader();
+
+                        var records = csvReader.GetRecords<DSListRecord>();
+
                         foreach (var record in records)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
                             var level = record.Level;
 
-                            var item = new Item2
+                            var item = new Item(record.Hash.Length == 0 ? null : record.Hash)
                             {
                                 Number = record.Number,
                                 Version = record.Version,
                                 Name = record.Name,
 
-                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out var parent) ? parent : null)
+                                BaseExternalId = record.ExternalId,
+
+                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out var parent) ? parent : null),
+
+                                State = Item.ItemState.Redundant
                             };
 
                             item.Parent?.Children.Add(item);
@@ -311,23 +324,31 @@ namespace EBOM_Macro
                     {
                         throw new Exception($"Missing headers: {string.Join(", ", headerValidationException.InvalidHeaders.SelectMany(h => h.Names))}", headerValidationException);
                     }
+
+                    catch (CsvHelper.MissingFieldException missingFieldException)
+                    {
+                        throw new FileFormatException("Unexpected file format", missingFieldException);
+                    }
                 }
 
-                progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = "Done" });
+                progress?.Report(new ProgressUpdate
+                {
+                    Max = PROGRESS_MAX,
+                    Value = PROGRESS_MAX,
+                    Message = "Done" + (string.IsNullOrWhiteSpace(externalIdPrefix) ? "" : $". ExternalId prefix: {externalIdPrefix}")
+                });
 
-                return items;
+                return new ExistingDataContainer { Items = items, ExternalIdPrefix = externalIdPrefix };
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static async Task WriteDSList(string dsListPath, (Item2 Root, IReadOnlyCollection<Item2> PHs) items, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task WriteDSList(string dsListPath, (Item Root, IReadOnlyCollection<Item> PHs) items, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
-            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
-
             using (var fileStream = new FileStream(dsListPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
             {
                 try
                 {
-                    await WriteDSList(fileStream, items, progress, cancellationToken);
+                    await WriteDSList(fileStream, items, externalIdPrefix, progress, cancellationToken);
                 }
 
                 finally
@@ -337,42 +358,48 @@ namespace EBOM_Macro
             }
         }
 
-        private static async Task WriteDSList(Stream stream, (Item2 Root, IReadOnlyCollection<Item2> PHs) items, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        private static async Task WriteDSList(Stream stream, (Item Root, IReadOnlyCollection<Item> PHs) items, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             await Task.Factory.StartNew(() =>
             {
-                var stack = new Stack<(Item2, int)>((items.Root, 0).Yield());
+                var stack = new Stack<(Item, int)>((items.Root, 0).Yield());
 
                 var itemCount = items.PHs.Count + 1;
 
-                var lookup = new HashSet<Item2>(itemCount);
+                var lookup = new HashSet<Item>(itemCount);
                 lookup.UnionWith(items.PHs.Prepend(items.Root));
 
                 var index = 0;
                 long progressValue = 0;
 
-                progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
-
-                using (var streamWriter = new StreamWriter(stream))
-                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+                using (var streamWriter = new StreamWriter(stream, DS_LIST_ENCODING, 1024, true))
+                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture, true))
                 {
-                    csvWriter.WriteHeader<DSListRecord2>();
+                    csvWriter.WriteField("ExternalId prefix:");
+                    csvWriter.WriteField(externalIdPrefix);
 
-                    while(stack.Count > 0)
+                    csvWriter.NextRecord();
+                    csvWriter.NextRecord();
+
+                    csvWriter.WriteHeader<DSListRecord>();
+                    csvWriter.NextRecord();
+
+                    while (stack.Count > 0)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         (var item, var level) = stack.Pop();
 
-                        csvWriter.WriteRecord(new DSListRecord2
+                        csvWriter.WriteRecord(new DSListRecord
                         {
-                            //ExternalId = item.ExternalId,
-                            //Hash = item.Hash,
+                            ExternalId = item.BaseExternalId,
+                            Hash = item.Type == Item.ItemType.DS ? item.GetHash() : null,
                             Level = level,
                             Name = item.Name,
                             Number = item.Number,
                             Version = item.Version
                         });
+                        csvWriter.NextRecord();
 
                         if (lookup.Contains(item))
                         {

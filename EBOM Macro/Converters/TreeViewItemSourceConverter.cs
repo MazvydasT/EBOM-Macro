@@ -1,10 +1,8 @@
 ﻿using EBOM_Macro.Extensions;
 using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
-using static EBOM_Macro.Item2;
 
 namespace EBOM_Macro.Converters
 {

@@ -1,38 +1,43 @@
-﻿using EBOM_Macro.Extensions;
+﻿using EBOM_Macro.Managers;
+using EBOM_Macro.Models;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace EBOM_Macro.States
 {
-    public sealed class InputState : ReactiveObject
+    public class InputState : ReactiveObject
     {
-        public static InputState State { get; } = new InputState();
-
         [Reactive] public string EBOMReportPath { get; set; }// = @"C:\Users\mtadara1.JLRIEU1\Desktop\EMS_EBOM_Report_L663_23_05_2021_17_51.csv";
         [Reactive] public string ExistingDataPath { get; set; }
         [Reactive] public string LDIFolderPath { get; set; }
         [Reactive] public string ExternalIdPrefix { get; set; }
 
-        [ObservableAsProperty] public Item2 Root { get; }
+        [ObservableAsProperty] public ItemsContainer Items { get; }
 
         public ReactiveCommand<Unit, Unit> BrowseEBOMReport { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseLDIFolder { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
-        Task<Items2Container> previousComparisonTask = null;
+        public IObservable<string> ExternalIdPrefixObservable { get; private set; }
 
-        private InputState()
+        ProgressState progressState;
+
+        (Task<ItemsContainer> Task, CancellationTokenSource CancellationTokenSource) previousComparisonTaskData;
+
+        public InputState(ProgressState progressState)
         {
+            this.progressState = progressState;
+
             InitializeObservables();
 
             InitializeCommands();
@@ -41,57 +46,73 @@ namespace EBOM_Macro.States
         void InitializeObservables()
         {
             var itemsObservable = this.WhenAnyValue(x => x.EBOMReportPath)
-                .Do(_ => ProgressState.State.EBOMReportReadError = false)
-                .Select(path => Observable.FromAsync(token => CSVManager2.ReadEBOMReport(path, new Progress<ProgressUpdate>(progress =>
+                .Do(_ =>
                 {
-                    ProgressState.State.EBOMReportReadProgress = (double)progress.Value / progress.Max;
-                    ProgressState.State.EBOMReportReadMessage = progress.Message;
+                    progressState.EBOMReportReadError = false;
+                    progressState.EBOMReportReadMessage = "";
+                    progressState.EBOMReportReadProgress = 0;
+                })
+                .Select(path => Observable.FromAsync(token => CSVManager.ReadEBOMReport(path, new Progress<ProgressUpdate>(progress =>
+                {
+                    progressState.EBOMReportReadProgress = (double)progress.Value / progress.Max;
+                    progressState.EBOMReportReadMessage = progress.Message;
                 }), token)).Catch((Exception exception) =>
                 {
-                    ProgressState.State.EBOMReportReadMessage = exception.Message;
-                    ProgressState.State.EBOMReportReadError = true;
+                    progressState.EBOMReportReadMessage = exception.Message;
+                    progressState.EBOMReportReadError = true;
 
-                    return Observable.Return<Items2Container>(default);
+                    return Observable.Return<ItemsContainer>(default);
                 })).Switch();
 
             var existingDataObservable = this.WhenAnyValue(x => x.ExistingDataPath)
-                .Do(_ => ProgressState.State.ExistingDataReadError = false)
-                .Select(path => Observable.FromAsync(token => CSVManager2.ReadDSList(path, new Progress<ProgressUpdate>(progress =>
+                .Do(_ =>
                 {
-                    ProgressState.State.ExistingDataReadProgress = (double)progress.Value / progress.Max;
-                    ProgressState.State.ExistingDataReadMessage = progress.Message;
-                
+                    progressState.ExistingDataReadError = false;
+                    progressState.ExistingDataReadMessage = "";
+                    progressState.ExistingDataReadProgress = 0;
+                })
+                .Select(path => Observable.FromAsync(token => CSVManager.ReadDSList(path, new Progress<ProgressUpdate>(progress =>
+                {
+                    progressState.ExistingDataReadProgress = (double)progress.Value / progress.Max;
+                    progressState.ExistingDataReadMessage = progress.Message;
+
                 }), token)).Catch((Exception exception) =>
                 {
-                    ProgressState.State.ExistingDataReadMessage = exception.Message;
-                    ProgressState.State.ExistingDataReadError = true;
+                    progressState.ExistingDataReadMessage = exception.Message;
+                    progressState.ExistingDataReadError = true;
 
-                    return Observable.Return<IReadOnlyDictionary<string, Item2>>(default);
+                    return Observable.Return<ExistingDataContainer>(default);
                 })).Switch();
 
-            var externalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix).Throttle(TimeSpan.FromMilliseconds(200)).Select(prefix => prefix?.Trim().ToUpper() ?? "");
+            ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix)
+                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Select(prefix => prefix?.Trim().ToUpper() ?? "")
+                .Replay(1).RefCount();
 
-            var itemsWithStateObservable = Observable.CombineLatest(
+            Observable.CombineLatest(
                 itemsObservable,
 
-                Observable.CombineLatest(existingDataObservable, externalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix))
+                Observable.CombineLatest(existingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData.Items == null ? "" : externalIdPrefix))
                     .DistinctUntilChanged(),
 
                 (items, pair) =>
                 {
-                    previousComparisonTask?.Wait();
+                    previousComparisonTaskData.CancellationTokenSource?.Cancel();
+                    previousComparisonTaskData.Task?.Wait();
 
-                    return Observable.FromAsync(token =>
+                    progressState.ComparisonProgress = 0;
+
+                    return Observable.FromAsync(() =>
                     {
-                        previousComparisonTask = Item2Manager.SetStatus(items, pair.existingData, pair.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
-                        {
-                            ProgressState.State.ComparisonProgress = (double)progress.Value / progress.Max;
-                        }), token);
-                        return previousComparisonTask;
-                    });
-                }).Switch().Replay(1).RefCount();
+                        var cancellationTokenSource = new CancellationTokenSource();
 
-            itemsWithStateObservable.Select(i => i.Root).ToPropertyEx(this, x => x.Root);
+                        previousComparisonTaskData = (ItemManager.SetStatus(items, pair.existingData, pair.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
+                        {
+                            progressState.ComparisonProgress = (double)progress.Value / progress.Max;
+                        }), cancellationTokenSource.Token), cancellationTokenSource);
+                        return previousComparisonTaskData.Task;
+                    });
+                }).Switch().ToPropertyEx(this, x => x.Items);
         }
 
         void InitializeCommands()
@@ -172,8 +193,8 @@ namespace EBOM_Macro.States
             ClearExistingData = ReactiveCommand.Create(() =>
             {
                 ExistingDataPath = "";
-                ProgressState.State.ExistingDataReadMessage = "";
-                ProgressState.State.ExistingDataReadProgress = 0;
+                progressState.ExistingDataReadMessage = "";
+                progressState.ExistingDataReadProgress = 0;
             });
         }
     }
