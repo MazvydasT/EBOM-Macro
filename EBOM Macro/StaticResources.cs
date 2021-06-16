@@ -21,6 +21,6 @@ namespace EBOM_Macro
 
         public static SHA256Managed SHA256 { get; } = new SHA256Managed();
 
-
+        public static SHA512Managed SHA512 { get; } = new SHA512Managed();
     }
 }

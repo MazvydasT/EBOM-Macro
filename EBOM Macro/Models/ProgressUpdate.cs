@@ -1,4 +1,4 @@
-﻿namespace EBOM_Macro
+﻿namespace EBOM_Macro.Models
 {
     public struct ProgressUpdate
     {

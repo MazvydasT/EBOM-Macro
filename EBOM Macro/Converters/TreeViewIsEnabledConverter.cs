@@ -6,11 +6,11 @@ using System.Windows.Markup;
 
 namespace EBOM_Macro.Converters
 {
-    public class String2ButtonVisibilityConverter : MarkupExtension, IValueConverter
+    public class TreeViewIsEnabledConverter : MarkupExtension, IValueConverter
     {
         public override object ProvideValue(IServiceProvider serviceProvider) => this;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => string.IsNullOrWhiteSpace((string)value) ? Visibility.Collapsed : Visibility.Visible;
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => ((Visibility)value) != Visibility.Visible;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
     }

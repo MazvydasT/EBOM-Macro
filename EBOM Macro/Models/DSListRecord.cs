@@ -1,6 +1,6 @@
-﻿namespace EBOM_Macro
+﻿namespace EBOM_Macro.Models
 {
-    public struct DSListRecord2
+    public struct DSListRecord
     {
         public string Number { get; set; }
 
@@ -12,6 +12,6 @@
 
         public string ExternalId { get; set; }
 
-        public string Hash { get; set; }
+        public byte[] Hash { get; set; }
     }
 }
