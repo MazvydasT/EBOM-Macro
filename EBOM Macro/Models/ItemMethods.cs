@@ -82,6 +82,8 @@ namespace EBOM_Macro.Models
             SetIsChecked(state, false, true);
         }
 
-        public override string ToString() => $"{Number}" + (Version == 0 ? "" : $"/{Version}") + (string.IsNullOrWhiteSpace(Name) ? "" : $" - {Name}");
+        public override string ToString() => $"{Number}" + (Version == 0 ? "" : $"/{Version}") +
+            (string.IsNullOrWhiteSpace(Name) ? "" : $" - {Name}") +
+            (Type == ItemType.DS || Type == ItemType.PartAsy ? $" [{Maturity}]" : "");
     }
 }
