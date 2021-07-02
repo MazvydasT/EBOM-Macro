@@ -52,13 +52,7 @@ namespace EBOM_Macro.Managers
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
 
-                    /// <summary><c>vehicleLineTitle</c> should be obtained from source CSV</summary>
-                    var vehicleLineTitle = "EBOM";
-
-                    /// <summary><c>vehicleLineName</c> should be obtained from source CSV</summary>
-                    var vehicleLineName = "PH-L663-0000";
-
-                    var program = vehicleLineName.Split(new[] { '-' })[1];
+                    string vehicleLineTitle = null, vehicleLineName = null, program = null; 
 
                     var records = csvReader.GetRecords<EBOMReportRecord>();
 
@@ -78,6 +72,25 @@ namespace EBOM_Macro.Managers
                             cancellationToken.ThrowIfCancellationRequested();
 
                             var level = record.Level;
+
+                            if(vehicleLineTitle == null)
+                            {
+                                vehicleLineTitle = (record.Title ?? "").Trim();
+                                vehicleLineName = (record.VehicleLineName ?? "").Trim();
+
+                                var vehicleLineNameParts = vehicleLineName.Split(new[] { '-' });
+
+                                if (vehicleLineNameParts.Length < 2)
+                                {
+                                    var columnName = csvReader.Context.Maps[record.GetType()].MemberMaps
+                                        .Where(m => m.Data.Member.Name == nameof(EBOMReportRecord.VehicleLineName))
+                                        .FirstOrDefault()?.Data.Names.FirstOrDefault();
+
+                                    throw new InvalidDataException($"Unexpected {columnName} value: '{record.VehicleLineName}'. Unable to extract program name.");
+                                }
+
+                                program = vehicleLineNameParts[1].Trim();
+                            }
 
                             if (level == 0)
                             {
