@@ -28,6 +28,7 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
+        public IObservable<ExistingDataContainer> ExistingDataObservable { get; private set; }
         public IObservable<string> ExternalIdPrefixObservable { get; private set; }
 
         ProgressState progressState;
@@ -64,7 +65,7 @@ namespace EBOM_Macro.States
                     return Observable.Return<ItemsContainer>(default);
                 })).Switch();
 
-            var existingDataObservable = this.WhenAnyValue(x => x.ExistingDataPath)
+            ExistingDataObservable = this.WhenAnyValue(x => x.ExistingDataPath)
                 .Do(_ =>
                 {
                     progressState.ExistingDataReadError = false;
@@ -92,7 +93,7 @@ namespace EBOM_Macro.States
             Observable.CombineLatest(
                 itemsObservable,
 
-                Observable.CombineLatest(existingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData.Items == null ? "" : externalIdPrefix))
+                Observable.CombineLatest(ExistingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData.Items == null ? "" : externalIdPrefix))
                     .DistinctUntilChanged(),
 
                 (items, pair) =>

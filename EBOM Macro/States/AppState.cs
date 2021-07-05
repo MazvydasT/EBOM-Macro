@@ -2,13 +2,13 @@
 
 namespace EBOM_Macro.States
 {
-    public sealed class AppState// : ReactiveObject
+    public sealed class AppState
     {
         public static AppState State { get; } = new AppState();
 
-        public ProgressState ProgressState { get; }// = new ProgressState();
-        public InputState InputState { get; }// = new InputState(ProgressState);
-        public OutputState OutputState { get; }// = new OutputState(InputState, ProgressState);
+        public ProgressState ProgressState { get; }
+        public InputState InputState { get; }
+        public OutputState OutputState { get; }
 
         private AppState()
         {

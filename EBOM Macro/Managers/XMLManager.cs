@@ -15,7 +15,7 @@ namespace EBOM_Macro.Managers
     {
         private const long PROGRESS_MAX = 300;
 
-        public static async Task ItemsToXML(string xmlPath, ItemsContainer items, string externalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        public static async Task ItemsToXML(string xmlPath, ItemsContainer items, string externalIdPrefix, string existingDataExternalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(xmlPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
             using (var streamWriter = new StreamWriter(fileStream))
@@ -28,7 +28,7 @@ namespace EBOM_Macro.Managers
             {
                 try
                 {
-                    await ItemsToXML(xmlWriter, items, externalIdPrefix, ldiFolderPath, progress, cancellationToken);
+                    await ItemsToXML(xmlWriter, items, externalIdPrefix, existingDataExternalIdPrefix, ldiFolderPath, progress, cancellationToken);
                 }
 
                 finally
@@ -38,7 +38,7 @@ namespace EBOM_Macro.Managers
             }
         }
 
-        private static async Task ItemsToXML(XmlWriter xmlWriter, ItemsContainer items, string externalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task ItemsToXML(XmlWriter xmlWriter, ItemsContainer items, string externalIdPrefix, string existingDataExternalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -76,6 +76,9 @@ namespace EBOM_Macro.Managers
 
                     xmlWriter.WriteStartElement(isCompound ? "PmCompoundPart" : "PmPartInstance");
                     xmlWriter.WriteAttributeString("ExternalId", externalId);
+
+                    xmlWriter.WriteStartElement("ActiveInCurrentVersion");
+                    xmlWriter.WriteEndElement();
 
                     xmlWriter.WriteStartElement("name");
                     xmlWriter.WriteString(item.Name?.Trim() ?? "");
@@ -137,6 +140,21 @@ namespace EBOM_Macro.Managers
                         }
 
                         xmlWriter.WriteEndElement();
+
+                        if(item.RedundantChildren != null)
+                        {
+                            foreach(var redundantItem in item.RedundantChildren)
+                            {
+                                xmlWriter.WriteStartElement(redundantItem.Children.Count > 0 ? "PmCompoundPart" : "PmPartInstance");
+                                xmlWriter.WriteAttributeString("ExternalId", $"{existingDataExternalIdPrefix}{redundantItem.BaseExternalId}");
+
+                                xmlWriter.WriteStartElement("ActiveInCurrentVersion");
+                                xmlWriter.WriteString("OLD_LEVEL");
+                                xmlWriter.WriteEndElement();
+
+                                xmlWriter.WriteEndElement();
+                            }
+                        }
                     }
 
                     else
