@@ -403,6 +403,8 @@ namespace EBOM_Macro.Managers
 
                         (var item, var level) = stack.Pop();
 
+                        if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
+
                         csvWriter.WriteRecord(new DSListRecord
                         {
                             ExternalId = item.BaseExternalId,
@@ -437,6 +439,8 @@ namespace EBOM_Macro.Managers
                             }
                         }
                     }
+
+                    progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Writing DS list is done" });
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }

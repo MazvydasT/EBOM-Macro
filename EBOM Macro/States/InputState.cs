@@ -4,6 +4,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -83,7 +84,8 @@ namespace EBOM_Macro.States
                     progressState.ExistingDataReadError = true;
 
                     return Observable.Return<ExistingDataContainer>(default);
-                })).Switch();
+                })).Switch()
+                    .Replay(1).RefCount();
 
             ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix)
                 .Throttle(TimeSpan.FromMilliseconds(200))
@@ -96,24 +98,27 @@ namespace EBOM_Macro.States
                 Observable.CombineLatest(ExistingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData.Items == null ? "" : externalIdPrefix))
                     .DistinctUntilChanged(),
 
-                (items, pair) =>
+                (items, pair) => (items, pair.existingData, pair.externalIdPrefix))
+                .ObserveOnDispatcher()
+                .Select(data =>
                 {
                     previousComparisonTaskData.CancellationTokenSource?.Cancel();
                     previousComparisonTaskData.Task?.Wait();
 
                     progressState.ComparisonProgress = 0;
 
-                    return Observable.FromAsync(() =>
-                    {
-                        var cancellationTokenSource = new CancellationTokenSource();
+                    var cancellationTokenSource = new CancellationTokenSource();
 
-                        previousComparisonTaskData = (ItemManager.SetStatus(items, pair.existingData, pair.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
-                        {
-                            progressState.ComparisonProgress = (double)progress.Value / progress.Max;
-                        }), cancellationTokenSource.Token), cancellationTokenSource);
-                        return previousComparisonTaskData.Task;
-                    });
-                }).Switch().ToPropertyEx(this, x => x.Items);
+                    var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
+                    {
+                        progressState.ComparisonProgress = (double)progress.Value / progress.Max;
+                    }), cancellationTokenSource.Token);
+
+                    previousComparisonTaskData = (task, cancellationTokenSource);
+
+                    return Observable.FromAsync(() => task);
+                })
+                .Switch().ToPropertyEx(this, x => x.Items);
         }
 
         void InitializeCommands()

@@ -119,13 +119,6 @@ namespace EBOM_Macro.Managers
                         }
                     }
 
-                    /*if (item.State == Item2.ItemState.Unchanged &&
-                    item.GetSelfAndDescendants().Where(i => i.State == Item2.ItemState.Modified).Count() > 0)
-                    {
-                        item.State = Item2.ItemState.HasModifiedDescendants;
-                        continue;
-                    }*/
-
                     if (item.State == Item.ItemState.New || item.State == Item.ItemState.Modified)
                     {
                         item.SelectWithoutDescendants.Execute(null);
