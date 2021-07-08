@@ -11,7 +11,8 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using Microsoft.Win32;
+using System.Windows.Interop;
 
 namespace EBOM_Macro.States
 {
@@ -133,21 +134,20 @@ namespace EBOM_Macro.States
                 var lastUsedEBOMReportDirectory = string.IsNullOrWhiteSpace(properties.LastUsedEBOMReportDirectory) ?
                     (string.IsNullOrWhiteSpace(EBOMReportPath) ? Environment.CurrentDirectory : Path.GetDirectoryName(EBOMReportPath)) : properties.LastUsedEBOMReportDirectory;
 
-                using (var dialog = new OpenFileDialog
+                var dialog = new OpenFileDialog
                 {
                     Filter = "CSV (Comma delimited) (*.csv)|*.csv",
                     InitialDirectory = lastUsedEBOMReportDirectory,
                     Multiselect = false,
                     CheckFileExists = true,
                     Title = "Select EBOM report"
-                })
+                };
+
+                if (dialog.ShowDialog() == true)
                 {
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        EBOMReportPath = Utils.PathToUNC(dialog.FileName);
-                        properties.LastUsedEBOMReportDirectory = Path.GetDirectoryName(EBOMReportPath);
-                        properties.Save();
-                    }
+                    EBOMReportPath = Utils.PathToUNC(dialog.FileName);
+                    properties.LastUsedEBOMReportDirectory = Path.GetDirectoryName(EBOMReportPath);
+                    properties.Save();
                 }
             });
 
@@ -164,7 +164,7 @@ namespace EBOM_Macro.States
                     Title = "Select LDI folder"
                 };
 
-                if (dialog.ShowDialog())
+                if (dialog.ShowDialog(new WindowInteropHelper(App.Current.MainWindow).Handle))
                 {
                     LDIFolderPath = Utils.PathToUNC(dialog.FileName);
                     properties.LastUsedLDIDirectory = LDIFolderPath;
@@ -178,21 +178,20 @@ namespace EBOM_Macro.States
 
                 var lastUsedDSListDirectory = string.IsNullOrWhiteSpace(properties.LastUsedDSListDirectory) ? Environment.CurrentDirectory : properties.LastUsedDSListDirectory;
 
-                using (var dialog = new OpenFileDialog
+                var dialog = new OpenFileDialog
                 {
                     Filter = "eM-Planner data (*.xml)|*.xml",
                     InitialDirectory = lastUsedDSListDirectory,
                     Multiselect = false,
                     CheckFileExists = true,
-                    Title = "Load existing data"
-                })
+                    Title = "Select existing data"
+                };
+
+                if (dialog.ShowDialog() == true)
                 {
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        ExistingDataPath = Utils.PathToUNC(dialog.FileName);
-                        properties.LastUsedDSListDirectory = Path.GetDirectoryName(ExistingDataPath);
-                        properties.Save();
-                    }
+                    ExistingDataPath = Utils.PathToUNC(dialog.FileName);
+                    properties.LastUsedDSListDirectory = Path.GetDirectoryName(ExistingDataPath);
+                    properties.Save();
                 }
             });
 
