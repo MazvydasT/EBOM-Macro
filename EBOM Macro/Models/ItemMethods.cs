@@ -2,7 +2,6 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
 
 namespace EBOM_Macro.Models
@@ -12,11 +11,6 @@ namespace EBOM_Macro.Models
         public Item()
         {
             SelectWithoutDescendants = new Command(param => SetIsChecked(true, false, true));
-        }
-
-        public Item(byte[] hash) : this()
-        {
-            this.hash = hash;
         }
 
         public ICommand SelectWithoutDescendants { get; }
@@ -43,13 +37,6 @@ namespace EBOM_Macro.Models
         public IEnumerable<Item> GetAncestors() => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Prepend(Parent);
 
         public string GetAttributes() => $"{Number}-{Version}-{Name}-{Rotation}-{Translation}-{Prefix}-{Base}-{Suffix}";
-
-        byte[] hash = null;
-        public byte[] GetHash(bool refreshCache = false) => (refreshCache ? null : hash) ?? (hash = StaticResources.SHA512.ComputeHash(
-            Encoding.UTF8.GetBytes(
-                string.Join("-", GetSelfAndDescendants().Select(i => GetAttributes()))
-            )
-        ));
 
         void SetIsChecked(bool? value, bool updateChildren, bool updateParent)
         {
