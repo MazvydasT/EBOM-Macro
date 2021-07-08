@@ -1,6 +1,5 @@
 ﻿using EBOM_Macro.Managers;
 using EBOM_Macro.Models;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -18,7 +17,7 @@ namespace EBOM_Macro.States
 {
     public class InputState : ReactiveObject
     {
-        [Reactive] public string EBOMReportPath { get; set; } //= @"C:\Users\mtadara1.JLRIEU1\Desktop\EMS_EBOM_Report_L663_23_05_2021_17_51.csv";
+        [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
         [Reactive] public string LDIFolderPath { get; set; }
         [Reactive] public string ExternalIdPrefix { get; set; }
@@ -30,7 +29,6 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
-        //public IObservable<Dictionary<string, Item>> existingDataObservable { get; private set; }
         public IObservable<string> ExternalIdPrefixObservable { get; private set; }
 
         ProgressState progressState;
@@ -74,7 +72,6 @@ namespace EBOM_Macro.States
                     progressState.ExistingDataReadMessage = "";
                     progressState.ExistingDataReadProgress = 0;
                 })
-                //.Select(path => Observable.FromAsync(token => CSVManager.ReadDSList(path, new Progress<ProgressUpdate>(progress =>
                 .Select(path => Observable.FromAsync(token => XMLManager.ReadExistingData(path, new Progress<ProgressUpdate>(progress =>
                 {
                     progressState.ExistingDataReadProgress = (double)progress.Value / progress.Max;
@@ -87,7 +84,6 @@ namespace EBOM_Macro.States
 
                     return Observable.Return<Dictionary<string, Item>>(default);
                 })).Switch();
-                    //.Replay(1).RefCount();
 
             ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix)
                 .Throttle(TimeSpan.FromMilliseconds(400))
@@ -162,20 +158,17 @@ namespace EBOM_Macro.States
                 var lastUsedLDIDirectory = string.IsNullOrWhiteSpace(properties.LastUsedLDIDirectory) ?
                     (string.IsNullOrWhiteSpace(LDIFolderPath) ? Environment.CurrentDirectory : Path.GetDirectoryName(LDIFolderPath)) : properties.LastUsedLDIDirectory;
 
-                using (var dialog = new CommonOpenFileDialog
+                var dialog = new FolderSelect.FolderSelectDialog
                 {
-                    IsFolderPicker = true,
-                    EnsurePathExists = true,
                     InitialDirectory = lastUsedLDIDirectory,
                     Title = "Select LDI folder"
-                })
+                };
+
+                if (dialog.ShowDialog())
                 {
-                    if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-                    {
-                        LDIFolderPath = Utils.PathToUNC(dialog.FileName);
-                        properties.LastUsedLDIDirectory = LDIFolderPath;
-                        properties.Save();
-                    }
+                    LDIFolderPath = Utils.PathToUNC(dialog.FileName);
+                    properties.LastUsedLDIDirectory = LDIFolderPath;
+                    properties.Save();
                 }
             });
 
@@ -187,7 +180,6 @@ namespace EBOM_Macro.States
 
                 using (var dialog = new OpenFileDialog
                 {
-                    //Filter = "CSV (Comma delimited) (*.csv)|*.csv",
                     Filter = "eM-Planner data (*.xml)|*.xml",
                     InitialDirectory = lastUsedDSListDirectory,
                     Multiselect = false,
