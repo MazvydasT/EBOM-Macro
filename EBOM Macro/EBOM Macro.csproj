@@ -259,7 +259,6 @@
     <Compile Include="Converters\ExportCancelButtonVisibilityConverter.cs" />
     <Compile Include="Converters\ExportButtonVisibilityConverter.cs" />
     <Compile Include="Converters\XMLExportEnabledConverter.cs" />
-    <Compile Include="Converters\DSListExportEnabledConverter.cs" />
     <Compile Include="Converters\ItemChildrenConverter.cs" />
     <Compile Include="Converters\TreeViewItemSourceConverter.cs" />
     <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
@@ -272,7 +271,6 @@
     <Compile Include="Converters\StrikethroughAngleConverter.cs" />
     <Compile Include="Managers\CSVManager.cs" />
     <Compile Include="Extensions\DoubleExtensions.cs" />
-    <Compile Include="Models\DSListRecord.cs" />
     <Compile Include="Extensions\FreezableExtensions.cs" />
     <Compile Include="Converters\StrikethroughOffsetConverter.cs" />
     <Compile Include="States\InputState.cs" />

@@ -27,7 +27,9 @@ namespace EBOM_Macro.Models
         public string Name { get; set; }
         public double Version { get; set; }
 
-        public Matrix3D LocalTransformation { get; set; }
+        //public Matrix3D LocalTransformation { get; set; }
+        public Vector3D Rotation { get; set; }
+        public Vector3D Translation { get; set; }
 
         public string Prefix { get; set; }
         public string Base { get; set; }
@@ -37,7 +39,7 @@ namespace EBOM_Macro.Models
 
         public string PhysicalId { get; set; }
 
-        public EBOMReportRecord.MaturityState Maturity { get; set; }
+        public EBOMReportRecord.MaturityState? Maturity { get; set; }
 
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();

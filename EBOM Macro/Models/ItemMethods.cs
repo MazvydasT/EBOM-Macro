@@ -42,7 +42,7 @@ namespace EBOM_Macro.Models
 
         public IEnumerable<Item> GetAncestors() => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Prepend(Parent);
 
-        public string GetAttributes() => $"{Number}-{Version}-{Name}-{LocalTransformation}-{Prefix}-{Base}-{Suffix}";
+        public string GetAttributes() => $"{Number}-{Version}-{Name}-{Rotation}-{Translation}-{Prefix}-{Base}-{Suffix}";
 
         byte[] hash = null;
         public byte[] GetHash(bool refreshCache = false) => (refreshCache ? null : hash) ?? (hash = StaticResources.SHA512.ComputeHash(
@@ -84,6 +84,6 @@ namespace EBOM_Macro.Models
 
         public override string ToString() => $"{Number}" + (Version == 0 ? "" : $"/{Version}") +
             (string.IsNullOrWhiteSpace(Name) ? "" : $" - {Name}") +
-            (Type == ItemType.DS || Type == ItemType.PartAsy ? $" [{Maturity}]" : "");
+            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
     }
 }

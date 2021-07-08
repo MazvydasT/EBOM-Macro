@@ -107,13 +107,16 @@ namespace EBOM_Macro.Managers
 
                             if (skipRecords) continue;
 
+                            var transformationMatrix = Utils.V6MatrixString2Matrix3D(record.Transformation);
+
                             var item = new Item
                             {
                                 Number = record.PartNumber,
                                 Version = record.Version,
                                 Name = record.Name,
 
-                                LocalTransformation = Utils.V6MatrixString2Matrix3D(record.Transformation),
+                                Rotation = transformationMatrix.GetEulerZYX(),
+                                Translation = transformationMatrix.GetTranslation() * 1000.0,
 
                                 Prefix = record.Prefix,
                                 Base = record.Base,
@@ -140,7 +143,7 @@ namespace EBOM_Macro.Managers
                             {
                                 var cpscLevel3Parts = record.CPSCLevel3?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
                                 var cpscLevel3Number = cpscLevel3Parts?.Length > 0 ? cpscLevel3Parts[0].Trim() : "";
-                                var cpscLevel3Name = cpscLevel3Parts?.Length > 1 ? cpscLevel3Parts[1].Trim() : "";
+                                var cpscLevel3Name = cpscLevel3Parts?.Length > 1 ? string.Join("-", cpscLevel3Parts.Skip(1)).Trim() : "";
 
                                 placeholderLookup.TryGetValue(cpscLevel3Number, out Item level3Placeholder);
 
@@ -161,7 +164,7 @@ namespace EBOM_Macro.Managers
 
                                     var cpscLevel2Parts = record.CPSCLevel2?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
                                     var cpscLevel2Number = cpscLevel2Parts?.Length > 0 ? cpscLevel2Parts[0].Trim() : "";
-                                    var cpscLevel2Name = cpscLevel2Parts?.Length > 1 ? cpscLevel2Parts[1].Trim() : "";
+                                    var cpscLevel2Name = cpscLevel2Parts?.Length > 1 ? string.Join("-", cpscLevel2Parts.Skip(1)).Trim() : "";
 
                                     placeholderLookup.TryGetValue(cpscLevel2Number, out Item level2Placeholder);
 
@@ -182,7 +185,7 @@ namespace EBOM_Macro.Managers
 
                                         var cpscLevel1Parts = record.CPSCLevel1?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
                                         var cpscLevel1Number = cpscLevel1Parts?.Length > 0 ? cpscLevel1Parts[0].Trim() : "";
-                                        var cpscLevel1Name = cpscLevel1Parts?.Length > 1 ? cpscLevel1Parts[1].Trim() : "";
+                                        var cpscLevel1Name = cpscLevel1Parts?.Length > 1 ? string.Join("-", cpscLevel1Parts.Skip(1)).Trim() : "";
 
                                         placeholderLookup.TryGetValue(cpscLevel1Number, out Item level1Placeholder);
 
@@ -255,192 +258,6 @@ namespace EBOM_Macro.Managers
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Done" });
 
                     return new ItemsContainer { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly() };
-                }
-            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-        }
-
-        public static async Task<ExistingDataContainer> ReadDSList(string dsListPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(dsListPath)) return default;
-
-            using (var fileStream = new FileStream(dsListPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return await ReadDSList(fileStream, progress, cancellationToken);
-            }
-        }
-
-        private static async Task<ExistingDataContainer> ReadDSList(Stream dsListStream, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
-        {
-            return await Task.Factory.StartNew(() =>
-            {
-                var items = new Dictionary<string, Item>();
-                var externalIdPrefix = "";
-
-                var streamLength = dsListStream.Length;
-                long progressValue = 0;
-
-                using (var streamReader = new StreamReader(dsListStream, DS_LIST_ENCODING))
-                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
-                {
-                    var levelTracker = new Dictionary<int, Item>();
-
-                    try
-                    {
-                        csvReader.Read();
-
-                        externalIdPrefix = csvReader.GetField(1);
-                        csvReader.Read();
-                        csvReader.ReadHeader();
-
-                        var records = csvReader.GetRecords<DSListRecord>();
-
-                        foreach (var record in records)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            var level = record.Level;
-
-                            var item = new Item(record.Hash.Length == 0 ? null : record.Hash)
-                            {
-                                Number = record.Number,
-                                Version = record.Version,
-                                Name = record.Name,
-
-                                BaseExternalId = record.ExternalId,
-
-                                Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out var parent) ? parent : null),
-
-                                State = Item.ItemState.Redundant
-                            };
-
-                            item.Parent?.Children.Add(item);
-
-                            levelTracker[level] = item;
-
-                            items.Add(record.ExternalId, item);
-
-                            if (progress != null)
-                            {
-                                var readingProgress = dsListStream.Position * PROGRESS_MAX / streamLength;
-
-                                if (readingProgress > progressValue)
-                                {
-                                    progressValue = readingProgress;
-
-                                    progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Reading DS list: {((double)readingProgress / PROGRESS_MAX):P0}" });
-                                }
-                            }
-                        }
-                    }
-
-                    catch (HeaderValidationException headerValidationException)
-                    {
-                        throw new Exception($"Missing headers: {string.Join(", ", headerValidationException.InvalidHeaders.SelectMany(h => h.Names))}", headerValidationException);
-                    }
-
-                    catch (CsvHelper.MissingFieldException missingFieldException)
-                    {
-                        throw new FileFormatException("Unexpected file format", missingFieldException);
-                    }
-                }
-
-                progress?.Report(new ProgressUpdate
-                {
-                    Max = PROGRESS_MAX,
-                    Value = PROGRESS_MAX,
-                    Message = "Done" + (string.IsNullOrWhiteSpace(externalIdPrefix) ? "" : $". ExternalId prefix: {externalIdPrefix}")
-                });
-
-                return new ExistingDataContainer { Items = items, ExternalIdPrefix = externalIdPrefix };
-            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-        }
-
-        public static async Task WriteDSList(string dsListPath, (Item Root, IReadOnlyCollection<Item> PHs) items, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
-        {
-            using (var fileStream = new FileStream(dsListPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
-            {
-                try
-                {
-                    await WriteDSList(fileStream, items, externalIdPrefix, progress, cancellationToken);
-                }
-
-                finally
-                {
-                    fileStream.SetLength(fileStream.Position); // Trunkates existing file
-                }
-            }
-        }
-
-        private static async Task WriteDSList(Stream stream, (Item Root, IReadOnlyCollection<Item> PHs) items, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
-        {
-            await Task.Factory.StartNew(() =>
-            {
-                var stack = new Stack<(Item, int)>((items.Root, 0).Yield());
-
-                var itemCount = items.PHs.Count + 1;
-
-                var lookup = new HashSet<Item>(itemCount);
-                lookup.UnionWith(items.PHs.Prepend(items.Root));
-
-                var index = 0;
-                long progressValue = 0;
-
-                using (var streamWriter = new StreamWriter(stream, DS_LIST_ENCODING, 1024, true))
-                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture, true))
-                {
-                    csvWriter.WriteField("ExternalId prefix:");
-                    csvWriter.WriteField(externalIdPrefix);
-
-                    csvWriter.NextRecord();
-                    csvWriter.NextRecord();
-
-                    csvWriter.WriteHeader<DSListRecord>();
-                    csvWriter.NextRecord();
-
-                    while (stack.Count > 0)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        (var item, var level) = stack.Pop();
-
-                        if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
-
-                        csvWriter.WriteRecord(new DSListRecord
-                        {
-                            ExternalId = item.BaseExternalId,
-                            Hash = item.Type == Item.ItemType.DS ? item.GetHash() : null,
-                            Level = level,
-                            Name = item.Name,
-                            Number = item.Number,
-                            Version = item.Version
-                        });
-                        csvWriter.NextRecord();
-
-                        if (lookup.Contains(item))
-                        {
-                            var childLevel = level + 1;
-                            var children = item.Children.Select(i => (i, childLevel)).Reverse();
-
-                            foreach (var child in children)
-                            {
-                                stack.Push(child);
-                            }
-
-                            if (progress != null)
-                            {
-                                var readProgress = ++index * PROGRESS_MAX / itemCount;
-
-                                if (readProgress > progressValue)
-                                {
-                                    progressValue = readProgress;
-
-                                    progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing DS list: {((double)readProgress / PROGRESS_MAX):P0}" });
-                                }
-                            }
-                        }
-                    }
-
-                    progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Writing DS list is done" });
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }

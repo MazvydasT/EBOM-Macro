@@ -1,6 +1,4 @@
-﻿using ReactiveUI;
-
-namespace EBOM_Macro.States
+﻿namespace EBOM_Macro.States
 {
     public sealed class AppState
     {

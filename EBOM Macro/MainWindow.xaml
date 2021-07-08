@@ -90,7 +90,7 @@
 
                 <ProgressBar Value="{Binding ProgressState.ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
 
-                <Button x:Name="ExportDSListButton" Command="{Binding OutputState.SaveDSList}" Content="{StaticResource DSDownload}" ToolTip="Save DS list" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                <!--Button x:Name="ExportDSListButton" Command="{Binding OutputState.SaveDSList}" Content="{StaticResource DSDownload}" ToolTip="Save DS list" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
                     <Button.Visibility>
                         <MultiBinding Converter="{converters:ExportButtonVisibilityConverter}">
                             <Binding Path="ProgressState.ExportProgress"/>
@@ -113,14 +113,35 @@
                             <Binding Path="ProgressState.ExportError" Mode="OneWay"/>
                         </MultiBinding>
                     </Button.IsEnabled>
-                </Button>
+                </Button-->
 
-                <Button Visibility="{Binding ElementName=ExportDSListButton, Path=Visibility, Converter={converters:ExportCancelButtonVisibilityConverter}}" Command="{Binding OutputState.CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                <Button Visibility="{Binding ElementName=SaveXMLButton, Path=Visibility, Converter={converters:ExportCancelButtonVisibilityConverter}}" Command="{Binding OutputState.CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
 
-                <Button Visibility="{Binding ElementName=ExportDSListButton, Path=Visibility}" Command="{Binding OutputState.SaveXML}" Content="{StaticResource FileDownload}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                <Button x:Name="SaveXMLButton" Command="{Binding OutputState.SaveXML}" Content="{StaticResource FileDownload}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                    <Button.Visibility>
+                        <MultiBinding Converter="{converters:ExportButtonVisibilityConverter}">
+                            <Binding Path="ProgressState.ExportProgress"/>
+                            <Binding Path="ProgressState.ExportError"/>
+                        </MultiBinding>
+                    </Button.Visibility>
+                    
                     <Button.IsEnabled>
                         <MultiBinding Converter="{converters:XMLExportEnabledConverter}">
-                            <Binding ElementName="ExportDSListButton" Path="IsEnabled" Mode="OneWay"/>
+                            <!--Binding ElementName="ExportDSListButton" Path="IsEnabled" Mode="OneWay"/-->
+
+                            <Binding Path="InputState.Items.Root.IsChecked" FallbackValue="false" Mode="OneWay"/>
+
+                            <Binding Path="ProgressState.EBOMReportReadProgress" Mode="OneWay"/>
+                            <Binding Path="ProgressState.EBOMReportReadError" Mode="OneWay"/>
+
+                            <Binding Path="ProgressState.ExistingDataReadProgress" Mode="OneWay"/>
+                            <Binding Path="ProgressState.ExistingDataReadError" Mode="OneWay"/>
+
+                            <Binding Path="ProgressState.ComparisonProgress" Mode="OneWay"/>
+
+                            <Binding Path="ProgressState.ExportProgress" Mode="OneWay"/>
+                            <Binding Path="ProgressState.ExportError" Mode="OneWay"/>
+
                             <Binding Path="InputState.LDIFolderPath" Mode="OneWay"/>
                         </MultiBinding>
                     </Button.IsEnabled>
@@ -191,7 +212,7 @@
                     </StackPanel>
 
                     <StackPanel Margin="0,5,0,0">
-                        <TextBlock Text="Path to DS list:" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
+                        <TextBlock Text="Existing data:" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
 
                         <Grid>
                             <Grid.ColumnDefinitions>

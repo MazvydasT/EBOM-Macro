@@ -4,10 +4,11 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
-        public IObservable<ExistingDataContainer> ExistingDataObservable { get; private set; }
+        //public IObservable<Dictionary<string, Item>> existingDataObservable { get; private set; }
         public IObservable<string> ExternalIdPrefixObservable { get; private set; }
 
         ProgressState progressState;
@@ -66,14 +67,15 @@ namespace EBOM_Macro.States
                     return Observable.Return<ItemsContainer>(default);
                 })).Switch();
 
-            ExistingDataObservable = this.WhenAnyValue(x => x.ExistingDataPath)
+            var existingDataObservable = this.WhenAnyValue(x => x.ExistingDataPath)
                 .Do(_ =>
                 {
                     progressState.ExistingDataReadError = false;
                     progressState.ExistingDataReadMessage = "";
                     progressState.ExistingDataReadProgress = 0;
                 })
-                .Select(path => Observable.FromAsync(token => CSVManager.ReadDSList(path, new Progress<ProgressUpdate>(progress =>
+                //.Select(path => Observable.FromAsync(token => CSVManager.ReadDSList(path, new Progress<ProgressUpdate>(progress =>
+                .Select(path => Observable.FromAsync(token => XMLManager.ReadExistingData(path, new Progress<ProgressUpdate>(progress =>
                 {
                     progressState.ExistingDataReadProgress = (double)progress.Value / progress.Max;
                     progressState.ExistingDataReadMessage = progress.Message;
@@ -83,23 +85,23 @@ namespace EBOM_Macro.States
                     progressState.ExistingDataReadMessage = exception.Message;
                     progressState.ExistingDataReadError = true;
 
-                    return Observable.Return<ExistingDataContainer>(default);
-                })).Switch()
-                    .Replay(1).RefCount();
+                    return Observable.Return<Dictionary<string, Item>>(default);
+                })).Switch();
+                    //.Replay(1).RefCount();
 
             ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix)
-                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Throttle(TimeSpan.FromMilliseconds(400))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
                 .Replay(1).RefCount();
 
             Observable.CombineLatest(
                 itemsObservable,
 
-                Observable.CombineLatest(ExistingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData.Items == null ? "" : externalIdPrefix))
+                Observable.CombineLatest(existingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix))
                     .DistinctUntilChanged(),
 
                 (items, pair) => (items, pair.existingData, pair.externalIdPrefix))
-                .ObserveOnDispatcher()
+                .ObserveOn(TaskPoolScheduler.Default)
                 .Select(data =>
                 {
                     previousComparisonTaskData.CancellationTokenSource?.Cancel();
@@ -107,6 +109,11 @@ namespace EBOM_Macro.States
 
                     progressState.ComparisonProgress = 0;
 
+                    return data;
+                })
+                .ObserveOnDispatcher()
+                .Select(data =>
+                {
                     var cancellationTokenSource = new CancellationTokenSource();
 
                     var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
@@ -180,11 +187,12 @@ namespace EBOM_Macro.States
 
                 using (var dialog = new OpenFileDialog
                 {
-                    Filter = "CSV (Comma delimited) (*.csv)|*.csv",
+                    //Filter = "CSV (Comma delimited) (*.csv)|*.csv",
+                    Filter = "eM-Planner data (*.xml)|*.xml",
                     InitialDirectory = lastUsedDSListDirectory,
                     Multiselect = false,
                     CheckFileExists = true,
-                    Title = "Select DS list"
+                    Title = "Load existing data"
                 })
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)

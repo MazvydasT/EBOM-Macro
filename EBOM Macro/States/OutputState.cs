@@ -27,7 +27,7 @@ namespace EBOM_Macro.States
             this.inputState = inputState;
             this.progressState = progressState;
 
-            SaveDSList = ReactiveCommand.Create(() =>
+            /*SaveDSList = ReactiveCommand.Create(() =>
             {
                 progressState.ExportError = false;
                 progressState.ExportMessage = "";
@@ -89,7 +89,7 @@ namespace EBOM_Macro.States
                             });
                     }
                 }
-            });
+            });*/
 
             SaveXML = ReactiveCommand.Create(() =>
             {
@@ -113,10 +113,9 @@ namespace EBOM_Macro.States
                         Observable.CombineLatest(
                             inputState.WhenAnyValue(x => x.Items),
                             inputState.ExternalIdPrefixObservable,
-                            inputState.ExistingDataObservable,
                             inputState.WhenAnyValue(x => x.LDIFolderPath),
 
-                            (items, externalIdPrefix, existingData, ldiPath) => (items, externalIdPrefix, existingData, ldiPath)
+                            (items, externalIdPrefix, ldiPath) => (items, externalIdPrefix, ldiPath)
                         ).Take(1).Subscribe(async data =>
                         {
                             progressState.ExportProgress = 0;
@@ -127,7 +126,7 @@ namespace EBOM_Macro.States
                             {
                                 try
                                 {
-                                    await XMLManager.ItemsToXML(dialog.FileName, data.items, data.externalIdPrefix, data.existingData.ExternalIdPrefix, data.ldiPath, new Progress<ProgressUpdate>(progress =>
+                                    await XMLManager.ItemsToXML(dialog.FileName, data.items, data.externalIdPrefix, data.ldiPath, new Progress<ProgressUpdate>(progress =>
                                     {
                                         progressState.ExportProgress = (double)progress.Value / progress.Max;
                                         progressState.ExportMessage = progress.Message;

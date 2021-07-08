@@ -12,7 +12,7 @@ namespace EBOM_Macro.Managers
     {
         const long PROGRESS_MAX = 200;
 
-        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, ExistingDataContainer existingData, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
 
@@ -58,22 +58,9 @@ namespace EBOM_Macro.Managers
                     item.State = Item.ItemState.New;
                     item.RedundantChildren = null;
 
-                    if (existingData.Items != null && existingData.ExternalIdPrefix == externalIdPrefix && existingData.Items.TryGetValue(item.BaseExternalId, out var matchingItem))
+                    if (existingData != null && existingData.TryGetValue($"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
                     {
-                        if (item.Type == Item.ItemType.DS && matchingItem.Children.Count == 0)
-                        {
-                            var state = new Span<byte>(item.GetHash()).SequenceEqual(matchingItem.GetHash()) ? Item.ItemState.Unchanged : Item.ItemState.Modified;
-
-                            processedWithHierarchy.UnionWith(item.GetSelfAndDescendants().Select(i =>
-                            {
-                                i.State = state;
-                                i.RedundantChildren = null;
-
-                                return i;
-                            }));
-                        }
-
-                        else if (item.GetAttributes() != matchingItem.GetAttributes())
+                        if (item.GetAttributes() != matchingItem.GetAttributes())
                         {
                             item.State = Item.ItemState.Modified;
                         }
