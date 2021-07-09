@@ -209,7 +209,7 @@ namespace EBOM_Macro.Managers
                     {
                         var ds = item.GetDS();
 
-                        var jtPath = Path.Combine(ldiFolderPath, $"{ds.Number}_{ds.Version}__", $"{item.Number}.jt");
+                        var jtPath = Path.Combine(ldiFolderPath, $"{ds.Number}_{ds.Version}__".GetSafeFileName(), $"{item.Number}.jt".GetSafeFileName());
                         string jtPathHash;
                         bool newJTPathHash;
 

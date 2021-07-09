@@ -258,6 +258,7 @@
     <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
     <Compile Include="Converters\State2ColourConverter.cs" />
     <Compile Include="Converters\State2CheckBoxVisibilityConverter.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="FolderSelectDialog.cs" />
     <Compile Include="Models\ExistingDataContainer.cs" />
     <Compile Include="Reflector.cs" />
