@@ -257,7 +257,7 @@ namespace EBOM_Macro.Managers
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Done" });
 
-                    return new ItemsContainer { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly() };
+                    return new ItemsContainer { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly(), Program = program };
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }

@@ -17,7 +17,7 @@ namespace EBOM_Macro.Managers
     {
         private const long PROGRESS_MAX = 300;
 
-        public static async Task ItemsToXML(string xmlPath, ItemsContainer items, string externalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        public static async Task ItemsToXML(string xmlPath, IReadOnlyList<XMLExportData> xmlExportData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(xmlPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
             using (var streamWriter = new StreamWriter(fileStream))
@@ -30,7 +30,7 @@ namespace EBOM_Macro.Managers
             {
                 try
                 {
-                    await ItemsToXML(xmlWriter, items, externalIdPrefix, ldiFolderPath, progress, cancellationToken);
+                    await ItemsToXML(xmlWriter, xmlExportData, progress, cancellationToken);
                 }
 
                 finally
@@ -40,279 +40,290 @@ namespace EBOM_Macro.Managers
             }
         }
 
-        private static async Task ItemsToXML(XmlWriter xmlWriter, ItemsContainer items, string externalIdPrefix, string ldiFolderPath, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task ItemsToXML(XmlWriter xmlWriter, IReadOnlyList<XMLExportData> xmlExportData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             await Task.Factory.StartNew(() =>
             {
                 var filePathTracker = new Dictionary<string, string>();
-
-                long progressValue = 0;
-                var itemIndex = 0;
-
+                
                 xmlWriter.WriteStartDocument(true);
                 xmlWriter.WriteStartElement("Data");
                 xmlWriter.WriteStartElement("Objects");
 
-                var allItems = items.PHs.Concat(items.Items).Prepend(items.Root);
-                var itemCount = items.Items.Count + items.PHs.Count + 1;
-
-                foreach (var item in allItems)
+                for (int dataIndex = 0, dataCount = xmlExportData?.Count ?? 0; dataIndex < dataCount; ++dataIndex)
                 {
-                    ++itemIndex;
-
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
+                    var data = xmlExportData[dataIndex];
 
-                    var childCount = item.Children.Count;
+                    var items = data.Items;
+                    var externalIdPrefix = data.ExternalIdPrefix;
+                    var ldiFolderPath = data.LDIFolderPath;
 
-                    var isCompound = childCount > 0;
+                    var allItems = items.PHs.Concat(items.Items).Prepend(items.Root);
+                    var itemCount = items.Items.Count + items.PHs.Count + 1;
 
-                    var externalId = $"{externalIdPrefix}{item.BaseExternalId}";
-                    var externlaIdBase = externalId.Substring(0, externalId.Length - 1);
-                    var layoutExternalId = externalId + "l";
-                    var prototypeExternalId = externlaIdBase + "p";
+                    long progressValue = 0;
+                    var itemIndex = 0;
 
-                    xmlWriter.WriteStartElement(isCompound ? "PmCompoundPart" : "PmPartInstance");
-                    xmlWriter.WriteAttributeString("ExternalId", externalId);
-
-                    xmlWriter.WriteStartElement("ActiveInCurrentVersion");
-                    xmlWriter.WriteEndElement();
-
-                    xmlWriter.WriteStartElement("name");
-                    xmlWriter.WriteString(item.Name?.Trim() ?? "");
-                    xmlWriter.WriteEndElement();
-
-                    xmlWriter.WriteStartElement("layout");
-                    xmlWriter.WriteString(layoutExternalId);
-                    xmlWriter.WriteEndElement();
-
-                    if (isCompound)
+                    foreach (var item in allItems)
                     {
-                        xmlWriter.WriteStartElement("number");
-                        xmlWriter.WriteString(item.Number?.Trim() ?? "");
-                        xmlWriter.WriteEndElement();
+                        ++itemIndex;
 
-                        if (item.Version > 0)
-                        {
-                            xmlWriter.WriteStartElement("TCe_Revision");
-                            xmlWriter.WriteString(item.Version.ToString());
-                            xmlWriter.WriteEndElement();
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                        if (!string.IsNullOrWhiteSpace(item.Prefix))
-                        {
-                            xmlWriter.WriteStartElement("Prefix");
-                            xmlWriter.WriteString(item.Prefix);
-                            xmlWriter.WriteEndElement();
-                        }
+                        if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
 
-                        if (!string.IsNullOrWhiteSpace(item.Base))
-                        {
-                            xmlWriter.WriteStartElement("Base");
-                            xmlWriter.WriteString(item.Base);
-                            xmlWriter.WriteEndElement();
-                        }
+                        var childCount = item.Children.Count;
 
-                        if (!string.IsNullOrWhiteSpace(item.Suffix))
-                        {
-                            xmlWriter.WriteStartElement("Suffix");
-                            xmlWriter.WriteString(item.Suffix);
-                            xmlWriter.WriteEndElement();
-                        }
+                        var isCompound = childCount > 0;
 
-                        if (!string.IsNullOrWhiteSpace(item.Owner))
-                        {
-                            xmlWriter.WriteStartElement("Data_Source");
-                            xmlWriter.WriteString(item.Owner);
-                            xmlWriter.WriteEndElement();
-                        }
+                        var externalId = $"{externalIdPrefix}{item.BaseExternalId}";
+                        var externlaIdBase = externalId.Substring(0, externalId.Length - 1);
+                        var layoutExternalId = externalId + "l";
+                        var prototypeExternalId = externlaIdBase + "p";
 
+                        xmlWriter.WriteStartElement(isCompound ? "PmCompoundPart" : "PmPartInstance");
+                        xmlWriter.WriteAttributeString("ExternalId", externalId);
 
-                        xmlWriter.WriteStartElement("children");
-
-                        for (var childIndex = 0; childIndex < childCount; ++childIndex)
-                        {
-                            var childItem = item.Children[childIndex];
-
-                            if (childItem.IsChecked == false && childItem.State == Item.ItemState.New) continue;
-
-                            xmlWriter.WriteStartElement("item");
-                            xmlWriter.WriteString($"{externalIdPrefix}{childItem.BaseExternalId}");
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        xmlWriter.WriteEndElement();
-                    }
-
-                    else
-                    {
-                        xmlWriter.WriteStartElement("prototype");
-                        xmlWriter.WriteString(prototypeExternalId);
-                        xmlWriter.WriteEndElement();
-                    }
-
-                    xmlWriter.WriteEndElement();
-
-
-                    if (item.RedundantChildren != null)
-                    {
-                        var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants());
-
-                        foreach (var redundantItem in redundantItems)
-                        {
-                            xmlWriter.WriteStartElement(redundantItem.Children.Count > 0 ? "PmCompoundPart" : "PmPartInstance");
-                            xmlWriter.WriteAttributeString("ExternalId", redundantItem.BaseExternalId);
-
-                            xmlWriter.WriteStartElement("ActiveInCurrentVersion");
-                            xmlWriter.WriteString("OLD_LEVEL");
-                            xmlWriter.WriteEndElement();
-
-                            xmlWriter.WriteEndElement();
-                        }
-                    }
-
-
-                    xmlWriter.WriteStartElement("PmLayout");
-                    xmlWriter.WriteAttributeString("ExternalId", layoutExternalId);
-
-                    xmlWriter.WriteStartElement("location");
-
-                    foreach (var component in item.Translation.Items())
-                    {
-                        xmlWriter.WriteStartElement("item");
-                        xmlWriter.WriteString(component.ToString());
-                        xmlWriter.WriteEndElement();
-                    }
-
-                    xmlWriter.WriteEndElement();
-
-
-                    xmlWriter.WriteStartElement("rotation");
-
-                    foreach (var component in item.Rotation.Items())
-                    {
-                        xmlWriter.WriteStartElement("item");
-                        xmlWriter.WriteString(component.ToString());
-                        xmlWriter.WriteEndElement();
-                    }
-
-                    xmlWriter.WriteEndElement();
-
-
-                    xmlWriter.WriteEndElement();
-
-
-                    if (!isCompound)
-                    {
-                        var ds = item.GetDS();
-
-                        var jtPath = Path.Combine(ldiFolderPath, $"{ds.Number}_{ds.Version}__".GetSafeFileName(), $"{item.Number}.jt".GetSafeFileName());
-                        string jtPathHash;
-                        bool newJTPathHash;
-
-                        if (filePathTracker.ContainsKey(jtPath))
-                        {
-                            jtPathHash = filePathTracker[jtPath];
-                            newJTPathHash = false;
-                        }
-
-                        else
-                        {
-                            jtPathHash = BitConverter.ToString(StaticResources.SHA256.ComputeHash(Encoding.UTF8.GetBytes(jtPath))).Replace("-", "");
-                            filePathTracker[jtPath] = jtPathHash;
-                            newJTPathHash = true;
-                        }
-
-                        var threeDRepExternalId = externlaIdBase + "r";
-                        var fileReferenceExternalId = jtPathHash + "_f";
-
-                        xmlWriter.WriteStartElement("PmPartPrototype");
-                        xmlWriter.WriteAttributeString("ExternalId", prototypeExternalId);
-
-                        xmlWriter.WriteStartElement("catalogNumber");
-                        xmlWriter.WriteString(item.Number?.Trim() ?? "");
+                        xmlWriter.WriteStartElement("ActiveInCurrentVersion");
                         xmlWriter.WriteEndElement();
 
                         xmlWriter.WriteStartElement("name");
                         xmlWriter.WriteString(item.Name?.Trim() ?? "");
                         xmlWriter.WriteEndElement();
 
-                        if (item.Version > 0)
-                        {
-                            xmlWriter.WriteStartElement("TCe_Revision");
-                            xmlWriter.WriteString(item.Version.ToString());
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Prefix))
-                        {
-                            xmlWriter.WriteStartElement("Prefix");
-                            xmlWriter.WriteString(item.Prefix);
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Base))
-                        {
-                            xmlWriter.WriteStartElement("Base");
-                            xmlWriter.WriteString(item.Base);
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Suffix))
-                        {
-                            xmlWriter.WriteStartElement("Suffix");
-                            xmlWriter.WriteString(item.Suffix);
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Owner))
-                        {
-                            xmlWriter.WriteStartElement("Data_Source");
-                            xmlWriter.WriteString(item.Owner);
-                            xmlWriter.WriteEndElement();
-                        }
-
-                        xmlWriter.WriteStartElement("threeDRep");
-                        xmlWriter.WriteString(threeDRepExternalId);
+                        xmlWriter.WriteStartElement("layout");
+                        xmlWriter.WriteString(layoutExternalId);
                         xmlWriter.WriteEndElement();
 
-                        xmlWriter.WriteEndElement();
-
-
-
-                        xmlWriter.WriteStartElement("Pm3DRep");
-                        xmlWriter.WriteAttributeString("ExternalId", threeDRepExternalId);
-
-                        xmlWriter.WriteStartElement("file");
-                        xmlWriter.WriteString(fileReferenceExternalId);
-                        xmlWriter.WriteEndElement();
-
-                        xmlWriter.WriteEndElement();
-
-
-                        if (newJTPathHash)
+                        if (isCompound)
                         {
-                            xmlWriter.WriteStartElement("PmReferenceFile");
-                            xmlWriter.WriteAttributeString("ExternalId", fileReferenceExternalId);
-
-                            xmlWriter.WriteStartElement("fileName");
-                            xmlWriter.WriteString(jtPath);
+                            xmlWriter.WriteStartElement("number");
+                            xmlWriter.WriteString(item.Number?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
+
+                            if (item.Version > 0)
+                            {
+                                xmlWriter.WriteStartElement("TCe_Revision");
+                                xmlWriter.WriteString(item.Version.ToString());
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Prefix))
+                            {
+                                xmlWriter.WriteStartElement("Prefix");
+                                xmlWriter.WriteString(item.Prefix);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Base))
+                            {
+                                xmlWriter.WriteStartElement("Base");
+                                xmlWriter.WriteString(item.Base);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Suffix))
+                            {
+                                xmlWriter.WriteStartElement("Suffix");
+                                xmlWriter.WriteString(item.Suffix);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Owner))
+                            {
+                                xmlWriter.WriteStartElement("Data_Source");
+                                xmlWriter.WriteString(item.Owner);
+                                xmlWriter.WriteEndElement();
+                            }
+
+
+                            xmlWriter.WriteStartElement("children");
+
+                            for (var childIndex = 0; childIndex < childCount; ++childIndex)
+                            {
+                                var childItem = item.Children[childIndex];
+
+                                if (childItem.IsChecked == false && childItem.State == Item.ItemState.New) continue;
+
+                                xmlWriter.WriteStartElement("item");
+                                xmlWriter.WriteString($"{externalIdPrefix}{childItem.BaseExternalId}");
+                                xmlWriter.WriteEndElement();
+                            }
 
                             xmlWriter.WriteEndElement();
                         }
-                    }
 
-                    var newProgressValue = itemIndex * PROGRESS_MAX / itemCount;
+                        else
+                        {
+                            xmlWriter.WriteStartElement("prototype");
+                            xmlWriter.WriteString(prototypeExternalId);
+                            xmlWriter.WriteEndElement();
+                        }
 
-                    if (newProgressValue > progressValue)
-                    {
-                        progressValue = newProgressValue;
+                        xmlWriter.WriteEndElement();
 
-                        progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing XML: {((double)newProgressValue / PROGRESS_MAX):P0}" });
+
+                        if (item.RedundantChildren != null)
+                        {
+                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants());
+
+                            foreach (var redundantItem in redundantItems)
+                            {
+                                xmlWriter.WriteStartElement(redundantItem.Children.Count > 0 ? "PmCompoundPart" : "PmPartInstance");
+                                xmlWriter.WriteAttributeString("ExternalId", redundantItem.BaseExternalId);
+
+                                xmlWriter.WriteStartElement("ActiveInCurrentVersion");
+                                xmlWriter.WriteString("OLD_LEVEL");
+                                xmlWriter.WriteEndElement();
+
+                                xmlWriter.WriteEndElement();
+                            }
+                        }
+
+
+                        xmlWriter.WriteStartElement("PmLayout");
+                        xmlWriter.WriteAttributeString("ExternalId", layoutExternalId);
+
+                        xmlWriter.WriteStartElement("location");
+
+                        foreach (var component in item.Translation.Items())
+                        {
+                            xmlWriter.WriteStartElement("item");
+                            xmlWriter.WriteString(component.ToString());
+                            xmlWriter.WriteEndElement();
+                        }
+
+                        xmlWriter.WriteEndElement();
+
+
+                        xmlWriter.WriteStartElement("rotation");
+
+                        foreach (var component in item.Rotation.Items())
+                        {
+                            xmlWriter.WriteStartElement("item");
+                            xmlWriter.WriteString(component.ToString());
+                            xmlWriter.WriteEndElement();
+                        }
+
+                        xmlWriter.WriteEndElement();
+
+
+                        xmlWriter.WriteEndElement();
+
+
+                        if (!isCompound)
+                        {
+                            var ds = item.GetDS();
+
+                            var jtPath = Path.Combine(ldiFolderPath, $"{ds.Number}_{ds.Version}__".GetSafeFileName(), $"{item.Number}.jt".GetSafeFileName());
+                            string jtPathHash;
+                            bool newJTPathHash;
+
+                            if (filePathTracker.ContainsKey(jtPath))
+                            {
+                                jtPathHash = filePathTracker[jtPath];
+                                newJTPathHash = false;
+                            }
+
+                            else
+                            {
+                                jtPathHash = BitConverter.ToString(StaticResources.SHA256.ComputeHash(Encoding.UTF8.GetBytes(jtPath))).Replace("-", "");
+                                filePathTracker[jtPath] = jtPathHash;
+                                newJTPathHash = true;
+                            }
+
+                            var threeDRepExternalId = externlaIdBase + "r";
+                            var fileReferenceExternalId = jtPathHash + "_f";
+
+                            xmlWriter.WriteStartElement("PmPartPrototype");
+                            xmlWriter.WriteAttributeString("ExternalId", prototypeExternalId);
+
+                            xmlWriter.WriteStartElement("catalogNumber");
+                            xmlWriter.WriteString(item.Number?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+                            xmlWriter.WriteStartElement("name");
+                            xmlWriter.WriteString(item.Name?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+                            if (item.Version > 0)
+                            {
+                                xmlWriter.WriteStartElement("TCe_Revision");
+                                xmlWriter.WriteString(item.Version.ToString());
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Prefix))
+                            {
+                                xmlWriter.WriteStartElement("Prefix");
+                                xmlWriter.WriteString(item.Prefix);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Base))
+                            {
+                                xmlWriter.WriteStartElement("Base");
+                                xmlWriter.WriteString(item.Base);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Suffix))
+                            {
+                                xmlWriter.WriteStartElement("Suffix");
+                                xmlWriter.WriteString(item.Suffix);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(item.Owner))
+                            {
+                                xmlWriter.WriteStartElement("Data_Source");
+                                xmlWriter.WriteString(item.Owner);
+                                xmlWriter.WriteEndElement();
+                            }
+
+                            xmlWriter.WriteStartElement("threeDRep");
+                            xmlWriter.WriteString(threeDRepExternalId);
+                            xmlWriter.WriteEndElement();
+
+                            xmlWriter.WriteEndElement();
+
+
+
+                            xmlWriter.WriteStartElement("Pm3DRep");
+                            xmlWriter.WriteAttributeString("ExternalId", threeDRepExternalId);
+
+                            xmlWriter.WriteStartElement("file");
+                            xmlWriter.WriteString(fileReferenceExternalId);
+                            xmlWriter.WriteEndElement();
+
+                            xmlWriter.WriteEndElement();
+
+
+                            if (newJTPathHash)
+                            {
+                                xmlWriter.WriteStartElement("PmReferenceFile");
+                                xmlWriter.WriteAttributeString("ExternalId", fileReferenceExternalId);
+
+                                xmlWriter.WriteStartElement("fileName");
+                                xmlWriter.WriteString(jtPath);
+                                xmlWriter.WriteEndElement();
+
+                                xmlWriter.WriteEndElement();
+                            }
+                        }
+
+                        var newProgressValue = dataIndex * (PROGRESS_MAX / dataCount) +  itemIndex * (PROGRESS_MAX / dataCount) / itemCount;
+
+                        if (newProgressValue > progressValue)
+                        {
+                            progressValue = newProgressValue;
+
+                            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing XML: {((double)newProgressValue / PROGRESS_MAX):P0}" });
+                        }
                     }
                 }
 
@@ -342,7 +353,7 @@ namespace EBOM_Macro.Managers
 
                 var streamLength = existingDataXMLStream.Length;
                 long progressValue = 0;
-                
+
                 var childIdTracker = new Dictionary<Item, List<string>>();
                 var layoutIdTracker = new Dictionary<Item, string>();
                 var prototypeIdTracker = new Dictionary<Item, string>();
@@ -361,7 +372,7 @@ namespace EBOM_Macro.Managers
 
                         var elementName = xmlReader.Name;
 
-                        if(elementName == "PmCompoundPart" || elementName == "PmPartInstance" || elementName == "PmLayout" || elementName == "PmPartPrototype")
+                        if (elementName == "PmCompoundPart" || elementName == "PmPartInstance" || elementName == "PmLayout" || elementName == "PmPartPrototype")
                         {
                             var element = XElement.Parse(xmlReader.ReadOuterXml());
                             var externalId = element?.Attribute("ExternalId")?.Value?.Trim() ?? "";
@@ -448,7 +459,7 @@ namespace EBOM_Macro.Managers
                 var counter = 0;
                 var itemCount = items.Count;
 
-                foreach(var item in items.Values)
+                foreach (var item in items.Values)
                 {
                     if (cancellationToken.IsCancellationRequested) return default;
 
@@ -463,13 +474,13 @@ namespace EBOM_Macro.Managers
 
                     if (children != null) item.Children.AddRange(children);
 
-                    if(layoutIdTracker.TryGetValue(item, out var layoutId))
+                    if (layoutIdTracker.TryGetValue(item, out var layoutId))
                     {
                         if (translationTracker.TryGetValue(layoutId, out var translation)) item.Translation = translation;
                         if (rotationTracker.TryGetValue(layoutId, out var rotation)) item.Rotation = rotation;
                     }
 
-                    if(prototypeIdTracker.TryGetValue(item, out var prototypeId) && prototypeDataTracker.TryGetValue(prototypeId, out var prototypeData))
+                    if (prototypeIdTracker.TryGetValue(item, out var prototypeId) && prototypeDataTracker.TryGetValue(prototypeId, out var prototypeData))
                     {
                         if (string.IsNullOrWhiteSpace(item.Name)) item.Name = prototypeData.Name;
                         item.Number = prototypeData.Number;
@@ -500,7 +511,7 @@ namespace EBOM_Macro.Managers
                     Value = PROGRESS_MAX,
                     Message = "Done" + (string.IsNullOrWhiteSpace(externalIdPrefix) ? "" : $". ExternalId prefix: {externalIdPrefix}")
                 });
-                
+
                 return items;
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }

@@ -21,16 +21,17 @@ namespace EBOM_Macro.States
         [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
         [Reactive] public string LDIFolderPath { get; set; }
-        [Reactive] public string ExternalIdPrefix { get; set; }
+        [Reactive] public string ExternalIdPrefixInput { get; set; }
 
         [ObservableAsProperty] public ItemsContainer Items { get; }
+        [ObservableAsProperty] public string ExternalIdPrefix { get; }
 
         public ReactiveCommand<Unit, Unit> BrowseEBOMReport { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseLDIFolder { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
-        public IObservable<string> ExternalIdPrefixObservable { get; private set; }
+        //public IObservable<string> ExternalIdPrefixObservable { get; private set; }
 
         ProgressState progressState;
 
@@ -86,15 +87,17 @@ namespace EBOM_Macro.States
                     return Observable.Return<Dictionary<string, Item>>(default);
                 })).Switch();
 
-            ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefix)
+            //ExternalIdPrefixObservable = this.WhenAnyValue(x => x.ExternalIdPrefixInput)
+            this.WhenAnyValue(x => x.ExternalIdPrefixInput)
                 .Throttle(TimeSpan.FromMilliseconds(400))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
-                .Replay(1).RefCount();
+                .ToPropertyEx(this, x => x.ExternalIdPrefix);
+                //.Replay(1).RefCount();
 
             Observable.CombineLatest(
                 itemsObservable,
 
-                Observable.CombineLatest(existingDataObservable, ExternalIdPrefixObservable, (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix))
+                Observable.CombineLatest(existingDataObservable, /*ExternalIdPrefixObservable*/ this.WhenAnyValue(x => x.ExternalIdPrefix), (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix))
                     .DistinctUntilChanged(),
 
                 (items, pair) => (items, pair.existingData, pair.externalIdPrefix))

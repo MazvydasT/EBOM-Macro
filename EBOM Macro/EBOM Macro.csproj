@@ -247,12 +247,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\InputsEnabledConverter.cs" />
+    <Compile Include="Converters\TabHeaderConverter.cs" />
     <Compile Include="Converters\TreeViewIsEnabledConverter.cs" />
     <Compile Include="Converters\IsIndeterminateConverter.cs" />
     <Compile Include="Converters\TreeViewVisibilityConverter.cs" />
     <Compile Include="Converters\ExportCancelButtonVisibilityConverter.cs" />
     <Compile Include="Converters\ExportButtonVisibilityConverter.cs" />
-    <Compile Include="Converters\XMLExportEnabledConverter.cs" />
     <Compile Include="Converters\ItemChildrenConverter.cs" />
     <Compile Include="Converters\TreeViewItemSourceConverter.cs" />
     <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
@@ -261,6 +261,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="FolderSelectDialog.cs" />
     <Compile Include="Models\ExistingDataContainer.cs" />
+    <Compile Include="Models\XMLExportData.cs" />
     <Compile Include="Reflector.cs" />
     <Compile Include="States\AppState.cs" />
     <Compile Include="States\OutputState.cs" />

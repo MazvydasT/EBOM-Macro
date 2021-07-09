@@ -7,5 +7,7 @@ namespace EBOM_Macro.Models
         public Item Root { get; set; }
         public IReadOnlyCollection<Item> PHs { get; set; }
         public IReadOnlyCollection<Item> Items { get; set; }
+
+        public string Program { get; set; }
     }
 }
