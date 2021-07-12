@@ -26,9 +26,15 @@
 
         <templateSelectors:State2StrikethroughTemplateSelector x:Key="State2StrikethroughTemplateSelector" BlankTemplate="{StaticResource BlankDataTemplate}" StrikethroughTemplate="{StaticResource StrikethroughTemplate}"/>
 
-        <Viewbox x:Key="Target" x:Shared="False">
+        <Viewbox x:Key="Target" x:Shared="False" Height="16" Width="16">
             <Canvas Width="496" Height="512">
                 <Path Fill="Black" Data="M248,8C111.03,8 0,119.03 0,256 0,392.97 111.03,504 248,504 384.97,504 496,392.97 496,256 496,119.03 384.97,8 248,8z M248,440C146.31,440 64,357.71 64,256 64,154.31 146.29,72 248,72 349.69,72 432,154.29 432,256 432,357.69 349.71,440 248,440z M248,128C177.31,128 120,185.31 120,256 120,326.69 177.31,384 248,384 318.69,384 376,326.69 376,256 376,185.31 318.69,128 248,128z M248,320C212.71,320 184,291.29 184,256 184,220.71 212.71,192 248,192 283.29,192 312,220.71 312,256 312,291.29 283.29,320 248,320z"/>
+            </Canvas>
+        </Viewbox>
+
+        <Viewbox x:Key="Redo" x:Shared="False" Height="16" Width="16">
+            <Canvas Width="512" Height="512">
+                <Path Fill="Black" Data="M256.455,8C322.724,8.119,382.892,34.233,427.314,76.685L463.029,40.97C478.149,25.851,504,36.559,504,57.941L504,192C504,205.255,493.255,216,480,216L345.941,216C324.559,216,313.851,190.149,328.97,175.029L370.72,133.279C339.856,104.38 299.919,88.372 257.49,88.006 165.092,87.208 87.207,161.983 88.0059999999999,257.448 88.764,348.009 162.184,424 256,424 297.127,424 335.997,409.322 366.629,382.444 371.372,378.283 378.535,378.536 382.997,382.997L422.659,422.659C427.531,427.531 427.29,435.474 422.177,440.092 378.202,479.813 319.926,504 256,504 119.034,504 8.001,392.967 8,256.002 7.999,119.193 119.646,7.755 256.455,8z"/>
             </Canvas>
         </Viewbox>
 
@@ -194,7 +200,8 @@
                                             <Grid Background="{Binding State, Converter={converters:State2ColourConverter}, Mode=OneWay}">
                                                 <Grid.ContextMenu>
                                                     <ContextMenu>
-                                                        <MenuItem Height="24" Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
+                                                        <MenuItem Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
+                                                        <MenuItem Command="{Binding ResetSelection}" Icon="{StaticResource Redo}" Header="Reset selection"/>
                                                     </ContextMenu>
                                                 </Grid.ContextMenu>
 

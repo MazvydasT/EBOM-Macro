@@ -1,4 +1,5 @@
 ﻿using EBOM_Macro.Extensions;
+using EBOM_Macro.Managers;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,12 @@ namespace EBOM_Macro.Models
     {
         public Item()
         {
-            SelectWithoutDescendants = new Command(param => SetIsChecked(true, false, true));
+            SelectWithoutDescendants = new Command(_ => SetIsChecked(true, false, true));
+            ResetSelection = new Command(_ => ItemManager.ResetItemSelection(this));
         }
 
         public ICommand SelectWithoutDescendants { get; }
+        public ICommand ResetSelection { get; }
 
         public Item GetDS()
         {
@@ -31,8 +34,7 @@ namespace EBOM_Macro.Models
             return (Parent?.GetDSToSelfPath() ?? Enumerable.Empty<Item>()).Append(this);
         }
 
-        public IEnumerable<Item> GetSelfAndDescendants() => Children.SelectMany(c => c.GetSelfAndDescendants())
-            .OrderBy(i => i.Number).ThenBy(i => i.Version).Prepend(this);
+        public IEnumerable<Item> GetSelfAndDescendants() => Children.SelectMany(c => c.GetSelfAndDescendants()).Prepend(this);
 
         public IEnumerable<Item> GetAncestors() => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Prepend(Parent);
 

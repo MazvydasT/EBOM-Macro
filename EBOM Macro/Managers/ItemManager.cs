@@ -12,6 +12,21 @@ namespace EBOM_Macro.Managers
     {
         const long PROGRESS_MAX = 200;
 
+        public static void ResetItemSelection(Item item)
+        {
+            if (item == null) return;
+
+            item.IsChecked = false;
+
+            var items = item.GetSelfAndDescendants();
+
+            foreach (var i in items)
+            {
+                if (i.Maturity == EBOMReportRecord.MaturityState.IN_WORK || i.State == Item.ItemState.New || i.State == Item.ItemState.Modified)
+                    i.SelectWithoutDescendants.Execute(null);
+            }
+        }
+
         public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
