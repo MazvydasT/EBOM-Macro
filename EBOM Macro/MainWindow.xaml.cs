@@ -41,13 +41,9 @@ namespace EBOM_Macro
 
                 int targetIndex = sessions.IndexOf((SessionState)tabItemTarget.DataContext);
 
-                if(targetIndex == sessions.Count - 1)
+                if (targetIndex == sessions.Count - 1) --targetIndex;
 
-                /*tabControl.Items.Remove(tabItemSource);
-                tabControl.Items.Insert(targetIndex, tabItemSource);
-                tabItemSource.IsSelected = true;*/
-
-                e = e;
+                appState.SetSessionIndex((SessionState)tabItemSource.DataContext, targetIndex);
             }
         }
     }

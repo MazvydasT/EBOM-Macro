@@ -27,7 +27,7 @@ namespace EBOM_Macro.States
             var sessionsObservable = sessionsSourceList.Connect().Publish();
 
             sessionsObservable.ObserveOnDispatcher().Bind(out sessions).Subscribe();
-            
+
             OutputState = new OutputState(sessionsObservable);
 
             sessionsObservable.Connect();
@@ -40,5 +40,7 @@ namespace EBOM_Macro.States
             --SelectedIndex;
             sessionsSourceList.Remove(session);
         }
+
+        public void SetSessionIndex(SessionState session, int index) => sessionsSourceList.Move(sessionsSourceList.Items.IndexOf(session), index);
     }
 }

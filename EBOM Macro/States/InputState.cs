@@ -86,7 +86,7 @@ namespace EBOM_Macro.States
                 })).Switch();
 
             this.WhenAnyValue(x => x.ExternalIdPrefixInput)
-                .Throttle(TimeSpan.FromMilliseconds(400))
+                //.Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
                 .ToPropertyEx(this, x => x.ExternalIdPrefix);
 

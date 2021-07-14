@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.Win32;
 using ReactiveUI.Fody.Helpers;
 using DynamicData;
+using System.Collections.Generic;
 
 namespace EBOM_Macro.States
 {
@@ -24,17 +25,16 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> SaveXML { get; }
         public ReactiveCommand<Unit, Unit> CancelExport { get; }
 
-        IObservable<IChangeSet<SessionState>> sessionsChangeSetObservable;
+        IObservable<IReadOnlyCollection<SessionState>> sessionsChangeSetObservable;
 
         CancellationTokenSource cancellationTokenSource;
 
         public OutputState(IObservable<IChangeSet<SessionState>> sessionsChangeSetObservable)
         {
-            this.sessionsChangeSetObservable = sessionsChangeSetObservable.Replay(1).RefCount();
+            this.sessionsChangeSetObservable = sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
+                .ToCollection().Replay(1).RefCount();
 
-            this.sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
-                .ToCollection().Select(c => c.Take(c.Count - 1).All(s => s.IsReadyForExport))
-                .ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
+            this.sessionsChangeSetObservable.Select(c => c.Take(c.Count - 1).All(s => s.IsReadyForExport)).ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
 
             SaveXML = ReactiveCommand.Create(() =>
             {
@@ -54,20 +54,20 @@ namespace EBOM_Macro.States
                 {
                     properties.LastUsedXMLDirectory = Path.GetDirectoryName(dialog.FileName);
                     properties.Save();
-                    
-                    this.sessionsChangeSetObservable.Transform(s => s.InputState).ToCollection().Take(1).Subscribe(async sessions =>
+
+                    this.sessionsChangeSetObservable.Take(1).Subscribe(async sessions =>
                     {
                         ExportProgress = 0;
                         ExportMessage = "";
                         ExportError = false;
 
-                        var sessionsList = sessions.Take(sessions.Count - 1).Select(s => new XMLExportData { Items = s.Items, ExternalIdPrefix = s.ExternalIdPrefix, LDIFolderPath = s.LDIFolderPath }).ToList();
+                        var exportDataList = sessions.Take(sessions.Count - 1).Select(s => s.InputState).Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
 
                         using (cancellationTokenSource = new CancellationTokenSource())
                         {
                             try
                             {
-                                await XMLManager.ItemsToXML(dialog.FileName, sessionsList, new Progress<ProgressUpdate>(progress =>
+                                await XMLManager.ItemsToXML(dialog.FileName, exportDataList, new Progress<ProgressUpdate>(progress =>
                                 {
                                     ExportProgress = (double)progress.Value / progress.Max;
                                     ExportMessage = progress.Message;
