@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:EBOM_Macro"
         mc:Ignorable="d"
         DataContext="{x:Static states:AppState.State}"
-        Title="{Binding ConverterParameter=Macro, Converter={converters:AppTitleConverter}}"
+        Title="{Binding ConverterParameter=Macro, Converter={converters:AppTitleConverter}, Mode=OneTime}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
     <Window.Resources>
