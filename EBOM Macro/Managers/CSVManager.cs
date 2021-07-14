@@ -211,7 +211,7 @@ namespace EBOM_Macro.Managers
                                                     Number = vehicleLineName,
                                                     Name = vehicleLineTitle,
                                                     Type = Item.ItemType.PH,
-                                                    BaseExternalId = $"{vehicleLineTitle}_c",
+                                                    BaseExternalId = $"{vehicleLineName}_c",
                                                     Maturity = EBOMReportRecord.MaturityState.FROZEN
                                                 };
                                             }

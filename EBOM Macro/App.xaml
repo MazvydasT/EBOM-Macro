@@ -4,6 +4,12 @@
              xmlns:local="clr-namespace:EBOM_Macro"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"/>
+
+        <Viewbox x:Key="Clear" x:Shared="False">
+            <Canvas Width="352" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M242.72,256L342.79,155.93C355.07,143.65,355.07,123.74,342.79,111.45L320.55,89.21C308.27,76.93,288.36,76.93,276.07,89.21L176,189.28 75.93,89.21C63.65,76.93,43.74,76.93,31.45,89.21L9.21,111.45C-3.07,123.73,-3.07,143.64,9.21,155.93L109.28,256 9.21,356.07C-3.07,368.35,-3.07,388.26,9.21,400.55L31.45,422.79C43.73,435.07,63.65,435.07,75.93,422.79L176,322.72 276.07,422.79C288.35,435.07,308.27,435.07,320.55,422.79L342.79,400.55C355.07,388.27,355.07,368.36,342.79,356.07L242.72,256z"/>
+            </Canvas>
+        </Viewbox>
     </Application.Resources>
 </Application>

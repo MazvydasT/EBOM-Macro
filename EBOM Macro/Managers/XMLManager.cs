@@ -52,6 +52,8 @@ namespace EBOM_Macro.Managers
                 xmlWriter.WriteStartElement("Data");
                 xmlWriter.WriteStartElement("Objects");
 
+                var externalIdTracker = new HashSet<string>();
+
                 for (int dataIndex = 0, dataCount = xmlExportData?.Count ?? 0; dataIndex < dataCount; ++dataIndex)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -81,6 +83,11 @@ namespace EBOM_Macro.Managers
                         var isCompound = childCount > 0;
 
                         var externalId = $"{externalIdPrefix}{item.BaseExternalId}";
+
+                        if (externalIdTracker.Contains(externalId)) continue;
+
+                        externalIdTracker.Add(externalId);
+
                         var externlaIdBase = externalId.Substring(0, externalId.Length - 1);
                         var layoutExternalId = externalId + "l";
                         var prototypeExternalId = externlaIdBase + "p";
@@ -143,10 +150,8 @@ namespace EBOM_Macro.Managers
 
                             xmlWriter.WriteStartElement("children");
 
-                            for (var childIndex = 0; childIndex < childCount; ++childIndex)
+                            foreach (var childItem in item.Children.OrderBy(c => c.Number).ThenBy(c => c.Version))
                             {
-                                var childItem = item.Children[childIndex];
-
                                 if (childItem.IsChecked == false && childItem.State == Item.ItemState.New) continue;
 
                                 xmlWriter.WriteStartElement("item");

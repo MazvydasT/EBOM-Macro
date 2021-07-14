@@ -9,7 +9,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using Microsoft.Win32;
 using ReactiveUI.Fody.Helpers;
-using System.Collections.Generic;
 using DynamicData;
 
 namespace EBOM_Macro.States
@@ -34,7 +33,7 @@ namespace EBOM_Macro.States
             this.sessionsChangeSetObservable = sessionsChangeSetObservable;
 
             this.sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
-                .ToCollection().Select(c => c.All(s => s.IsReadyForExport))
+                .ToCollection().Select(c => c.Take(c.Count - 1).All(s => s.IsReadyForExport))
                 .ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
 
             SaveXML = ReactiveCommand.Create(() =>
@@ -55,23 +54,14 @@ namespace EBOM_Macro.States
                 {
                     properties.LastUsedXMLDirectory = Path.GetDirectoryName(dialog.FileName);
                     properties.Save();
-
-                    /*Observable.CombineLatest(
-                        inputState.WhenAnyValue(x => x.Items),
-                        inputState.ExternalIdPrefixObservable,
-                        inputState.WhenAnyValue(x => x.LDIFolderPath),
-
-                        (items, externalIdPrefix, ldiPath) => (items, externalIdPrefix, ldiPath)
-                    ).Take(1).Subscribe(async data =>
-                    {*/
-
+                    
                     this.sessionsChangeSetObservable.Transform(s => s.InputState).ToCollection().Take(1).Subscribe(async sessions =>
                     {
                         ExportProgress = 0;
                         ExportMessage = "";
                         ExportError = false;
 
-                        var sessionsList = sessions.Select(s => new XMLExportData { Items = s.Items, ExternalIdPrefix = s.ExternalIdPrefix, LDIFolderPath = s.LDIFolderPath }).ToList();
+                        var sessionsList = sessions.Take(sessions.Count - 1).Select(s => new XMLExportData { Items = s.Items, ExternalIdPrefix = s.ExternalIdPrefix, LDIFolderPath = s.LDIFolderPath }).ToList();
 
                         using (cancellationTokenSource = new CancellationTokenSource())
                         {

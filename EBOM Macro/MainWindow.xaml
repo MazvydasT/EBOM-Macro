@@ -6,43 +6,42 @@
         xmlns:converters="clr-namespace:EBOM_Macro.Converters"
         xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
         xmlns:states="clr-namespace:EBOM_Macro.States"
+        xmlns:local="clr-namespace:EBOM_Macro"
         mc:Ignorable="d"
-        Title="Macro"
         DataContext="{x:Static states:AppState.State}"
+        Title="{Binding ConverterParameter=Macro, Converter={converters:AppTitleConverter}}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
     <Window.Resources>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"/>
+        <Viewbox x:Key="Plus" x:Shared="False">
+            <Canvas Width="448" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TabControl}}" Data="M416,208L272,208 272,64C272,46.33,257.67,32,240,32L208,32C190.33,32,176,46.33,176,64L176,208 32,208C14.33,208,0,222.33,0,240L0,272C0,289.67,14.33,304,32,304L176,304 176,448C176,465.67,190.33,480,208,480L240,480C257.67,480,272,465.67,272,448L272,304 416,304C433.67,304,448,289.67,448,272L448,240C448,222.33,433.67,208,416,208z"/>
+            </Canvas>
+        </Viewbox>
+        
+        <DataTemplate x:Key="AddTabTemplate">
+            <Grid>
+                <TextBlock x:Name="ReferenceTabContentHeight" Text="R" Visibility="Hidden" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                <ContentPresenter Content="{StaticResource Plus}" Height="{Binding ElementName=ReferenceTabContentHeight, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}"/>
+            </Grid>
+        </DataTemplate>
+            
+        <DataTemplate x:Key="NormalTabTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="HeaderText" VerticalAlignment="Center">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{converters:TabHeaderConverter}">
+                            <Binding Path="Session.InputState.Items" Mode="OneWay" FallbackValue="{x:Null}"/>
+                            <Binding Path="Session.InputState.ExternalIdPrefix" Mode="OneWay" FallbackValue="{x:Null}"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
 
-        <Style TargetType="{x:Type TreeViewItem}">
-            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-        </Style>
-
-        <DataTemplate x:Key="BlankDataTemplate"/>
-
-        <DataTemplate x:Key="StrikethroughTemplate">
-            <Grid Margin="{Binding Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" RenderTransform="{Binding Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
+                <Button Command="{Binding Session.CloseSession}" Visibility="{Binding Source={x:Static states:AppState.State}, Path=Sessions.Count, Converter={converters:TabCloseButtonVisibilityConverter}}" Height="{Binding ElementName=HeaderText, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}" Content="{StaticResource Clear}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2.5,0,0,0"/>
+            </StackPanel>
         </DataTemplate>
 
-        <templateSelectors:State2StrikethroughTemplateSelector x:Key="State2StrikethroughTemplateSelector" BlankTemplate="{StaticResource BlankDataTemplate}" StrikethroughTemplate="{StaticResource StrikethroughTemplate}"/>
-
-        <Viewbox x:Key="Target" x:Shared="False" Height="16" Width="16">
-            <Canvas Width="496" Height="512">
-                <Path Fill="Black" Data="M248,8C111.03,8 0,119.03 0,256 0,392.97 111.03,504 248,504 384.97,504 496,392.97 496,256 496,119.03 384.97,8 248,8z M248,440C146.31,440 64,357.71 64,256 64,154.31 146.29,72 248,72 349.69,72 432,154.29 432,256 432,357.69 349.71,440 248,440z M248,128C177.31,128 120,185.31 120,256 120,326.69 177.31,384 248,384 318.69,384 376,326.69 376,256 376,185.31 318.69,128 248,128z M248,320C212.71,320 184,291.29 184,256 184,220.71 212.71,192 248,192 283.29,192 312,220.71 312,256 312,291.29 283.29,320 248,320z"/>
-            </Canvas>
-        </Viewbox>
-
-        <Viewbox x:Key="Redo" x:Shared="False" Height="16" Width="16">
-            <Canvas Width="512" Height="512">
-                <Path Fill="Black" Data="M256.455,8C322.724,8.119,382.892,34.233,427.314,76.685L463.029,40.97C478.149,25.851,504,36.559,504,57.941L504,192C504,205.255,493.255,216,480,216L345.941,216C324.559,216,313.851,190.149,328.97,175.029L370.72,133.279C339.856,104.38 299.919,88.372 257.49,88.006 165.092,87.208 87.207,161.983 88.0059999999999,257.448 88.764,348.009 162.184,424 256,424 297.127,424 335.997,409.322 366.629,382.444 371.372,378.283 378.535,378.536 382.997,382.997L422.659,422.659C427.531,427.531 427.29,435.474 422.177,440.092 378.202,479.813 319.926,504 256,504 119.034,504 8.001,392.967 8,256.002 7.999,119.193 119.646,7.755 256.455,8z"/>
-            </Canvas>
-        </Viewbox>
-
-        <Viewbox x:Key="Clear" x:Shared="False">
-            <Canvas Width="352" Height="512">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M242.72,256L342.79,155.93C355.07,143.65,355.07,123.74,342.79,111.45L320.55,89.21C308.27,76.93,288.36,76.93,276.07,89.21L176,189.28 75.93,89.21C63.65,76.93,43.74,76.93,31.45,89.21L9.21,111.45C-3.07,123.73,-3.07,143.64,9.21,155.93L109.28,256 9.21,356.07C-3.07,368.35,-3.07,388.26,9.21,400.55L31.45,422.79C43.73,435.07,63.65,435.07,75.93,422.79L176,322.72 276.07,422.79C288.35,435.07,308.27,435.07,320.55,422.79L342.79,400.55C355.07,388.27,355.07,368.36,342.79,356.07L242.72,256z"/>
-            </Canvas>
-        </Viewbox>
+        <templateSelectors:TabHeaderContentSelector x:Key="TabHeaderContentSelector" AddTemplate="{StaticResource AddTabTemplate}" RegularTabTemplate="{StaticResource NormalTabTemplate}"/>
 
         <Viewbox x:Key="Cancel" x:Shared="False">
             <Canvas Width="512" Height="512">
@@ -50,31 +49,9 @@
             </Canvas>
         </Viewbox>
 
-        <Viewbox x:Key="FileImportIcon" x:Shared="False">
-            <Canvas Width="384" Height="512">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M224,136L224,0 24,0C10.7,0,0,10.7,0,24L0,488C0,501.3,10.7,512,24,512L360,512C373.3,512,384,501.3,384,488L384,160 248,160C234.8,160,224,149.2,224,136z M289.18,352.01L224,352.01 224,432.01C224,440.85,216.84,448.01,208,448.01L176,448.01C167.16,448.01,160,440.85,160,432.01L160,352.01 94.82,352.01C80.54,352.01,73.41,334.72,83.55,324.65L179.97,228.95C186.62,222.34,197.36,222.34,204.01,228.95L300.43,324.65C310.58,334.72,303.46,352.01,289.18,352.01z M377,105L279.1,7C274.6,2.5,268.5,0,262.1,0L256,0 256,128 384,128 384,121.9C384,115.6,381.5,109.5,377,105z"/>
-            </Canvas>
-        </Viewbox>
-
         <Viewbox x:Key="FileDownload" x:Shared="False">
             <Canvas Width="384" Height="512">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M224,136L224,0 24,0C10.7,0,0,10.7,0,24L0,488C0,501.3,10.7,512,24,512L360,512C373.3,512,384,501.3,384,488L384,160 248,160C234.8,160,224,149.2,224,136z M300.45,347.36L204.03,443.06C197.38,449.67,186.64,449.67,179.99,443.06L83.57,347.36C73.42,337.29,80.54,320,94.82,320L160,320 160,240C160,231.16,167.16,224,176,224L208,224C216.84,224,224,231.16,224,240L224,320 289.18,320C303.46,320,310.58,337.29,300.45,347.36z M377,105L279.1,7C274.6,2.5,268.5,0,262.1,0L256,0 256,128 384,128 384,121.9C384,115.6,381.5,109.5,377,105z"/>
-            </Canvas>
-        </Viewbox>
-
-        <Viewbox x:Key="OpenFolder" x:Shared="False">
-            <Canvas Width="576" Height="512">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M572.694,292.093L500.27,416.248A63.997,63.997,0,0,1,444.989,448L45.025,448C26.502,448,14.961,427.907,24.294,411.907L96.718,287.752A64,64,0,0,1,152,256L551.964,256C570.487,256,582.028,276.093,572.694,292.093z M152,224L480,224 480,176C480,149.49,458.51,128,432,128L272,128 208,64 48,64C21.49,64,0,85.49,0,112L0,390.046 69.077,271.628C86.214,242.25,117.989,224,152,224z"/>
-            </Canvas>
-        </Viewbox>
-
-        <Viewbox x:Key="DSDownload" x:Shared="False">
-            <Canvas Width="460.088" Height="460.088">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}">
-                    <Path.Data>
-                        <PathGeometry Figures="M25.555,139.872h257.526V88.761H25.555C11.442,88.761,0,100.203,0,114.316C0,128.429,11.442,139.872,25.555,139.872z M25.555,242.429h257.526v-51.111H25.555C11.442,191.318,0,202.76,0,216.874C0,230.988,11.442,242.429,25.555,242.429z M25.555,293.874v0.001C11.442,293.875,0,305.316,0,319.43s11.442,25.555,25.555,25.555h178.91     c-2.021-6.224-3.088-12.789-3.088-19.523c0-11.277,2.957-22.094,8.48-31.588H25.555z M450.623,302.611c-12.62-12.621-33.083-12.621-45.704,0l-26.535,26.535V52.926c0-17.849-14.469-32.317-32.318-32.317     s-32.318,14.469-32.318,32.317v276.22l-26.535-26.535c-12.621-12.62-33.083-12.621-45.704,0     c-12.621,12.621-12.621,33.083,0,45.704l81.7,81.699c12.596,12.6,33.084,12.643,45.714,0l81.7-81.699     C463.243,335.694,463.244,315.232,450.623,302.611z" />
-                    </Path.Data>
-                </Path>
             </Canvas>
         </Viewbox>
     </Window.Resources>
@@ -84,7 +61,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl ItemsSource="{Binding Sessions}" Background="{x:Null}" BorderThickness="0,1,0,0">
+        <TabControl x:Name="Tabs"  ItemsSource="{Binding Sessions}" Background="{x:Null}" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0,1,0,0" SelectionChanged="Tabs_SelectionChanged">
             <TabControl.IsEnabled>
                 <MultiBinding Converter="{converters:InputsEnabledConverter}">
                     <Binding Path="OutputState.ExportProgress" Mode="OneWay"/>
@@ -94,151 +71,19 @@
 
             <TabControl.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding InputState.Items, Converter={converters:TabHeaderConverter}, TargetNullValue=Tab}"/>
+                    <ContentPresenter ContentTemplateSelector="{StaticResource TabHeaderContentSelector}">
+                        <ContentPresenter.Content>
+                            <MultiBinding Converter="{converters:SessionsConverter}">
+                                <Binding Path="."/>
+                                <Binding Source="{x:Static states:AppState.State}" Path="Sessions.Count"/>
+                            </MultiBinding>
+                        </ContentPresenter.Content>
+                    </ContentPresenter>
                 </DataTemplate>
             </TabControl.ItemTemplate>
             <TabControl.ContentTemplate>
                 <DataTemplate>
-                    <Grid>
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition MinWidth="100" Width="2*"/>
-                                <ColumnDefinition Width="5"/>
-                                <ColumnDefinition MinWidth="100" Width="3*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" FlowDirection="RightToLeft">
-                                <StackPanel FlowDirection="LeftToRight" Margin="5,0,10,0">
-
-                                    <StackPanel>
-                                        <TextBlock Text="Path to EBOM report: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
-
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBox x:Name="EbomReportPathTextBox" Text="{Binding InputState.EBOMReportPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True"/>
-                                            <Button x:Name="EbomReportPathButton" Grid.Column="1" Command="{Binding InputState.BrowseEBOMReport, Mode=OneTime}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
-
-                                        </Grid>
-
-                                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ProgressState.EBOMReportReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
-
-                                        <TextBox Text="{Binding ProgressState.EBOMReportReadMessage}" IsReadOnly="True" BorderThickness="0" TextWrapping="Wrap" FontSize="11"/>
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0,5,0,0">
-                                        <TextBlock Text="Path to LDI folder: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
-
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBox Text="{Binding InputState.LDIFolderPath}" VerticalAlignment="Center" IsReadOnly="True"/>
-                                            <Button Grid.Column="1" Command="{Binding InputState.BrowseLDIFolder, Mode=OneTime}" Content="{StaticResource OpenFolder}" ToolTip="Select LDI folder" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
-                                        </Grid>
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0,5,0,0">
-                                        <TextBlock Text="Existing data:" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
-
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBox x:Name="ExistingDataPathTextBox" Text="{Binding InputState.ExistingDataPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="1,1,0,1" SnapsToDevicePixels="True"/>
-
-                                            <Border BorderThickness="0,1,1,1" BorderBrush="{Binding ElementName=ExistingDataPathTextBox, Path=BorderBrush}" Grid.Column="1" Height="{Binding ElementName=ExistingDataPathTextBox, Path=ActualHeight}" Width="Auto" VerticalAlignment="Center" SnapsToDevicePixels="True">
-                                                <Button Visibility="{Binding InputState.ExistingDataPath, Converter={converters:String2ButtonVisibilityConverter}}" Command="{Binding InputState.ClearExistingData, Mode=OneTime}" Content="{StaticResource Clear}" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" BorderThickness="0" VerticalAlignment="Stretch" BorderBrush="{x:Null}"/>
-                                            </Border>
-
-                                            <Button Grid.Column="2" Command="{Binding InputState.BrowseExistingData, Mode=OneTime}" Content="{StaticResource FileImportIcon}" ToolTip="Load EBOM report" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
-
-                                        </Grid>
-
-                                        <ProgressBar Height="5" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" Maximum="1" Value="{Binding ProgressState.ExistingDataReadProgress, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,0,0,1"/>
-
-                                        <TextBox Text="{Binding ProgressState.ExistingDataReadMessage, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontSize="11" BorderThickness="0"/>
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0,5,0,0">
-                                        <TextBlock Text="ExternalId prefix:"/>
-
-                                        <Grid Height="{Binding ElementName=EbomReportPathButton, Path=ActualHeight}">
-                                            <TextBox Text="{Binding InputState.ExternalIdPrefixInput, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ElementName=EbomReportPathTextBox, Path=ActualWidth}" TextWrapping="NoWrap" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </StackPanel>
-
-                                </StackPanel>
-                            </ScrollViewer>
-
-                            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
-
-                            <Grid Grid.Column="2">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <TreeView IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}" ItemsSource="{Binding InputState.Items.Root, Converter={converters:TreeViewItemSourceConverter}, Mode=OneWay}" BorderThickness="0" Margin="5,0,10,0">
-                                    <TreeView.ItemTemplate>
-                                        <HierarchicalDataTemplate>
-                                            <HierarchicalDataTemplate.ItemsSource>
-                                                <MultiBinding Converter="{converters:ItemChildrenConverter}">
-                                                    <Binding Path="Children" Mode="OneTime"/>
-                                                    <Binding Path="RedundantChildren" FallbackValue="null" Mode="OneWay"/>
-                                                </MultiBinding>
-                                            </HierarchicalDataTemplate.ItemsSource>
-
-                                            <Grid Background="{Binding State, Converter={converters:State2ColourConverter}, Mode=OneWay}">
-                                                <Grid.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
-                                                        <MenuItem Command="{Binding ResetSelection}" Icon="{StaticResource Redo}" Header="Reset selection"/>
-                                                    </ContextMenu>
-                                                </Grid.ContextMenu>
-
-                                                <Grid Margin="2,0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition/>
-                                                        <ColumnDefinition/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
-
-                                                    <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                                                        <TextBlock Text="{Binding Mode=OneTime}"/>
-                                                        <ContentPresenter Content="{Binding State, Mode=OneTime}" ContentTemplateSelector="{StaticResource State2StrikethroughTemplateSelector}"/>
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
-                                        </HierarchicalDataTemplate>
-                                    </TreeView.ItemTemplate>
-                                </TreeView>
-
-                                <ProgressBar x:Name="ProcessingProgressBar" Value="{Binding ProgressState.ComparisonProgress, Mode=OneWay}" IsIndeterminate="{Binding ProgressState.ComparisonProgress, Converter={converters:IsIndeterminateConverter}, Mode=OneWay}" Maximum="1" Height="5" Grid.Row="1" Margin="5,2,10,0">
-                                    <ProgressBar.Visibility>
-                                        <MultiBinding Converter="{converters:TreeViewVisibilityConverter}">
-                                            <Binding Path="ProgressState.EBOMReportReadProgress" Mode="OneWay"/>
-                                            <Binding Path="ProgressState.EBOMReportReadError" Mode="OneWay"/>
-
-                                            <Binding Path="ProgressState.ExistingDataReadProgress" Mode="OneWay"/>
-                                            <Binding Path="ProgressState.ExistingDataReadError" Mode="OneWay"/>
-
-                                            <Binding Path="ProgressState.ComparisonProgress" Mode="OneWay"/>
-                                        </MultiBinding>
-                                    </ProgressBar.Visibility>
-                                </ProgressBar>
-                            </Grid>
-                        </Grid>
-                    </Grid>
+                    <local:SessionView/>
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>
