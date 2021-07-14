@@ -62,6 +62,14 @@
         </Grid.RowDefinitions>
 
         <TabControl x:Name="Tabs"  ItemsSource="{Binding Sessions}" Background="{x:Null}" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0,1,0,0" SelectionChanged="Tabs_SelectionChanged">
+            <TabControl.Resources>
+                <!--Style TargetType="TabItem">
+                    <Setter Property="AllowDrop" Value="True"/>
+                    <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
+                    <EventSetter Event="Drop" Handler="TabItem_Drop"/>
+                </Style-->
+            </TabControl.Resources>
+            
             <TabControl.IsEnabled>
                 <MultiBinding Converter="{converters:InputsEnabledConverter}">
                     <Binding Path="OutputState.ExportProgress" Mode="OneWay"/>

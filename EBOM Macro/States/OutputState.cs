@@ -30,7 +30,7 @@ namespace EBOM_Macro.States
 
         public OutputState(IObservable<IChangeSet<SessionState>> sessionsChangeSetObservable)
         {
-            this.sessionsChangeSetObservable = sessionsChangeSetObservable;
+            this.sessionsChangeSetObservable = sessionsChangeSetObservable.Replay(1).RefCount();
 
             this.sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
                 .ToCollection().Select(c => c.Take(c.Count - 1).All(s => s.IsReadyForExport))
