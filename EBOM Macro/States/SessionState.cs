@@ -12,19 +12,12 @@ namespace EBOM_Macro.States
         public ProgressState ProgressState { get; }
         public InputState InputState { get; }
 
-        public ReactiveCommand<Unit, Unit> CloseSession { get; }
-
         [ObservableAsProperty] public bool IsReadyForExport { get; }
 
         public SessionState()
         {
             ProgressState = new ProgressState();
             InputState = new InputState(ProgressState);
-
-            CloseSession = ReactiveCommand.Create(() =>
-            {
-                AppState.State.CloseSession(this);
-            });
 
             Observable.CombineLatest(
                 InputState.WhenAnyValue(x => x.Items).Select(items => items.Root == null ? Observable.Return<bool>(false) : items.Root.WhenAnyValue(x => x.IsChecked, isChecked => isChecked ?? true)).Switch(),

@@ -4,45 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:EBOM_Macro.Converters"
-        xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
         xmlns:states="clr-namespace:EBOM_Macro.States"
         xmlns:local="clr-namespace:EBOM_Macro"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:ct="clr-namespace:ChromeTabs;assembly=ChromeTabs"
+        xmlns:ctConv="clr-namespace:ChromeTabs.Converters;assembly=ChromeTabs"
         mc:Ignorable="d"
         DataContext="{x:Static states:AppState.State}"
         Title="{Binding ConverterParameter=Macro, Converter={converters:AppTitleConverter}, Mode=OneTime}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
     <Window.Resources>
-        <Viewbox x:Key="Plus" x:Shared="False">
-            <Canvas Width="448" Height="512">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TabControl}}" Data="M416,208L272,208 272,64C272,46.33,257.67,32,240,32L208,32C190.33,32,176,46.33,176,64L176,208 32,208C14.33,208,0,222.33,0,240L0,272C0,289.67,14.33,304,32,304L176,304 176,448C176,465.67,190.33,480,208,480L240,480C257.67,480,272,465.67,272,448L272,304 416,304C433.67,304,448,289.67,448,272L448,240C448,222.33,433.67,208,416,208z"/>
-            </Canvas>
-        </Viewbox>
-        
-        <DataTemplate x:Key="AddTabTemplate">
-            <Grid>
-                <TextBlock x:Name="ReferenceTabContentHeight" Text="R" Visibility="Hidden" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                <ContentPresenter Content="{StaticResource Plus}" Height="{Binding ElementName=ReferenceTabContentHeight, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}"/>
-            </Grid>
-        </DataTemplate>
-            
-        <DataTemplate x:Key="NormalTabTemplate">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="HeaderText" VerticalAlignment="Center">
-                    <TextBlock.Text>
-                        <MultiBinding Converter="{converters:TabHeaderConverter}">
-                            <Binding Path="Session.InputState.Items" Mode="OneWay" FallbackValue="{x:Null}"/>
-                            <Binding Path="Session.InputState.ExternalIdPrefix" Mode="OneWay" FallbackValue="{x:Null}"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-
-                <Button Command="{Binding Session.CloseSession}" Visibility="{Binding Source={x:Static states:AppState.State}, Path=Sessions.Count, Converter={converters:TabCloseButtonVisibilityConverter}}" Height="{Binding ElementName=HeaderText, Path=ActualHeight}" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}" Content="{StaticResource Clear}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2.5,0,0,0"/>
-            </StackPanel>
-        </DataTemplate>
-
-        <templateSelectors:TabHeaderContentSelector x:Key="TabHeaderContentSelector" AddTemplate="{StaticResource AddTabTemplate}" RegularTabTemplate="{StaticResource NormalTabTemplate}"/>
-
         <Viewbox x:Key="Cancel" x:Shared="False">
             <Canvas Width="512" Height="512">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M256,8C119,8 8,119 8,256 8,393 119,504 256,504 393,504 504,393 504,256 504,119 393,8 256,8z M256,456C145.5,456 56,366.5 56,256 56,145.5 145.5,56 256,56 366.5,56 456,145.5 456,256 456,366.5 366.5,456 256,456z M357.8,193.8L295.6,256 357.8,318.2C362.5,322.9,362.5,330.5,357.8,335.2L335.2,357.8C330.5,362.5,322.9,362.5,318.2,357.8L256,295.6 193.8,357.8C189.1,362.5,181.5,362.5,176.8,357.8L154.2,335.2C149.5,330.5,149.5,322.9,154.2,318.2L216.4,256 154.2,193.8C149.5,189.1,149.5,181.5,154.2,176.8L176.8,154.2C181.5,149.5,189.1,149.5,193.8,154.2L256,216.4 318.2,154.2C322.9,149.5,330.5,149.5,335.2,154.2L357.8,176.8C362.5,181.5,362.5,189.1,357.8,193.8z"/>
@@ -54,6 +26,155 @@
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M224,136L224,0 24,0C10.7,0,0,10.7,0,24L0,488C0,501.3,10.7,512,24,512L360,512C373.3,512,384,501.3,384,488L384,160 248,160C234.8,160,224,149.2,224,136z M300.45,347.36L204.03,443.06C197.38,449.67,186.64,449.67,179.99,443.06L83.57,347.36C73.42,337.29,80.54,320,94.82,320L160,320 160,240C160,231.16,167.16,224,176,224L208,224C216.84,224,224,231.16,224,240L224,320 289.18,320C303.46,320,310.58,337.29,300.45,347.36z M377,105L279.1,7C274.6,2.5,268.5,0,262.1,0L256,0 256,128 384,128 384,121.9C384,115.6,381.5,109.5,377,105z"/>
             </Canvas>
         </Viewbox>
+
+        <Style TargetType="{x:Type Button}"
+           x:Key="CloseButtonStyle">
+            <Style.Resources>
+                <sys:Double x:Key="CloseButtonWidth">6</sys:Double>
+                <sys:Double x:Key="CloseCircleWidth">12</sys:Double>
+                <sys:Double x:Key="CloseButtonOffset">3</sys:Double>
+            </Style.Resources>
+            <Setter Property="Height" Value="{StaticResource CloseCircleWidth}" />
+            <Setter Property="Width" Value="{StaticResource CloseCircleWidth}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="DarkGray" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Canvas Background="Transparent"
+                            x:Name="CloseButton"
+                            Width="{StaticResource CloseCircleWidth}"
+                            Height="{StaticResource CloseCircleWidth}">
+                            <Ellipse Width="{StaticResource CloseCircleWidth}"
+                                 Fill="{TemplateBinding Background}"
+                                 Height="{StaticResource CloseCircleWidth}" />
+                            <Canvas Canvas.Left="{StaticResource CloseButtonOffset}"
+                                Canvas.Top="{StaticResource CloseButtonOffset}"
+                                Background="Transparent"
+                                Width="{StaticResource CloseButtonWidth}"
+                                Height="{StaticResource CloseButtonWidth}">
+                                <Line X1="0"
+                                  Y1="0"
+                                  X2="{StaticResource CloseButtonWidth}"
+                                  Y2="{StaticResource CloseButtonWidth}"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="2" />
+                                <Line X1="0"
+                                  Y1="{StaticResource CloseButtonWidth}"
+                                  X2="{StaticResource CloseButtonWidth}"
+                                  Y2="0"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="2" />
+                            </Canvas>
+                        </Canvas>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="DarkGray" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <SolidColorBrush x:Key="TabStrokeBrush">#FF999999</SolidColorBrush>
+        <SolidColorBrush x:Key="SelectedTabStrokeBrush">WhiteSmoke</SolidColorBrush>
+        <SolidColorBrush x:Key="TabHighlightBrush">White</SolidColorBrush>
+        <SolidColorBrush x:Key="SelectedTabHighlighBrush">Transparent</SolidColorBrush>
+        <sys:Double x:Key="MinTabWidthToShowCloseButton">60</sys:Double>
+        <Style TargetType="{x:Type ct:ChromeTabItem}">
+            <Style.Resources>
+                <ctConv:IsLessThanConverter x:Key="IsLessThanConverter" />
+            </Style.Resources>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ct:ChromeTabItem}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                            </Grid.ColumnDefinitions>
+                            <ct:TabShape x:Name="TabFill"
+                                        Stretch="Fill"
+                                        Grid.ColumnSpan="4"
+                                        VerticalAlignment="Top">
+                                <Shape.Fill>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0" Opacity="1">
+                                        <GradientStop Color="#FFEEEEEE" Offset="0" />
+                                        <GradientStop Color="#FFDDDDDD" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Shape.Fill>
+                            </ct:TabShape>
+                            <ct:TabShape x:Name="TabPath"
+                                        VerticalAlignment="Top"
+                                        Stroke="{StaticResource TabStrokeBrush}"
+                                        Stretch="Fill"
+                                        Grid.ColumnSpan="4" />
+                            <ct:TabShape x:Name="TabHighlight"
+                                        Margin="1,1,1,1"
+                                        Grid.ColumnSpan="4"
+                                        VerticalAlignment="Top"
+                                        Stretch="Fill"
+                                        Stroke="{StaticResource TabHighlightBrush}" />
+
+                            <ContentPresenter x:Name="ContentSite"
+                                          Margin="0,0,2,0"
+                                          Grid.Column="1"
+                                          VerticalAlignment="Stretch"
+                                          HorizontalAlignment="Stretch"
+                                          ContentSource="Header">
+                            </ContentPresenter>
+                            <Button KeyboardNavigation.IsTabStop="False"
+                                x:Name="CloseButton"
+                                Style="{StaticResource CloseButtonStyle}"
+                                Grid.Column="2"
+                                Command="{x:Static ct:ChromeTabItem.CloseTabCommand}">
+                            </Button>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!--This trigger hides the close button on each tab that is shrunk to below a minimum width-->
+                            <DataTrigger Binding="{Binding Path=ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource IsLessThanConverter}, ConverterParameter={StaticResource MinTabWidthToShowCloseButton}}"
+                                     Value="True">
+                                <Setter Property="Button.Visibility"
+                                    TargetName="CloseButton"
+                                    Value="Collapsed" />
+                            </DataTrigger>
+                            <!--This trigger shows the close button on every tab that is selected, unless it is pinned-->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsPinned" Value="False" />
+                                    <Condition Property="IsSelected" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="CloseButton" Property="Visibility" Value="Visible" />
+                            </MultiTrigger>
+                            <!--This trigger hides the close button on pinned tabs-->
+                            <Trigger Property="IsPinned"
+                                 Value="True">
+                                <Setter TargetName="CloseButton" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <!--This trigger changes the look of the currently selected tab item-->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Fill" TargetName="TabFill"
+                                    Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedTabBrush}" />
+                                <Setter Property="Margin" TargetName="TabFill" Value="0 0 0 -1" />
+                                <Setter Property="Margin" TargetName="TabPath" Value="0" />
+                                <Setter Property="Stroke" TargetName="TabHighlight"
+                                    Value="{StaticResource SelectedTabHighlighBrush}" />
+                            </Trigger>
+
+                            <DataTrigger Binding="{Binding Source={x:Static states:AppState.State}, Path=Sessions.Count}" Value="1">
+                                <Setter Property="Button.Visibility" TargetName="CloseButton" Value="Collapsed"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -61,40 +182,57 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl x:Name="Tabs"  ItemsSource="{Binding Sessions}" Background="{x:Null}" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0,1,0,0" SelectionChanged="Tabs_SelectionChanged">
-            <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="AllowDrop" Value="True"/>
-                    <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
-                    <EventSetter Event="Drop" Handler="TabItem_Drop"/>
-                </Style>
-            </TabControl.Resources>
-            
-            <TabControl.IsEnabled>
+        <ct:ChromeTabControl ItemsSource="{Binding Sessions}"
+                             SelectedItem="{Binding SelectedSession}"
+                             AddTabCommand="{Binding AddSession}" CloseTabCommand="{Binding CloseSession}"
+                             ReorderTabsCommand="{Binding ReorderSession}"
+                             MaximumTabWidth="200"
+                             DragWindowWithOneTab="False">
+            <ct:ChromeTabControl.IsEnabled>
                 <MultiBinding Converter="{converters:InputsEnabledConverter}">
                     <Binding Path="OutputState.ExportProgress" Mode="OneWay"/>
                     <Binding Path="OutputState.ExportError" Mode="OneWay"/>
                 </MultiBinding>
-            </TabControl.IsEnabled>
+            </ct:ChromeTabControl.IsEnabled>
 
-            <TabControl.ItemTemplate>
+            <ct:ChromeTabControl.ItemTemplate>
                 <DataTemplate>
-                    <ContentPresenter ContentTemplateSelector="{StaticResource TabHeaderContentSelector}">
-                        <ContentPresenter.Content>
-                            <MultiBinding Converter="{converters:SessionsConverter}">
-                                <Binding Path="."/>
-                                <Binding Source="{x:Static states:AppState.State}" Path="Sessions.Count"/>
+                    <TextBlock VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{converters:TabHeaderConverter}">
+                                <Binding Path="InputState.Items" Mode="OneWay" FallbackValue="{x:Null}"/>
+                                <Binding Path="InputState.ExternalIdPrefix" Mode="OneWay" FallbackValue="{x:Null}"/>
                             </MultiBinding>
-                        </ContentPresenter.Content>
-                    </ContentPresenter>
+                        </TextBlock.Text>
+                    </TextBlock>
                 </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-                <DataTemplate>
-                    <local:SessionView/>
-                </DataTemplate>
-            </TabControl.ContentTemplate>
-        </TabControl>
+            </ct:ChromeTabControl.ItemTemplate>
+
+            <ct:ChromeTabControl.Template>
+                <ControlTemplate TargetType="{x:Type ct:ChromeTabControl}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0,0,0,1" BorderBrush="#FF999999" Grid.Row="0" Padding="10,5,10,0">
+                            <ct:ChromeTabPanel IsItemsHost="True" Background="{TemplateBinding Background}"/>
+                        </Border>
+
+                        <ContentPresenter Content="{TemplateBinding SelectedContent}" Grid.Row="1"
+                                          Visibility="{Binding Source={x:Static states:AppState.State}, Path=Sessions.Count, Converter={converters:SessionCountToVisibilityConverter}}">
+                            <ContentPresenter.ContentTemplate>
+                                <DataTemplate>
+                                    <local:SessionView/>
+                                </DataTemplate>
+                            </ContentPresenter.ContentTemplate>
+                        </ContentPresenter>
+
+                    </Grid>
+                </ControlTemplate>
+            </ct:ChromeTabControl.Template>
+
+        </ct:ChromeTabControl>
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
             <Grid>

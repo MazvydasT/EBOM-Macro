@@ -34,7 +34,7 @@ namespace EBOM_Macro.States
             this.sessionsChangeSetObservable = sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
                 .ToCollection().Replay(1).RefCount();
 
-            this.sessionsChangeSetObservable.Select(c => c.Take(c.Count - 1).All(s => s.IsReadyForExport)).ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
+            this.sessionsChangeSetObservable.Select(c => c.Count > 0 && c.All(s => s.IsReadyForExport)).ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
 
             SaveXML = ReactiveCommand.Create(() =>
             {
@@ -61,7 +61,7 @@ namespace EBOM_Macro.States
                         ExportMessage = "";
                         ExportError = false;
 
-                        var exportDataList = sessions.Take(sessions.Count - 1).Select(s => s.InputState).Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
+                        var exportDataList = sessions.Select(s => s.InputState).Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
 
                         using (cancellationTokenSource = new CancellationTokenSource())
                         {

@@ -47,6 +47,9 @@
     <ApplicationIcon>eBOMb.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ChromeTabs, Version=1.3.4.1, Culture=neutral, PublicKeyToken=047aad1149606307, processorArchitecture=MSIL">
+      <HintPath>..\packages\WPFChromeTabsMVVM.1.3.4.1\lib\net40\ChromeTabs.dll</HintPath>
+    </Reference>
     <Reference Include="Costura, Version=5.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.5.3.0\lib\netstandard1.0\Costura.dll</HintPath>
     </Reference>
@@ -247,12 +250,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\AppTitleConverter.cs" />
+    <Compile Include="Converters\SessionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\TabCloseButtonVisibilityConverter.cs" />
     <Compile Include="Converters\InputsEnabledConverter.cs" />
     <Compile Include="Converters\TabHeaderConverter.cs" />
     <Compile Include="Converters\TreeViewIsEnabledConverter.cs" />
     <Compile Include="Converters\IsIndeterminateConverter.cs" />
-    <Compile Include="Converters\SessionsConverter.cs" />
     <Compile Include="Converters\TreeViewVisibilityConverter.cs" />
     <Compile Include="Converters\ExportCancelButtonVisibilityConverter.cs" />
     <Compile Include="Converters\ExportButtonVisibilityConverter.cs" />
@@ -264,7 +267,6 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="FolderSelectDialog.cs" />
     <Compile Include="Models\ExistingDataContainer.cs" />
-    <Compile Include="Models\SessionWrapper.cs" />
     <Compile Include="Models\XMLExportData.cs" />
     <Compile Include="Reflector.cs" />
     <Compile Include="SessionView.xaml.cs">
@@ -273,7 +275,6 @@
     <Compile Include="States\AppState.cs" />
     <Compile Include="States\OutputState.cs" />
     <Compile Include="States\SessionState.cs" />
-    <Compile Include="TemplateSelectors\TabHeaderContentSelector.cs" />
     <Compile Include="TemplateSelectors\State2StrikethroughTemplateSelector.cs" />
     <Compile Include="Converters\StrikethroughAngleConverter.cs" />
     <Compile Include="Managers\CSVManager.cs" />

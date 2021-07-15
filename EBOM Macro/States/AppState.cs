@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
+using ChromeTabs;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -15,14 +18,19 @@ namespace EBOM_Macro.States
         private ReadOnlyObservableCollection<SessionState> sessions;
         public ReadOnlyObservableCollection<SessionState> Sessions => sessions;
 
-        [Reactive] public int SelectedIndex { get; set; } = 0;
-        
+        [Reactive] public SessionState SelectedSession { get; set; }
+
+        public ReactiveCommand<Unit, Unit> AddSession { get; }
+        public ReactiveCommand<SessionState, Unit> CloseSession { get; }
+        public ReactiveCommand<TabReorder, Unit> ReorderSession { get; }
+
         public OutputState OutputState { get; }
 
         private AppState()
         {
-            AddSession();
-            AddSession();
+            SelectedSession = new SessionState();
+
+            sessionsSourceList.Add(SelectedSession);
 
             var sessionsObservable = sessionsSourceList.Connect().Publish();
 
@@ -30,17 +38,18 @@ namespace EBOM_Macro.States
 
             OutputState = new OutputState(sessionsObservable);
 
+            CloseSession = ReactiveCommand.Create<SessionState>(s => sessionsSourceList.Remove(s));
+            
+            AddSession = ReactiveCommand.Create(() =>
+            {
+                var session = new SessionState();
+                sessionsSourceList.Add(session);
+                SelectedSession = session;
+            });
+
+            ReorderSession = ReactiveCommand.Create<TabReorder>(r => sessionsSourceList.Move(r.FromIndex, r.ToIndex));
+
             sessionsObservable.Connect();
         }
-
-        public void AddSession() => sessionsSourceList.Add(new SessionState());
-
-        public void CloseSession(SessionState session)
-        {
-            --SelectedIndex;
-            sessionsSourceList.Remove(session);
-        }
-
-        public void SetSessionIndex(SessionState session, int index) => sessionsSourceList.Move(sessionsSourceList.Items.IndexOf(session), index);
     }
 }
