@@ -249,7 +249,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\VisibilityInverter.cs" />
     <Compile Include="Converters\AppTitleConverter.cs" />
+    <Compile Include="Converters\ReuseExtIdCheckBoxVisibilityConverter.cs" />
     <Compile Include="Converters\ItemToolTipConverter.cs" />
     <Compile Include="Converters\SessionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\TabCloseButtonVisibilityConverter.cs" />

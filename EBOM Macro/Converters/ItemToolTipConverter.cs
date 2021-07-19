@@ -16,6 +16,8 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if (values[0] == null) return null;
+
             switch((Item.ItemState)values[0])
             {
                 case Item.ItemState.New: return $"New";
@@ -26,7 +28,7 @@ namespace EBOM_Macro.Converters
                     var changedAttributes = (Dictionary<string, (string, string)>)values[1];
 
                     return (changedAttributes?.Count ?? 0) > 0 ?
-                        ("Changed attributes:" + string.Join("\n", (changedAttributes)?.Select(p => $"{p.Key}: {p.Value.Item1} → {p.Value.Item2}") ?? Enumerable.Empty<string>())) :
+                        ("Changed attributes:\n" + string.Join("\n", (changedAttributes)?.Select(p => $"  {p.Key}: {p.Value.Item1} → {p.Value.Item2}") ?? Enumerable.Empty<string>())) :
                         $"Children added/removed";
                 default: return null;
             }

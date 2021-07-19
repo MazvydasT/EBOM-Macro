@@ -21,6 +21,7 @@ namespace EBOM_Macro.States
         [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
         [Reactive] public string LDIFolderPath { get; set; }
+        [Reactive] public bool ReuseExternalIds { get; set; } = true;
         [Reactive] public string ExternalIdPrefixInput { get; set; }
 
         [ObservableAsProperty] public ItemsContainer Items { get; } = default;
@@ -93,10 +94,10 @@ namespace EBOM_Macro.States
             Observable.CombineLatest(
                 itemsObservable,
 
-                Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), (existingData, externalIdPrefix) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix))
+                Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), (existingData, externalIdPrefix, reuseExtIds) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds))
                     .DistinctUntilChanged(),
 
-                (items, pair) => (items, pair.existingData, pair.externalIdPrefix))
+                (items, tuple) => (items, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds))
                 .ObserveOn(TaskPoolScheduler.Default)
                 .Select(data =>
                 {
@@ -112,7 +113,7 @@ namespace EBOM_Macro.States
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
 
-                    var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, new Progress<ProgressUpdate>(progress =>
+                    var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, new Progress<ProgressUpdate>(progress =>
                     {
                         progressState.ComparisonProgress = (double)progress.Value / progress.Max;
                     }), cancellationTokenSource.Token);

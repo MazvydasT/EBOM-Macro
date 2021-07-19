@@ -61,13 +61,27 @@ namespace EBOM_Macro.States
                         ExportMessage = "";
                         ExportError = false;
 
-                        var exportDataList = sessions.Select(s => s.InputState).Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
+                        var inputs = sessions.Select(s => s.InputState);
+                        var exportDataList = inputs.Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
 
                         using (cancellationTokenSource = new CancellationTokenSource())
                         {
                             try
                             {
-                                await XMLManager.ItemsToXML(dialog.FileName, exportDataList, new Progress<ProgressUpdate>(progress =>
+                                var metaData = string.Join("\n", new[]
+                                {
+                                    $"        Timestamp: {DateTime.Now:G}",
+                                    ""
+                                }.Concat(inputs.SelectMany(i => new[]
+                                {
+                                    $"      EBOM report: {i.EBOMReportPath}",
+                                    $"      Path to LDI: {i.LDIFolderPath}",
+                                    $"    Existing data: {i.ExistingDataPath}",
+                                    $"ExternalId prefix: {i.ExternalIdPrefix}",
+                                    ""
+                                })));
+
+                                await XMLManager.ItemsToXML(dialog.FileName, exportDataList, metaData, new Progress<ProgressUpdate>(progress =>
                                 {
                                     ExportProgress = (double)progress.Value / progress.Max;
                                     ExportMessage = progress.Message;

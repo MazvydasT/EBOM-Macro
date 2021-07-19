@@ -3,6 +3,7 @@ using EBOM_Macro.Managers;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 namespace EBOM_Macro.Models
@@ -36,11 +37,22 @@ namespace EBOM_Macro.Models
 
         public IEnumerable<Item> GetSelfAndDescendants() => Children.SelectMany(c => c.GetSelfAndDescendants()).Prepend(this);
 
-        public IEnumerable<Item> GetAncestors() => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Prepend(Parent);
+        private ConditionalWeakTable<object, IReadOnlyList<Item>> ancestorLookup = new ConditionalWeakTable<object, IReadOnlyList<Item>>();
+        public IEnumerable<Item> GetAncestors(object cacheKey = null)
+        {
+            if (cacheKey != null)
+            {
+                if (ancestorLookup.TryGetValue(cacheKey, out var ancestors)) return ancestors;
+                else
+                {
+                    ancestors = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
+                    ancestorLookup.Add(cacheKey, ancestors);
+                    return ancestors;
+                }
+            }
 
-        //public string GetAttributesAsString() => $"{Number}-{Version}-{Name}-{Rotation}-{Translation}-{Prefix}-{Base}-{Suffix}";
-
-
+            return Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Append(Parent);
+        }
 
         public Dictionary<string, (string, string)> GetDifferentAttributes(Item anotherItem)
         {

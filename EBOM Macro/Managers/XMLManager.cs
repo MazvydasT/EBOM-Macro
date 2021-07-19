@@ -17,7 +17,7 @@ namespace EBOM_Macro.Managers
     {
         private const long PROGRESS_MAX = 300;
 
-        public static async Task ItemsToXML(string xmlPath, IReadOnlyList<XMLExportData> xmlExportData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        public static async Task ItemsToXML(string xmlPath, IReadOnlyList<XMLExportData> xmlExportData, string metaData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(xmlPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
             using (var streamWriter = new StreamWriter(fileStream))
@@ -30,7 +30,7 @@ namespace EBOM_Macro.Managers
             {
                 try
                 {
-                    await ItemsToXML(xmlWriter, xmlExportData, progress, cancellationToken);
+                    await ItemsToXML(xmlWriter, xmlExportData, metaData, progress, cancellationToken);
                 }
 
                 finally
@@ -40,15 +40,23 @@ namespace EBOM_Macro.Managers
             }
         }
 
-        private static async Task ItemsToXML(XmlWriter xmlWriter, IReadOnlyList<XMLExportData> xmlExportData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
+        private static async Task ItemsToXML(XmlWriter xmlWriter, IReadOnlyList<XMLExportData> xmlExportData, string metaData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             await Task.Factory.StartNew(() =>
             {
                 var filePathTracker = new Dictionary<string, string>();
-                
+
                 xmlWriter.WriteStartDocument(true);
+
+                if (!string.IsNullOrWhiteSpace(metaData))
+                {
+                    xmlWriter.WriteWhitespace("\n\n");
+                    xmlWriter.WriteComment("\n" + metaData.Trim() + "\n");
+                    xmlWriter.WriteWhitespace("\n\n");
+                }
+
                 xmlWriter.WriteStartElement("Data");
                 xmlWriter.WriteStartElement("Objects");
 
@@ -82,13 +90,13 @@ namespace EBOM_Macro.Managers
 
                         var isCompound = childCount > 0;
 
-                        var externalId = $"{externalIdPrefix}{item.BaseExternalId}";
+                        var externalId = item.ReusedExternalId ?? $"{externalIdPrefix}{item.BaseExternalId}";
 
                         if (externalIdTracker.Contains(externalId)) continue;
 
                         externalIdTracker.Add(externalId);
 
-                        var externlaIdBase = externalId.Substring(0, externalId.Length - 1);
+                        var externlaIdBase = externalId[externalId.Length - 2] == '_' ? externalId.Substring(0, externalId.Length - 1) : $"{externalId}_";
                         var layoutExternalId = externalId + "l";
                         var prototypeExternalId = externlaIdBase + "p";
 
@@ -105,6 +113,13 @@ namespace EBOM_Macro.Managers
                         xmlWriter.WriteStartElement("layout");
                         xmlWriter.WriteString(layoutExternalId);
                         xmlWriter.WriteEndElement();
+
+                        if (item == items.Root)
+                        {
+                            xmlWriter.WriteStartElement("OriginalPartExtId");
+                            xmlWriter.WriteString(externalIdPrefix);
+                            xmlWriter.WriteEndElement();
+                        }
 
                         if (isCompound)
                         {
@@ -150,12 +165,14 @@ namespace EBOM_Macro.Managers
 
                             xmlWriter.WriteStartElement("children");
 
-                            foreach (var childItem in item.Children.OrderBy(c => c.Attributes.Number).ThenBy(c => c.Attributes.Version))
+                            var children = item.Children.OrderBy(c => c.Attributes.Number).ThenBy(c => c.Attributes.Version);
+
+                            foreach (var childItem in children)
                             {
                                 if (childItem.IsChecked == false && childItem.State == Item.ItemState.New) continue;
 
                                 xmlWriter.WriteStartElement("item");
-                                xmlWriter.WriteString($"{externalIdPrefix}{childItem.BaseExternalId}");
+                                xmlWriter.WriteString(childItem.ReusedExternalId ?? $"{externalIdPrefix}{childItem.BaseExternalId}");
                                 xmlWriter.WriteEndElement();
                             }
 
@@ -398,6 +415,8 @@ namespace EBOM_Macro.Managers
                                 var layoutId = element.Element("layout")?.Value?.Trim() ?? "";
 
                                 if (layoutId.Length > 0) layoutIdTracker[item] = layoutId;
+
+                                if (string.IsNullOrWhiteSpace(externalIdPrefix)) externalIdPrefix = element.Element("OriginalPartExtId")?.Value;
 
                                 if (elementName == "PmCompoundPart")
                                 {

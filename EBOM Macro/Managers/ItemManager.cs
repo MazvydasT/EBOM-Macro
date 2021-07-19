@@ -10,7 +10,7 @@ namespace EBOM_Macro.Managers
 {
     public static class ItemManager
     {
-        const long PROGRESS_MAX = 200;
+        const long PROGRESS_MAX = 300;
 
         public static void ResetItemSelection(Item item)
         {
@@ -27,7 +27,7 @@ namespace EBOM_Macro.Managers
             }
         }
 
-        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
 
@@ -46,11 +46,11 @@ namespace EBOM_Macro.Managers
                 var allItemCount = items.PHs.Count + items.Items.Count + 1;
                 var itemCounter = 0;
 
-                //var processedWithHierarchy = new HashSet<Item>(allItemCount);
+                long progressValue = 0, progressSoFar = 0;
 
-                //var numberLookup = existingData?.Values.ToLookup(i => i.Number);
-
-                long progressValue = 0;
+                var numberLookup = existingData?.Values.ToLookup(i => i.Attributes.Number);
+                
+                var ancestorCacheKey = new object();
 
                 foreach (var item in allItems)
                 {
@@ -58,7 +58,63 @@ namespace EBOM_Macro.Managers
 
                     if (progress != null)
                     {
-                        var comparisonProgress = ++itemCounter * PROGRESS_MAX / allItemCount / 2;
+                        var comparisonProgress = ++itemCounter * PROGRESS_MAX / allItemCount / 3;
+
+                        if (comparisonProgress > progressValue)
+                        {
+                            progressValue = comparisonProgress;
+
+                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                        }
+                    }
+
+                    item.ReusedExternalId = null;
+
+                    if (item.Type == Item.ItemType.PH || !reuseExternalIds || existingData == null) continue;
+
+                    if (!existingData.ContainsKey($"{externalIdPrefix}{item.BaseExternalId}"))
+                    {
+                        var matchedNumbers = numberLookup[item.Attributes.Number]
+                            .Where(i => item.Children.Count > 0 ? i.Children.Count > 0 : i.Children.Count == 0)
+                            .ToList();
+
+                        if (item.Type == Item.ItemType.DS)
+                        {
+                            if (matchedNumbers.Count == 1) item.ReusedExternalId = matchedNumbers[0].BaseExternalId;
+                        }
+
+                        else if (item.Type != Item.ItemType.DS) // Item is instance or sub DS assembly
+                        {
+                            var dsNumber = item.GetDS().Attributes.Number;
+
+                            var matchedInstances = matchedNumbers.Where(i => i.GetAncestors(ancestorCacheKey).Any(a => a.Attributes.Number == dsNumber)).ToList();
+
+                            if (matchedInstances.Count == 1)
+                            {
+                                item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                            }
+
+                            else if (matchedInstances.Count > 1)
+                            {
+                                matchedInstances = matchedInstances.Where(i => i.Attributes.Location == item.Attributes.Location && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
+
+                                if (matchedInstances.Count == 1) item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                            }
+                        }
+                    }
+                }
+
+                progressSoFar = progressValue;
+                progressValue = 0;
+                itemCounter = 0;
+
+                foreach (var item in allItems)
+                {
+                    if (cancellationToken.IsCancellationRequested) return items;
+
+                    if (progress != null)
+                    {
+                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 3;
 
                         if (comparisonProgress > progressValue)
                         {
@@ -70,19 +126,15 @@ namespace EBOM_Macro.Managers
 
                     item.IsChecked = false;
 
-                    //if (processedWithHierarchy.Contains(item)) continue;
-
                     item.State = Item.ItemState.New;
                     item.RedundantChildren = null;
                     item.ChangedAttributes = null;
 
-                    if (existingData == null) continue;
-                    
-                    if (existingData.TryGetValue($"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
+                    if (existingData != null && existingData.TryGetValue(item.ReusedExternalId ?? $"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
                     {
                         item.State = Item.ItemState.Unchanged;
 
-                        var childrenHashSet = item.Children.Select(i => i.BaseExternalId).ToHashSet();
+                        var childrenHashSet = item.Children.Select(i => i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}").ToHashSet();
                         var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.BaseExternalId)).ToList();
 
                         if (redundantItems.Count > 0)
@@ -94,7 +146,7 @@ namespace EBOM_Macro.Managers
                         else
                         {
                             var matchingItemChildrenHashSet = matchingItem.Children.Select(i => i.BaseExternalId).ToHashSet();
-                            var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.BaseExternalId)).Count();
+                            var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}")).Count();
 
                             if (newItemsCount > 0) item.State = Item.ItemState.Modified;
                         }
@@ -109,7 +161,8 @@ namespace EBOM_Macro.Managers
                     }
                 }
 
-                var progressSoFar = progressValue;
+                progressSoFar = progressValue;
+                progressValue = 0;
                 itemCounter = 0;
 
                 foreach (var item in allItems)
@@ -118,7 +171,7 @@ namespace EBOM_Macro.Managers
 
                     if (progress != null)
                     {
-                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 2;
+                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 3;
 
                         if (comparisonProgress > progressValue)
                         {

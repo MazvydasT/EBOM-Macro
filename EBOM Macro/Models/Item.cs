@@ -50,6 +50,7 @@ namespace EBOM_Macro.Models
         [Reactive] public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
 
         public string BaseExternalId { get; set; }
+        public string ReusedExternalId { get; set; }
 
         public ItemType Type { get; set; }
         [Reactive] public ItemState State { get; set; } = ItemState.New;
