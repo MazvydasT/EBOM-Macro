@@ -77,6 +77,7 @@ namespace EBOM_Macro.States
                                     $"      EBOM report: {i.EBOMReportPath}",
                                     $"      Path to LDI: {i.LDIFolderPath}",
                                     $"    Existing data: {i.ExistingDataPath}",
+                                    $" ExternalId reuse: {(string.IsNullOrWhiteSpace(i.ExistingDataPath) ? false : i.ReuseExternalIds)}",
                                     $"ExternalId prefix: {i.ExternalIdPrefix}",
                                     ""
                                 })));

@@ -32,7 +32,7 @@ namespace EBOM_Macro.States
 
                 (rootIsChecked, ldiPath, progressData) => !rootIsChecked ||
                 (progressData.ebomReportProgress.IsInExclusiveRange(0, 1) && !progressData.ebomReportError) ||
-                (progressData.existingDataReadProgress.IsInExclusiveRange(0, 1) && !progressData.existingDataReadError) ||
+                progressData.existingDataReadProgress.IsInExclusiveRange(0, 1) || progressData.existingDataReadError ||
                 progressData.comparisonProgress.IsInExclusiveRange(0, 1) ||
                 !Directory.Exists(ldiPath) ? false : true
             ).ToPropertyEx(this, x => x.IsReadyForExport);

@@ -53,7 +53,7 @@ namespace EBOM_Macro.Managers
                 if (!string.IsNullOrWhiteSpace(metaData))
                 {
                     xmlWriter.WriteWhitespace("\n\n");
-                    xmlWriter.WriteComment("\n" + metaData.Trim() + "\n");
+                    xmlWriter.WriteComment("\n" + metaData.TrimEnd() + "\n");
                     xmlWriter.WriteWhitespace("\n\n");
                 }
 
