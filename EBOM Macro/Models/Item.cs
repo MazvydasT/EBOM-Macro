@@ -23,7 +23,7 @@ namespace EBOM_Macro.Models
             HasModifiedDescendants
         }
 
-        public string Number { get; set; }
+        /*public string Number { get; set; }
         public string Name { get; set; }
         public double Version { get; set; }
 
@@ -35,7 +35,9 @@ namespace EBOM_Macro.Models
         public string Base { get; set; }
         public string Suffix { get; set; }
 
-        public string Owner { get; set; }
+        public string Owner { get; set; }*/
+
+        public ItemAttributes Attributes { get; set; } = new ItemAttributes();
 
         public string PhysicalId { get; set; }
 
@@ -43,7 +45,9 @@ namespace EBOM_Macro.Models
 
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
-        public IReadOnlyCollection<Item> RedundantChildren { get; set; }
+        [Reactive] public IReadOnlyCollection<Item> RedundantChildren { get; set; }
+
+        [Reactive] public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
 
         public string BaseExternalId { get; set; }
 

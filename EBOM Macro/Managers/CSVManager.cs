@@ -111,18 +111,21 @@ namespace EBOM_Macro.Managers
 
                             var item = new Item
                             {
-                                Number = record.PartNumber,
-                                Version = record.Version,
-                                Name = record.Name,
+                                Attributes = new ItemAttributes
+                                {
+                                    Number = record.PartNumber,
+                                    Version = record.Version,
+                                    Name = record.Name,
 
-                                Rotation = transformationMatrix.GetEulerZYX(),
-                                Translation = transformationMatrix.GetTranslation() * 1000.0,
+                                    Rotation = transformationMatrix.GetEulerZYX(),
+                                    Location = transformationMatrix.GetTranslation() * 1000.0,
 
-                                Prefix = record.Prefix,
-                                Base = record.Base,
-                                Suffix = record.Suffix,
+                                    Prefix = record.Prefix,
+                                    Base = record.Base,
+                                    Suffix = record.Suffix,
 
-                                Owner = record.Owner,
+                                    Owner = record.Owner
+                                },
 
                                 PhysicalId = record.PhysicalId,
 
@@ -153,8 +156,11 @@ namespace EBOM_Macro.Managers
 
                                     level3Placeholder = new Item
                                     {
-                                        Number = level3PHNumber,
-                                        Name = cpscLevel3Name,
+                                        Attributes = new ItemAttributes
+                                        {
+                                            Number = level3PHNumber,
+                                            Name = cpscLevel3Name
+                                        },
                                         Type = Item.ItemType.PH,
                                         BaseExternalId = $"{level3PHNumber}_c",
                                         Maturity = EBOMReportRecord.MaturityState.FROZEN
@@ -174,8 +180,11 @@ namespace EBOM_Macro.Managers
 
                                         level2Placeholder = new Item
                                         {
-                                            Number = level2PHNumber,
-                                            Name = cpscLevel2Name,
+                                            Attributes = new ItemAttributes
+                                            {
+                                                Number = level2PHNumber,
+                                                Name = cpscLevel2Name
+                                            },
                                             Type = Item.ItemType.PH,
                                             BaseExternalId = $"{level2PHNumber}_c",
                                             Maturity = EBOMReportRecord.MaturityState.FROZEN
@@ -195,8 +204,11 @@ namespace EBOM_Macro.Managers
 
                                             level1Placeholder = new Item
                                             {
-                                                Number = level1PHNumber,
-                                                Name = cpscLevel1Name,
+                                                Attributes = new ItemAttributes
+                                                {
+                                                    Number = level1PHNumber,
+                                                    Name = cpscLevel1Name
+                                                },
                                                 Type = Item.ItemType.PH,
                                                 BaseExternalId = $"{level1PHNumber}_c",
                                                 Maturity = EBOMReportRecord.MaturityState.FROZEN
@@ -208,8 +220,11 @@ namespace EBOM_Macro.Managers
                                             {
                                                 root = new Item
                                                 {
-                                                    Number = vehicleLineName,
-                                                    Name = vehicleLineTitle,
+                                                    Attributes = new ItemAttributes
+                                                    {
+                                                        Number = vehicleLineName,
+                                                        Name = vehicleLineTitle
+                                                    },
                                                     Type = Item.ItemType.PH,
                                                     BaseExternalId = $"{vehicleLineName}_c",
                                                     Maturity = EBOMReportRecord.MaturityState.FROZEN

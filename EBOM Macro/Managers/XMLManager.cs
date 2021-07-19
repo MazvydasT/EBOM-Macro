@@ -99,7 +99,7 @@ namespace EBOM_Macro.Managers
                         xmlWriter.WriteEndElement();
 
                         xmlWriter.WriteStartElement("name");
-                        xmlWriter.WriteString(item.Name?.Trim() ?? "");
+                        xmlWriter.WriteString(item.Attributes.Name?.Trim() ?? "");
                         xmlWriter.WriteEndElement();
 
                         xmlWriter.WriteStartElement("layout");
@@ -109,48 +109,48 @@ namespace EBOM_Macro.Managers
                         if (isCompound)
                         {
                             xmlWriter.WriteStartElement("number");
-                            xmlWriter.WriteString(item.Number?.Trim() ?? "");
+                            xmlWriter.WriteString(item.Attributes.Number?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
-                            if (item.Version > 0)
+                            if (item.Attributes.Version > 0)
                             {
                                 xmlWriter.WriteStartElement("TCe_Revision");
-                                xmlWriter.WriteString(item.Version.ToString());
+                                xmlWriter.WriteString(item.Attributes.Version.ToString());
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Prefix))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Prefix))
                             {
                                 xmlWriter.WriteStartElement("Prefix");
-                                xmlWriter.WriteString(item.Prefix);
+                                xmlWriter.WriteString(item.Attributes.Prefix);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Base))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Base))
                             {
                                 xmlWriter.WriteStartElement("Base");
-                                xmlWriter.WriteString(item.Base);
+                                xmlWriter.WriteString(item.Attributes.Base);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Suffix))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Suffix))
                             {
                                 xmlWriter.WriteStartElement("Suffix");
-                                xmlWriter.WriteString(item.Suffix);
+                                xmlWriter.WriteString(item.Attributes.Suffix);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Owner))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Owner))
                             {
                                 xmlWriter.WriteStartElement("Data_Source");
-                                xmlWriter.WriteString(item.Owner);
+                                xmlWriter.WriteString(item.Attributes.Owner);
                                 xmlWriter.WriteEndElement();
                             }
 
 
                             xmlWriter.WriteStartElement("children");
 
-                            foreach (var childItem in item.Children.OrderBy(c => c.Number).ThenBy(c => c.Version))
+                            foreach (var childItem in item.Children.OrderBy(c => c.Attributes.Number).ThenBy(c => c.Attributes.Version))
                             {
                                 if (childItem.IsChecked == false && childItem.State == Item.ItemState.New) continue;
 
@@ -195,7 +195,7 @@ namespace EBOM_Macro.Managers
 
                         xmlWriter.WriteStartElement("location");
 
-                        foreach (var component in item.Translation.Items())
+                        foreach (var component in item.Attributes.Location.Items())
                         {
                             xmlWriter.WriteStartElement("item");
                             xmlWriter.WriteString(component.ToString());
@@ -207,7 +207,7 @@ namespace EBOM_Macro.Managers
 
                         xmlWriter.WriteStartElement("rotation");
 
-                        foreach (var component in item.Rotation.Items())
+                        foreach (var component in item.Attributes.Rotation.Items())
                         {
                             xmlWriter.WriteStartElement("item");
                             xmlWriter.WriteString(component.ToString());
@@ -224,7 +224,7 @@ namespace EBOM_Macro.Managers
                         {
                             var ds = item.GetDS();
 
-                            var jtPath = Path.Combine(ldiFolderPath, $"{ds.Number}_{ds.Version}__".GetSafeFileName(), $"{item.Number}.jt".GetSafeFileName());
+                            var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
                             string jtPathHash;
                             bool newJTPathHash;
 
@@ -248,45 +248,45 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteAttributeString("ExternalId", prototypeExternalId);
 
                             xmlWriter.WriteStartElement("catalogNumber");
-                            xmlWriter.WriteString(item.Number?.Trim() ?? "");
+                            xmlWriter.WriteString(item.Attributes.Number?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
                             xmlWriter.WriteStartElement("name");
-                            xmlWriter.WriteString(item.Name?.Trim() ?? "");
+                            xmlWriter.WriteString(item.Attributes.Name?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
-                            if (item.Version > 0)
+                            if (item.Attributes.Version > 0)
                             {
                                 xmlWriter.WriteStartElement("TCe_Revision");
-                                xmlWriter.WriteString(item.Version.ToString());
+                                xmlWriter.WriteString(item.Attributes.Version.ToString());
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Prefix))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Prefix))
                             {
                                 xmlWriter.WriteStartElement("Prefix");
-                                xmlWriter.WriteString(item.Prefix);
+                                xmlWriter.WriteString(item.Attributes.Prefix);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Base))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Base))
                             {
                                 xmlWriter.WriteStartElement("Base");
-                                xmlWriter.WriteString(item.Base);
+                                xmlWriter.WriteString(item.Attributes.Base);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Suffix))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Suffix))
                             {
                                 xmlWriter.WriteStartElement("Suffix");
-                                xmlWriter.WriteString(item.Suffix);
+                                xmlWriter.WriteString(item.Attributes.Suffix);
                                 xmlWriter.WriteEndElement();
                             }
 
-                            if (!string.IsNullOrWhiteSpace(item.Owner))
+                            if (!string.IsNullOrWhiteSpace(item.Attributes.Owner))
                             {
                                 xmlWriter.WriteStartElement("Data_Source");
-                                xmlWriter.WriteString(item.Owner);
+                                xmlWriter.WriteString(item.Attributes.Owner);
                                 xmlWriter.WriteEndElement();
                             }
 
@@ -389,7 +389,7 @@ namespace EBOM_Macro.Managers
                                 var item = new Item
                                 {
                                     BaseExternalId = externalId,
-                                    Name = element.Element("name")?.Value,
+                                    Attributes = new ItemAttributes { Name = element.Element("name")?.Value },
                                     State = Item.ItemState.Redundant
                                 };
 
@@ -405,13 +405,13 @@ namespace EBOM_Macro.Managers
 
                                     if ((childIds?.Count ?? 0) > 0) childIdTracker[item] = childIds;
 
-                                    item.Name = element.Element("name")?.Value;
-                                    item.Number = element.Element("number")?.Value;
-                                    item.Version = double.TryParse(element.Element("TCe_Revision")?.Value, out var version) ? version : 0;
-                                    item.Owner = element.Element("Data_Source")?.Value;
-                                    item.Prefix = element.Element("Prefix")?.Value;
-                                    item.Base = element.Element("Base")?.Value;
-                                    item.Suffix = element.Element("Suffix")?.Value;
+                                    item.Attributes.Name = element.Element("name")?.Value;
+                                    item.Attributes.Number = element.Element("number")?.Value;
+                                    item.Attributes.Version = double.TryParse(element.Element("TCe_Revision")?.Value, out var version) ? version : 0;
+                                    item.Attributes.Owner = element.Element("Data_Source")?.Value;
+                                    item.Attributes.Prefix = element.Element("Prefix")?.Value;
+                                    item.Attributes.Base = element.Element("Base")?.Value;
+                                    item.Attributes.Suffix = element.Element("Suffix")?.Value;
                                 }
 
                                 else
@@ -434,13 +434,16 @@ namespace EBOM_Macro.Managers
                             {
                                 prototypeDataTracker[externalId] = new Item
                                 {
-                                    Name = element.Element("name")?.Value,
-                                    Number = element.Element("catalogNumber")?.Value,
-                                    Version = double.TryParse(element.Element("TCe_Revision")?.Value, out var version) ? version : 0,
-                                    Owner = element.Element("Data_Source")?.Value,
-                                    Prefix = element.Element("Prefix")?.Value,
-                                    Base = element.Element("Base")?.Value,
-                                    Suffix = element.Element("Suffix")?.Value
+                                    Attributes = new ItemAttributes
+                                    {
+                                        Name = element.Element("name")?.Value,
+                                        Number = element.Element("catalogNumber")?.Value,
+                                        Version = double.TryParse(element.Element("TCe_Revision")?.Value, out var version) ? version : 0,
+                                        Owner = element.Element("Data_Source")?.Value,
+                                        Prefix = element.Element("Prefix")?.Value,
+                                        Base = element.Element("Base")?.Value,
+                                        Suffix = element.Element("Suffix")?.Value
+                                    }
                                 };
                             }
                         }
@@ -481,20 +484,19 @@ namespace EBOM_Macro.Managers
 
                     if (layoutIdTracker.TryGetValue(item, out var layoutId))
                     {
-                        if (translationTracker.TryGetValue(layoutId, out var translation)) item.Translation = translation;
-                        if (rotationTracker.TryGetValue(layoutId, out var rotation)) item.Rotation = rotation;
+                        if (translationTracker.TryGetValue(layoutId, out var translation)) item.Attributes.Location = translation;
+                        if (rotationTracker.TryGetValue(layoutId, out var rotation)) item.Attributes.Rotation = rotation;
                     }
 
                     if (prototypeIdTracker.TryGetValue(item, out var prototypeId) && prototypeDataTracker.TryGetValue(prototypeId, out var prototypeData))
                     {
-                        if (string.IsNullOrWhiteSpace(item.Name)) item.Name = prototypeData.Name;
-                        item.Number = prototypeData.Number;
-                        item.Version = prototypeData.Version;
-                        item.Owner = prototypeData.Owner;
-                        item.Prefix = prototypeData.Prefix;
-                        item.Base = prototypeData.Base;
-                        item.Suffix = prototypeData.Suffix;
-
+                        item.Attributes.Name = string.IsNullOrWhiteSpace(item.Attributes.Name) ? prototypeData.Attributes.Name : item.Attributes.Name;
+                        item.Attributes.Number = prototypeData.Attributes.Number;
+                        item.Attributes.Version = prototypeData.Attributes.Version;
+                        item.Attributes.Owner = prototypeData.Attributes.Owner;
+                        item.Attributes.Prefix = prototypeData.Attributes.Prefix;
+                        item.Attributes.Base = prototypeData.Attributes.Base;
+                        item.Attributes.Suffix = prototypeData.Attributes.Suffix;
                     }
 
                     if (progress != null)

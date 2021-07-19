@@ -250,6 +250,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\AppTitleConverter.cs" />
+    <Compile Include="Converters\ItemToolTipConverter.cs" />
     <Compile Include="Converters\SessionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\TabCloseButtonVisibilityConverter.cs" />
     <Compile Include="Converters\InputsEnabledConverter.cs" />
@@ -267,6 +268,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="FolderSelectDialog.cs" />
     <Compile Include="Models\ExistingDataContainer.cs" />
+    <Compile Include="Models\ItemAttributes.cs" />
     <Compile Include="Models\XMLExportData.cs" />
     <Compile Include="Reflector.cs" />
     <Compile Include="SessionView.xaml.cs">

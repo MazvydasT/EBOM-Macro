@@ -38,7 +38,29 @@ namespace EBOM_Macro.Models
 
         public IEnumerable<Item> GetAncestors() => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Prepend(Parent);
 
-        public string GetAttributes() => $"{Number}-{Version}-{Name}-{Rotation}-{Translation}-{Prefix}-{Base}-{Suffix}";
+        //public string GetAttributesAsString() => $"{Number}-{Version}-{Name}-{Rotation}-{Translation}-{Prefix}-{Base}-{Suffix}";
+
+
+
+        public Dictionary<string, (string, string)> GetDifferentAttributes(Item anotherItem)
+        {
+            if (anotherItem == null) return null;
+
+            var attributes = Attributes.AsDictionary;
+            var anotherItemAttributes = anotherItem.Attributes.AsDictionary;
+
+            var differentAttributes = new Dictionary<string, (string, string)>();
+
+            foreach (var pair in attributes)
+            {
+                var attributeValue = pair.Value ?? "";
+                var anotherItemAttributeValue = anotherItemAttributes[pair.Key] ?? "";
+
+                if (attributeValue != anotherItemAttributeValue) differentAttributes[pair.Key] = (attributeValue, anotherItemAttributeValue);
+            }
+
+            return differentAttributes;
+        }
 
         void SetIsChecked(bool? value, bool updateChildren, bool updateParent)
         {
@@ -71,8 +93,8 @@ namespace EBOM_Macro.Models
             SetIsChecked(state, false, true);
         }
 
-        public override string ToString() => $"{Number}" + (Version == 0 ? "" : $"/{Version}") +
-            (string.IsNullOrWhiteSpace(Name) ? "" : $" - {Name}") +
+        public override string ToString() => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
+            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}") +
             ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
     }
 }

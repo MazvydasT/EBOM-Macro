@@ -46,7 +46,9 @@ namespace EBOM_Macro.Managers
                 var allItemCount = items.PHs.Count + items.Items.Count + 1;
                 var itemCounter = 0;
 
-                var processedWithHierarchy = new HashSet<Item>(allItemCount);
+                //var processedWithHierarchy = new HashSet<Item>(allItemCount);
+
+                //var numberLookup = existingData?.Values.ToLookup(i => i.Number);
 
                 long progressValue = 0;
 
@@ -68,36 +70,41 @@ namespace EBOM_Macro.Managers
 
                     item.IsChecked = false;
 
-                    if (processedWithHierarchy.Contains(item)) continue;
+                    //if (processedWithHierarchy.Contains(item)) continue;
 
                     item.State = Item.ItemState.New;
                     item.RedundantChildren = null;
+                    item.ChangedAttributes = null;
 
-                    if (existingData != null && existingData.TryGetValue($"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
+                    if (existingData == null) continue;
+                    
+                    if (existingData.TryGetValue($"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
                     {
-                        if (item.GetAttributes() != matchingItem.GetAttributes())
+                        item.State = Item.ItemState.Unchanged;
+
+                        var childrenHashSet = item.Children.Select(i => i.BaseExternalId).ToHashSet();
+                        var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.BaseExternalId)).ToList();
+
+                        if (redundantItems.Count > 0)
                         {
                             item.State = Item.ItemState.Modified;
+                            item.RedundantChildren = redundantItems;
                         }
 
                         else
                         {
-                            var childrenHashSet = item.Children.Select(i => i.BaseExternalId).ToHashSet();
-                            var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.BaseExternalId)).ToList();
+                            var matchingItemChildrenHashSet = matchingItem.Children.Select(i => i.BaseExternalId).ToHashSet();
+                            var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.BaseExternalId)).Count();
 
-                            if (redundantItems.Count > 0)
-                            {
-                                item.State = Item.ItemState.Modified;
-                                item.RedundantChildren = redundantItems;
-                            }
+                            if (newItemsCount > 0) item.State = Item.ItemState.Modified;
+                        }
 
-                            else
-                            {
-                                var matchingItemChildrenHashSet = matchingItem.Children.Select(i => i.BaseExternalId).ToHashSet();
-                                var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.BaseExternalId)).Count();
 
-                                item.State = newItemsCount > 0 ? Item.ItemState.Modified : Item.ItemState.Unchanged;
-                            }
+                        var differentAttributes = matchingItem.GetDifferentAttributes(item);
+                        if (differentAttributes.Count > 0)
+                        {
+                            item.State = Item.ItemState.Modified;
+                            item.ChangedAttributes = differentAttributes;
                         }
                     }
                 }
