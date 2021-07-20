@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
+using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Converters
 {
@@ -18,20 +19,35 @@ namespace EBOM_Macro.Converters
         {
             if (values[0] == null) return null;
 
-            switch((Item.ItemState)values[0])
-            {
-                case Item.ItemState.New: return $"New";
-                case Item.ItemState.Redundant: return "Removed";
-                case Item.ItemState.Unchanged: return "Unchanged";
-                case Item.ItemState.HasModifiedDescendants: return "Has modified descendents";
-                case Item.ItemState.Modified:
-                    var changedAttributes = (Dictionary<string, (string, string)>)values[1];
+            var state = (Item.ItemState)values[0];
 
-                    return (changedAttributes?.Count ?? 0) > 0 ?
-                        ("Changed attributes:\n" + string.Join("\n", (changedAttributes)?.Select(p => $"  {p.Key}: {p.Value.Item1} → {p.Value.Item2}") ?? Enumerable.Empty<string>())) :
-                        $"Children added/removed";
-                default: return null;
+            var changedAttributes = (Dictionary<string, (string, string)>)values[1];
+
+            var tooltip = "";
+
+            if (state == Item.ItemState.Modified && (changedAttributes?.Count ?? 0) > 0)
+            {
+                return "Changed attributes:\n" + string.Join("\n", (changedAttributes)?.Select(p => $"  {p.Key}: {p.Value.Item1} → {p.Value.Item2}") ?? Enumerable.Empty<string>());
             }
+
+            else tooltip = "Children added / removed";
+            
+            switch (state)
+            {
+                case Item.ItemState.New: tooltip = "New"; break;
+                case Item.ItemState.Redundant: tooltip = "Removed"; break;
+                case Item.ItemState.Unchanged: tooltip = "Unchanged"; break;
+                case Item.ItemState.HasModifiedDescendants: tooltip = "Has modified descendents"; break;
+                default: break;
+            }
+
+            var zeroVectorValue = $"{new Vector3D()}";
+
+            var attributes = ((Dictionary<string, string>)values[2])
+                ?.Where(p => p.Key != nameof(ItemAttributes.Name) && p.Key != nameof(ItemAttributes.Number) && p.Key != nameof(ItemAttributes.Version) && !string.IsNullOrWhiteSpace(p.Value) && p.Value != zeroVectorValue)
+                .Select(p => $"  {p.Key}: {p.Value}") ?? Enumerable.Empty<string>();
+
+            return ($"{tooltip}\n" + string.Join("\n", attributes)).Trim();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotImplementedException();

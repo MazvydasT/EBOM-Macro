@@ -13,7 +13,7 @@ namespace EBOM_Macro.Models
         public double Version { get; set; }
         public string Name { get; set; }
 
-        public Vector3D Location { get; set; }
+        public Vector3D Translation { get; set; }
         public Vector3D Rotation { get; set; }
 
         public string Prefix { get; set; }
@@ -29,7 +29,7 @@ namespace EBOM_Macro.Models
                 { nameof(Version), Version.ToString() },
                 { nameof(Name), Name },
 
-                { nameof(Location), Location.ToString() },
+                { nameof(Translation), Translation.ToString() },
                 { nameof(Rotation), Rotation.ToString() },
 
                 { nameof(Prefix), Prefix },

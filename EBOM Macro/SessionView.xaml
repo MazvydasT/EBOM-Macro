@@ -169,6 +169,7 @@
                                     <MultiBinding Converter="{converters:ItemToolTipConverter}">
                                         <Binding Path="State" Mode="OneWay" FallbackValue="{x:Null}"/>
                                         <Binding Path="ChangedAttributes" Mode="OneWay"/>
+                                        <Binding Path="Attributes.AsDictionary" Mode="OneTime"/>
                                     </MultiBinding>
                                 </Grid.ToolTip>
 

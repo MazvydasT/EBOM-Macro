@@ -118,7 +118,7 @@ namespace EBOM_Macro.Managers
                                     Name = record.Name,
 
                                     Rotation = transformationMatrix.GetEulerZYX(),
-                                    Location = transformationMatrix.GetTranslation() * 1000.0,
+                                    Translation = transformationMatrix.GetTranslation() * 1000.0,
 
                                     Prefix = record.Prefix,
                                     Base = record.Base,

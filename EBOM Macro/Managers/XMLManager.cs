@@ -212,7 +212,7 @@ namespace EBOM_Macro.Managers
 
                         xmlWriter.WriteStartElement("location");
 
-                        foreach (var component in item.Attributes.Location.Items())
+                        foreach (var component in item.Attributes.Translation.Items())
                         {
                             xmlWriter.WriteStartElement("item");
                             xmlWriter.WriteString(component.ToString());
@@ -503,7 +503,7 @@ namespace EBOM_Macro.Managers
 
                     if (layoutIdTracker.TryGetValue(item, out var layoutId))
                     {
-                        if (translationTracker.TryGetValue(layoutId, out var translation)) item.Attributes.Location = translation;
+                        if (translationTracker.TryGetValue(layoutId, out var translation)) item.Attributes.Translation = translation;
                         if (rotationTracker.TryGetValue(layoutId, out var rotation)) item.Attributes.Rotation = rotation;
                     }
 
