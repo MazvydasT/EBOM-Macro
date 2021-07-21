@@ -25,7 +25,7 @@ namespace EBOM_Macro.Extensions
                 z = Math.Atan2(-matrix.M12, matrix.M22);
             }
 
-            return new Vector3D(x, y, z);
+            return Vector3D.Parse(new Vector3D(x, y, z).ToString());
         }
 
         public static Vector3D GetTranslation(this Matrix3D matrix) => new Vector3D(matrix.M14, matrix.M24, matrix.M34);

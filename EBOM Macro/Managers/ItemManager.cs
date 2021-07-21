@@ -98,13 +98,13 @@ namespace EBOM_Macro.Managers
 
                             else if (matchedInstances.Count > 1)
                             {                                
-                                matchedInstances = matchedInstances.Where(i =>
+                                matchedInstances = matchedInstances.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation)/*.Where(i =>
                                     Math.Abs(i.Attributes.Translation.X - item.Attributes.Translation.X) < 0.001 &&
                                     Math.Abs(i.Attributes.Translation.Y - item.Attributes.Translation.Y) < 0.001 &&
                                     Math.Abs(i.Attributes.Translation.Z - item.Attributes.Translation.Z) < 0.001 &&
                                     Math.Abs(i.Attributes.Rotation.X - item.Attributes.Rotation.X) < 0.001 &&
                                     Math.Abs(i.Attributes.Rotation.Y - item.Attributes.Rotation.Y) < 0.001 &&
-                                    Math.Abs(i.Attributes.Rotation.Z - item.Attributes.Rotation.Z) < 0.001).ToList();
+                                    Math.Abs(i.Attributes.Rotation.Z - item.Attributes.Rotation.Z) < 0.001)*/.ToList();
 
                                 if (matchedInstances.Count == 1) item.ReusedExternalId = matchedInstances[0].BaseExternalId;
                             }
