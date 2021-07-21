@@ -338,7 +338,7 @@ namespace EBOM_Macro.Managers
                             }
                         }
 
-                        var newProgressValue = dataIndex * (PROGRESS_MAX / dataCount) +  itemIndex * (PROGRESS_MAX / dataCount) / itemCount;
+                        var newProgressValue = dataIndex * (PROGRESS_MAX / dataCount) + itemIndex * (PROGRESS_MAX / dataCount) / itemCount;
 
                         if (newProgressValue > progressValue)
                         {

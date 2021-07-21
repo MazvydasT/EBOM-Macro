@@ -1,5 +1,6 @@
 ﻿using EBOM_Macro.Managers;
 using EBOM_Macro.Models;
+using Microsoft.Win32;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -9,9 +10,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 using System.Windows.Interop;
 
 namespace EBOM_Macro.States
@@ -34,7 +34,8 @@ namespace EBOM_Macro.States
 
         ProgressState progressState;
 
-        (Task<ItemsContainer> Task, CancellationTokenSource CancellationTokenSource) previousComparisonTaskData;
+        CancellationTokenSource cancellationTokenSource = null;
+        BehaviorSubject<bool> releaseLastValue = new BehaviorSubject<bool>(true);
 
         public InputState(ProgressState progressState)
         {
@@ -87,7 +88,7 @@ namespace EBOM_Macro.States
                 })).Switch();
 
             this.WhenAnyValue(x => x.ExternalIdPrefixInput)
-                //.Throttle(TimeSpan.FromMilliseconds(100))
+                .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
                 .ToPropertyEx(this, x => x.ExternalIdPrefix);
 
@@ -99,28 +100,31 @@ namespace EBOM_Macro.States
 
                 (items, tuple) => (items, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds))
                 .ObserveOn(TaskPoolScheduler.Default)
-                .Select(data =>
+                .Throttle(data =>
                 {
-                    previousComparisonTaskData.CancellationTokenSource?.Cancel();
-                    previousComparisonTaskData.Task?.Wait();
+                    lock (this)
+                    {
+                        cancellationTokenSource?.Cancel();
+                    }
 
-                    progressState.ComparisonProgress = 0;
-
-                    return data;
+                    return releaseLastValue;
                 })
                 .ObserveOnDispatcher()
                 .Select(data =>
                 {
-                    var cancellationTokenSource = new CancellationTokenSource();
-
-                    var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, new Progress<ProgressUpdate>(progress =>
+                    lock (this)
                     {
-                        progressState.ComparisonProgress = (double)progress.Value / progress.Max;
-                    }), cancellationTokenSource.Token);
+                        progressState.ComparisonProgress = 0;
 
-                    previousComparisonTaskData = (task, cancellationTokenSource);
+                        cancellationTokenSource = new CancellationTokenSource();
 
-                    return Observable.FromAsync(() => task);
+                        var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, new Progress<ProgressUpdate>(progress =>
+                        {
+                            progressState.ComparisonProgress = (double)progress.Value / progress.Max;
+                        }), cancellationTokenSource.Token);
+
+                        return Observable.FromAsync(() => task).Do(_ => releaseLastValue.OnNext(true));
+                    }
                 })
                 .Switch().ToPropertyEx(this, x => x.Items);
         }

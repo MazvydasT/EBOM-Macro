@@ -1,16 +1,16 @@
-﻿using EBOM_Macro.Managers;
+﻿using DynamicData;
+using EBOM_Macro.Managers;
 using EBOM_Macro.Models;
+using Microsoft.Win32;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
-using Microsoft.Win32;
-using ReactiveUI.Fody.Helpers;
-using DynamicData;
-using System.Collections.Generic;
 
 namespace EBOM_Macro.States
 {

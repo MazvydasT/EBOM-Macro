@@ -1,12 +1,10 @@
 ﻿using EBOM_Macro.Models;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Managers
 {
@@ -51,7 +49,7 @@ namespace EBOM_Macro.Managers
                 long progressValue = 0, progressSoFar = 0;
 
                 var numberLookup = existingData?.Values.ToLookup(i => i.Attributes.Number);
-                
+
                 var ancestorCacheKey = new object();
 
                 foreach (var item in allItems)
@@ -97,7 +95,7 @@ namespace EBOM_Macro.Managers
                             }
 
                             else if (matchedInstances.Count > 1)
-                            {                                
+                            {
                                 matchedInstances = matchedInstances.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation)/*.Where(i =>
                                     Math.Abs(i.Attributes.Translation.X - item.Attributes.Translation.X) < 0.001 &&
                                     Math.Abs(i.Attributes.Translation.Y - item.Attributes.Translation.Y) < 0.001 &&
@@ -189,7 +187,7 @@ namespace EBOM_Macro.Managers
                         }
                     }
 
-                    if(item.Maturity == EBOMReportRecord.MaturityState.IN_WORK)
+                    if (item.Maturity == EBOMReportRecord.MaturityState.IN_WORK)
                     {
                         item.SelectWithoutDescendants.Execute(null);
                     }

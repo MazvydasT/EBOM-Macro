@@ -1,10 +1,8 @@
-﻿using EBOM_Macro.Extensions;
-using EBOM_Macro.Models;
+﻿using EBOM_Macro.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media.Media3D;
@@ -31,7 +29,7 @@ namespace EBOM_Macro.Converters
             }
 
             else tooltip = "Children added / removed";
-            
+
             switch (state)
             {
                 case Item.ItemState.New: tooltip = "New"; break;

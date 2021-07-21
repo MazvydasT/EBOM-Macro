@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
-using ChromeTabs;
+﻿using ChromeTabs;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System;
+using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace EBOM_Macro.States
 {
     public sealed class AppState : ReactiveObject
     {
         public static AppState State { get; } = new AppState();
-        
+
         private SourceList<SessionState> sessionsSourceList = new SourceList<SessionState>();
         private ReadOnlyObservableCollection<SessionState> sessions;
         public ReadOnlyObservableCollection<SessionState> Sessions => sessions;
@@ -39,7 +38,7 @@ namespace EBOM_Macro.States
             OutputState = new OutputState(sessionsObservable);
 
             CloseSession = ReactiveCommand.Create<SessionState>(s => sessionsSourceList.Remove(s));
-            
+
             AddSession = ReactiveCommand.Create(() =>
             {
                 var session = new SessionState();

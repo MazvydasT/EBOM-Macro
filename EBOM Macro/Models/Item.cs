@@ -1,7 +1,6 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.Generic;
-using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Models
 {

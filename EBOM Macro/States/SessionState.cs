@@ -1,9 +1,8 @@
-﻿using System.IO;
-using System.Reactive;
-using System.Reactive.Linq;
-using EBOM_Macro.Extensions;
+﻿using EBOM_Macro.Extensions;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System.IO;
+using System.Reactive.Linq;
 
 namespace EBOM_Macro.States
 {

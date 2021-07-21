@@ -52,7 +52,7 @@ namespace EBOM_Macro.Managers
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
 
-                    string vehicleLineTitle = null, vehicleLineName = null, program = null; 
+                    string vehicleLineTitle = null, vehicleLineName = null, program = null;
 
                     var records = csvReader.GetRecords<EBOMReportRecord>();
 
@@ -73,7 +73,7 @@ namespace EBOM_Macro.Managers
 
                             var level = record.Level;
 
-                            if(vehicleLineTitle == null)
+                            if (vehicleLineTitle == null)
                             {
                                 vehicleLineTitle = (record.Title ?? "").Trim();
                                 vehicleLineName = (record.VehicleLineName ?? "").Trim();
