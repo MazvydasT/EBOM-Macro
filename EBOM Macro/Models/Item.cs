@@ -22,20 +22,6 @@ namespace EBOM_Macro.Models
             HasModifiedDescendants
         }
 
-        /*public string Number { get; set; }
-        public string Name { get; set; }
-        public double Version { get; set; }
-
-        //public Matrix3D LocalTransformation { get; set; }
-        public Vector3D Rotation { get; set; }
-        public Vector3D Translation { get; set; }
-
-        public string Prefix { get; set; }
-        public string Base { get; set; }
-        public string Suffix { get; set; }
-
-        public string Owner { get; set; }*/
-
         public ItemAttributes Attributes { get; set; } = new ItemAttributes();
 
         public string PhysicalId { get; set; }
