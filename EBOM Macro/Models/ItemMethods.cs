@@ -19,12 +19,25 @@ namespace EBOM_Macro.Models
         public ICommand SelectWithoutDescendants { get; }
         public ICommand ResetSelection { get; }
 
-        public Item GetDS()
+        private ConditionalWeakTable<object, object> cache = new ConditionalWeakTable<object, object>();
+
+        public Item GetDS(object cacheKey = null)
         {
             if (Type == ItemType.DS) return this;
             if (Type == ItemType.PH) return null;
 
-            return Parent?.GetDS();
+            if (cacheKey != null)
+            {
+                if (cache.TryGetValue(cacheKey, out var cachedData)) return (Item)cachedData;
+                else
+                {
+                    var  data = Parent?.GetDS(cacheKey);
+                    cache.Add(cacheKey, data);
+                    return data;
+                }
+            }
+
+            return Parent?.GetDS(cacheKey);
         }
 
         public IEnumerable<Item> GetDSToSelfPath()
@@ -35,23 +48,37 @@ namespace EBOM_Macro.Models
             return (Parent?.GetDSToSelfPath() ?? Enumerable.Empty<Item>()).Append(this);
         }
 
-        public IEnumerable<Item> GetSelfAndDescendants() => Children.SelectMany(c => c.GetSelfAndDescendants()).Prepend(this);
+        public IEnumerable<Item> GetSelfAndDescendants(object cacheKey = null)
+        {
+            if (cacheKey != null)
+            {
+                if (cache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
+                else
+                {
+                    var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this).ToList();
+                    cache.Add(cacheKey, data);
+                    return data;
+                }
+            }
 
-        private ConditionalWeakTable<object, IReadOnlyList<Item>> ancestorLookup = new ConditionalWeakTable<object, IReadOnlyList<Item>>();
+            return Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
+        }
+
+        
         public IEnumerable<Item> GetAncestors(object cacheKey = null)
         {
             if (cacheKey != null)
             {
-                if (ancestorLookup.TryGetValue(cacheKey, out var ancestors)) return ancestors;
+                if (cache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
                 else
                 {
-                    ancestors = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
-                    ancestorLookup.Add(cacheKey, ancestors);
-                    return ancestors;
+                    var data = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
+                    cache.Add(cacheKey, data);
+                    return data;
                 }
             }
 
-            return Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors().Append(Parent);
+            return Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent);
         }
 
         public Dictionary<string, (string, string)> GetDifferentAttributes(Item anotherItem)

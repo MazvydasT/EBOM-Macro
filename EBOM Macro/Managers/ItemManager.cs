@@ -51,6 +51,8 @@ namespace EBOM_Macro.Managers
                 var numberLookup = existingData?.Values.ToLookup(i => i.Attributes.Number);
 
                 var ancestorCacheKey = new object();
+                var selfAndDescendantsCacheKey = new object();
+                var dsCacheKey = new object();
 
                 foreach (var item in allItems)
                 {
@@ -85,11 +87,13 @@ namespace EBOM_Macro.Managers
 
                         else if (item.Type != Item.ItemType.DS) // Item is instance or sub DS assembly
                         {
-                            var dsNumber = item.GetDS().Attributes.Number;
+                            var ds = item.GetDS(dsCacheKey);
+                            var dsNumber = ds.Attributes.Number;
 
                             var matchedInstances = matchedNumbers.Where(i => i.GetAncestors(ancestorCacheKey).Any(a => a.Attributes.Number == dsNumber)).ToList();
+                            var siblings = ds.GetSelfAndDescendants(selfAndDescendantsCacheKey).Where(i => i.Attributes.Number == item.Attributes.Number).ToList();
 
-                            if (matchedInstances.Count == 1)
+                            if (matchedInstances.Count == 1 && siblings.Count == 1)
                             {
                                 item.ReusedExternalId = matchedInstances[0].BaseExternalId;
                             }
@@ -104,7 +108,26 @@ namespace EBOM_Macro.Managers
                                     Math.Abs(i.Attributes.Rotation.Y - item.Attributes.Rotation.Y) < 0.001 &&
                                     Math.Abs(i.Attributes.Rotation.Z - item.Attributes.Rotation.Z) < 0.001)*/.ToList();
 
-                                if (matchedInstances.Count == 1) item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                                siblings = siblings.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
+
+                                var matchedInstancesCount = matchedInstances.Count;
+
+                                if (matchedInstancesCount == 1 && siblings.Count == 1)
+                                {
+                                    /*if (matchedInstances[0].BaseExternalId == "C2AD7C6280A11F09D7889750AF2CE1ABE19D1C5C892C36F7B7201946AD79E2E8_c")
+                                    {
+                                        var asd = 0;
+                                    }*/
+
+                                    item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                                }
+
+                                else
+                                {
+                                    var itemIndexWithinSiblings = siblings.IndexOf(item);
+
+                                    if (itemIndexWithinSiblings < matchedInstancesCount) item.ReusedExternalId = matchedInstances[itemIndexWithinSiblings].BaseExternalId;
+                                }
                             }
                         }
                     }
@@ -198,7 +221,7 @@ namespace EBOM_Macro.Managers
 
                         if (item.Parent?.State == Item.ItemState.Unchanged)
                         {
-                            var unchangedAncestors = item.GetAncestors().Where(i => i.State == Item.ItemState.Unchanged);
+                            var unchangedAncestors = item.GetAncestors(ancestorCacheKey).Where(i => i.State == Item.ItemState.Unchanged);
 
                             foreach (var ancestor in unchangedAncestors)
                             {

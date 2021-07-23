@@ -62,6 +62,9 @@ namespace EBOM_Macro.Managers
 
                 var externalIdTracker = new HashSet<string>();
 
+                var dsCacheKey = new object();
+                var selfAndDescendantsCacheKey = new object();
+
                 for (int dataIndex = 0, dataCount = xmlExportData?.Count ?? 0; dataIndex < dataCount; ++dataIndex)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -191,7 +194,7 @@ namespace EBOM_Macro.Managers
 
                         if (item.RedundantChildren != null)
                         {
-                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants());
+                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey));
 
                             foreach (var redundantItem in redundantItems)
                             {
@@ -239,7 +242,7 @@ namespace EBOM_Macro.Managers
 
                         if (!isCompound)
                         {
-                            var ds = item.GetDS();
+                            var ds = item.GetDS(dsCacheKey);
 
                             var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
                             string jtPathHash;
