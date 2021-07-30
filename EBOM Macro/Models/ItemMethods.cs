@@ -31,7 +31,7 @@ namespace EBOM_Macro.Models
                 if (cache.TryGetValue(cacheKey, out var cachedData)) return (Item)cachedData;
                 else
                 {
-                    var  data = Parent?.GetDS(cacheKey);
+                    var data = Parent?.GetDS(cacheKey);
                     cache.Add(cacheKey, data);
                     return data;
                 }
@@ -64,7 +64,7 @@ namespace EBOM_Macro.Models
             return Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
         }
 
-        
+
         public IEnumerable<Item> GetAncestors(object cacheKey = null)
         {
             if (cacheKey != null)
@@ -134,6 +134,6 @@ namespace EBOM_Macro.Models
 
         public override string ToString() => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
             (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}") +
-            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
+            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "") + $" - {(ReusedExternalId, BaseExternalId)}";
     }
 }

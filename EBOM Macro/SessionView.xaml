@@ -152,8 +152,8 @@
                         <HierarchicalDataTemplate>
                             <HierarchicalDataTemplate.ItemsSource>
                                 <MultiBinding Converter="{converters:ItemChildrenConverter}">
-                                    <Binding Path="Children" Mode="OneTime"/>
-                                    <Binding Path="RedundantChildren" FallbackValue="null" Mode="OneWay"/>
+                                    <Binding Path="Children" Mode="OneTime" FallbackValue="{x:Null}"/>
+                                    <Binding Path="RedundantChildren" Mode="OneWay" FallbackValue="{x:Null}"/>
                                 </MultiBinding>
                             </HierarchicalDataTemplate.ItemsSource>
 

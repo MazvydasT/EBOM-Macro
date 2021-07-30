@@ -192,7 +192,7 @@ namespace EBOM_Macro.Managers
                         xmlWriter.WriteEndElement();
 
 
-                        if (item.RedundantChildren != null)
+                        /*if (item.RedundantChildren != null)
                         {
                             var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey));
 
@@ -207,7 +207,7 @@ namespace EBOM_Macro.Managers
 
                                 xmlWriter.WriteEndElement();
                             }
-                        }
+                        }*/
 
 
                         xmlWriter.WriteStartElement("PmLayout");
@@ -373,7 +373,7 @@ namespace EBOM_Macro.Managers
         {
             return await Task.Factory.StartNew(() =>
             {
-                var items = new Dictionary<string, Item>();
+                var itemDictionary = new Dictionary<string, Item>();
                 var externalIdPrefix = "";
 
                 var streamLength = existingDataXMLStream.Length;
@@ -413,7 +413,7 @@ namespace EBOM_Macro.Managers
                                     State = Item.ItemState.Redundant
                                 };
 
-                                items[externalId] = item;
+                                itemDictionary[externalId] = item;
 
                                 var layoutId = element.Element("layout")?.Value?.Trim() ?? "";
 
@@ -487,14 +487,14 @@ namespace EBOM_Macro.Managers
                 var progressSoFar = progressValue;
 
                 var counter = 0;
-                var itemCount = items.Count;
+                var itemCount = itemDictionary.Count;
 
-                foreach (var item in items.Values)
+                foreach (var item in itemDictionary.Values)
                 {
                     if (cancellationToken.IsCancellationRequested) return default;
 
                     var children = childIdTracker.TryGetValue(item, out var childIds) ?
-                        childIds.Select(id => items.TryGetValue(id, out var childItem) ? childItem : null).Where(i => i != null).Select(i =>
+                        childIds.Select(id => itemDictionary.TryGetValue(id, out var childItem) ? childItem : null).Where(i => i != null).Select(i =>
                         {
                             i.Parent = item;
 
@@ -541,7 +541,7 @@ namespace EBOM_Macro.Managers
                     Message = "Done" + (string.IsNullOrWhiteSpace(externalIdPrefix) ? "" : $". ExternalId prefix: {externalIdPrefix}")
                 });
 
-                return items;
+                return itemDictionary;
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
     }

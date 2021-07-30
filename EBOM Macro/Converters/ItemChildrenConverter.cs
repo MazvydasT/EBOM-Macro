@@ -13,7 +13,7 @@ namespace EBOM_Macro.Converters
         public override object ProvideValue(IServiceProvider serviceProvider) => this;
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture) =>
-            ((IEnumerable<Item>)values[0]).Concat((IEnumerable<Item>)values[1] ?? Enumerable.Empty<Item>())
+            (((IEnumerable<Item>)values[0]) ?? Enumerable.Empty<Item>()).Concat((IEnumerable<Item>)values[1] ?? Enumerable.Empty<Item>())
             .OrderBy(i => i.Attributes.Number).ThenBy(i => i.Attributes.Version);
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotImplementedException();

@@ -54,13 +54,53 @@ namespace EBOM_Macro.Managers
                 var selfAndDescendantsCacheKey = new object();
                 var dsCacheKey = new object();
 
+                var previouslyMatchedExternalIds = new HashSet<string>();
+
+                /**
+                 * Checks if new item ExternalIDs exists within existing data set,
+                 * if it does, it get recorded so it does not get assigned in ExternalID matching stage.
+                 */
+
+                if (reuseExternalIds && existingData != null)
+                {
+                    foreach (var item in allItems)
+                    {
+                        if (cancellationToken.IsCancellationRequested) return items;
+
+                        var itemExternalId = $"{externalIdPrefix}{item.BaseExternalId}";
+
+                        if (existingData.ContainsKey(itemExternalId)) previouslyMatchedExternalIds.Add(itemExternalId);
+
+                        if (progress != null)
+                        {
+                            var comparisonProgress = ++itemCounter * PROGRESS_MAX / allItemCount / 4;
+
+                            if (comparisonProgress > progressValue)
+                            {
+                                progressValue = comparisonProgress;
+
+                                progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                            }
+                        }
+                    }
+                }
+
+                progressSoFar = PROGRESS_MAX / 4;
+                progressValue = 0;
+                itemCounter = 0;
+
+
+                /**
+                 * Matches new items to existing ExternalIDs by part number, location and rotation.
+                 */
+
                 foreach (var item in allItems)
                 {
                     if (cancellationToken.IsCancellationRequested) return items;
 
                     if (progress != null)
                     {
-                        var comparisonProgress = ++itemCounter * PROGRESS_MAX / allItemCount / 3;
+                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 4;
 
                         if (comparisonProgress > progressValue)
                         {
@@ -74,59 +114,57 @@ namespace EBOM_Macro.Managers
 
                     if (item.Type == Item.ItemType.PH || !reuseExternalIds || existingData == null) continue;
 
-                    if (!existingData.ContainsKey($"{externalIdPrefix}{item.BaseExternalId}"))
+                    var itemExternalId = $"{externalIdPrefix}{item.BaseExternalId}";
+
+                    if (!existingData.ContainsKey(itemExternalId))
                     {
                         var matchedNumbers = numberLookup[item.Attributes.Number]
-                            .Where(i => item.Children.Count > 0 ? i.Children.Count > 0 : i.Children.Count == 0)
+                            .Where(i => !previouslyMatchedExternalIds.Contains(i.BaseExternalId) && (item.Children.Count > 0 ? i.Children.Count > 0 : i.Children.Count == 0))
                             .ToList();
 
                         if (item.Type == Item.ItemType.DS)
                         {
-                            if (matchedNumbers.Count == 1) item.ReusedExternalId = matchedNumbers[0].BaseExternalId;
+                            if (matchedNumbers.Count == 1)
+                            {
+                                item.ReusedExternalId = matchedNumbers[0].BaseExternalId;
+                                previouslyMatchedExternalIds.Add(item.ReusedExternalId);
+                            }
                         }
 
-                        else if (item.Type != Item.ItemType.DS) // Item is instance or sub DS assembly
+                        else // Item is instance or sub DS assembly
                         {
-                            var ds = item.GetDS(dsCacheKey);
-                            var dsNumber = ds.Attributes.Number;
+                            var repeatExpanded = false;
 
-                            var matchedInstances = matchedNumbers.Where(i => i.GetAncestors(ancestorCacheKey).Any(a => a.Attributes.Number == dsNumber)).ToList();
-                            var siblings = ds.GetSelfAndDescendants(selfAndDescendantsCacheKey).Where(i => i.Attributes.Number == item.Attributes.Number).ToList();
+                            var matchedInstances = matchedNumbers.Where(i => i.Parent.BaseExternalId == (item.Parent.ReusedExternalId ?? $"{externalIdPrefix}{item.Parent.BaseExternalId}")).ToList();
+                            var siblings = item.Parent.Children.Where(i => !previouslyMatchedExternalIds.Contains(i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}") && i.Attributes.Number == item.Attributes.Number).ToList();
 
                             if (matchedInstances.Count == 1 && siblings.Count == 1)
                             {
                                 item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                                previouslyMatchedExternalIds.Add(item.ReusedExternalId);
                             }
 
-                            else if (matchedInstances.Count > 1)
+                            else if (matchedInstances.Count > 1 || siblings.Count > 1)
                             {
-                                matchedInstances = matchedInstances.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation)/*.Where(i =>
-                                    Math.Abs(i.Attributes.Translation.X - item.Attributes.Translation.X) < 0.001 &&
-                                    Math.Abs(i.Attributes.Translation.Y - item.Attributes.Translation.Y) < 0.001 &&
-                                    Math.Abs(i.Attributes.Translation.Z - item.Attributes.Translation.Z) < 0.001 &&
-                                    Math.Abs(i.Attributes.Rotation.X - item.Attributes.Rotation.X) < 0.001 &&
-                                    Math.Abs(i.Attributes.Rotation.Y - item.Attributes.Rotation.Y) < 0.001 &&
-                                    Math.Abs(i.Attributes.Rotation.Z - item.Attributes.Rotation.Z) < 0.001)*/.ToList();
+                                var matchedTransformationInstances = matchedInstances.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
 
-                                siblings = siblings.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
+                                var transformationSiblings = siblings.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
 
-                                var matchedInstancesCount = matchedInstances.Count;
-
-                                if (matchedInstancesCount == 1 && siblings.Count == 1)
+                                if (matchedTransformationInstances.Count == 1 && transformationSiblings.Count == 1)
                                 {
-                                    /*if (matchedInstances[0].BaseExternalId == "C2AD7C6280A11F09D7889750AF2CE1ABE19D1C5C892C36F7B7201946AD79E2E8_c")
-                                    {
-                                        var asd = 0;
-                                    }*/
-
-                                    item.ReusedExternalId = matchedInstances[0].BaseExternalId;
+                                    item.ReusedExternalId = matchedTransformationInstances[0].BaseExternalId;
+                                    previouslyMatchedExternalIds.Add(item.ReusedExternalId);
                                 }
 
-                                else
+                                else if (!repeatExpanded && (matchedTransformationInstances.Count > 1 || transformationSiblings.Count > 1))
                                 {
-                                    var itemIndexWithinSiblings = siblings.IndexOf(item);
+                                    var siblingIndex = transformationSiblings.IndexOf(item);
 
-                                    if (itemIndexWithinSiblings < matchedInstancesCount) item.ReusedExternalId = matchedInstances[itemIndexWithinSiblings].BaseExternalId;
+                                    if (siblingIndex < matchedTransformationInstances.Count)
+                                    {
+                                        item.ReusedExternalId = matchedTransformationInstances[siblingIndex].BaseExternalId;
+                                        previouslyMatchedExternalIds.Add(item.ReusedExternalId);
+                                    }
                                 }
                             }
                         }
@@ -143,7 +181,7 @@ namespace EBOM_Macro.Managers
 
                     if (progress != null)
                     {
-                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 3;
+                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 4;
 
                         if (comparisonProgress > progressValue)
                         {
@@ -177,7 +215,10 @@ namespace EBOM_Macro.Managers
                             var matchingItemChildrenHashSet = matchingItem.Children.Select(i => i.BaseExternalId).ToHashSet();
                             var newItemsCount = item.Children.Where(i => !matchingItemChildrenHashSet.Contains(i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}")).Count();
 
-                            if (newItemsCount > 0) item.State = Item.ItemState.Modified;
+                            if (newItemsCount > 0)
+                            {
+                                item.State = Item.ItemState.Modified;
+                            }
                         }
 
 
@@ -200,7 +241,7 @@ namespace EBOM_Macro.Managers
 
                     if (progress != null)
                     {
-                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 3;
+                        var comparisonProgress = progressSoFar + ++itemCounter * PROGRESS_MAX / allItemCount / 4;
 
                         if (comparisonProgress > progressValue)
                         {
