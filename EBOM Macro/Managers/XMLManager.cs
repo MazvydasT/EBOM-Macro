@@ -16,16 +16,19 @@ namespace EBOM_Macro.Managers
     public static class XMLManager
     {
         private const long PROGRESS_MAX = 300;
+        private static readonly Encoding WINDOWS_1252_ENCODING = Encoding.GetEncoding("Windows-1252");
 
         public static async Task ItemsToXML(string xmlPath, IReadOnlyList<XMLExportData> xmlExportData, string metaData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(xmlPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
-            using (var streamWriter = new StreamWriter(fileStream))
+            using (var streamWriter = new StreamWriter(fileStream, WINDOWS_1252_ENCODING))
             using (var xmlWriter = XmlWriter.Create(streamWriter, new XmlWriterSettings()
             {
                 Indent = true,
                 NewLineChars = "\n",
-                IndentChars = "\t"
+                IndentChars = "\t",
+
+                Encoding = WINDOWS_1252_ENCODING
             }))
             {
                 try
