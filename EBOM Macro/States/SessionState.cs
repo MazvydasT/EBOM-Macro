@@ -52,9 +52,6 @@ namespace EBOM_Macro.States
                     InputState.Dispose();
                 }
 
-                //ProgressState = null;
-                //InputState = null;
-
                 disposedValue = true;
             }
         }
