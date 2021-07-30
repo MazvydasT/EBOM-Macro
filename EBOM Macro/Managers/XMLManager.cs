@@ -99,9 +99,9 @@ namespace EBOM_Macro.Managers
 
                         externalIdTracker.Add(externalId);
 
-                        var externlaIdBase = externalId[externalId.Length - 2] == '_' ? externalId.Substring(0, externalId.Length - 1) : $"{externalId}_";
+                        var externalIdBase = externalId[externalId.Length - 2] == '_' ? externalId.Substring(0, externalId.Length - 1) : $"{externalId}_";
                         var layoutExternalId = externalId + "l";
-                        var prototypeExternalId = externlaIdBase + "p";
+                        var prototypeExternalId = externalIdBase + "p";
 
                         xmlWriter.WriteStartElement(isCompound ? "PmCompoundPart" : "PmPartInstance");
                         xmlWriter.WriteAttributeString("ExternalId", externalId);
@@ -261,7 +261,7 @@ namespace EBOM_Macro.Managers
                                 newJTPathHash = true;
                             }
 
-                            var threeDRepExternalId = externlaIdBase + "r";
+                            var threeDRepExternalId = externalIdBase + "r";
                             var fileReferenceExternalId = jtPathHash + "_f";
 
                             xmlWriter.WriteStartElement("PmPartPrototype");
