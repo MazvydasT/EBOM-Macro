@@ -89,9 +89,7 @@ namespace EBOM_Macro.Managers
 
                         if (item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants)) continue;
 
-                        var childCount = item.Children.Count;
-
-                        var isCompound = childCount > 0;
+                        var isCompound = !item.IsInstance;
 
                         var externalId = item.ReusedExternalId ?? $"{externalIdPrefix}{item.BaseExternalId}";
 
