@@ -1,15 +1,20 @@
 ﻿using EBOM_Macro.Extensions;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System;
 using System.IO;
 using System.Reactive.Linq;
 
 namespace EBOM_Macro.States
 {
-    public sealed class SessionState : ReactiveObject
+    public sealed class SessionState : ReactiveObject, IDisposable
     {
-        public ProgressState ProgressState { get; }
-        public InputState InputState { get; }
+        private bool disposedValue;
+
+        private IDisposable isReadyForExportDisposable;
+
+        public ProgressState ProgressState { get; private set; }
+        public InputState InputState { get; private set; }
 
         [ObservableAsProperty] public bool IsReadyForExport { get; }
 
@@ -18,7 +23,7 @@ namespace EBOM_Macro.States
             ProgressState = new ProgressState();
             InputState = new InputState(ProgressState);
 
-            Observable.CombineLatest(
+            isReadyForExportDisposable = Observable.CombineLatest(
                 InputState.WhenAnyValue(x => x.Items).Select(items => items.Root == null ? Observable.Return<bool>(false) : items.Root.WhenAnyValue(x => x.IsChecked, isChecked => isChecked ?? true)).Switch(),
                 InputState.WhenAnyValue(x => x.LDIFolderPath),
                 ProgressState.WhenAnyValue(
@@ -35,6 +40,30 @@ namespace EBOM_Macro.States
                 progressData.comparisonProgress.IsInExclusiveRange(0, 1) ||
                 !Directory.Exists(ldiPath) ? false : true
             ).ToPropertyEx(this, x => x.IsReadyForExport);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    isReadyForExportDisposable.Dispose();
+                    InputState.Dispose();
+                }
+
+                //ProgressState = null;
+                //InputState = null;
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

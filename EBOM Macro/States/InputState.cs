@@ -16,7 +16,7 @@ using System.Windows.Interop;
 
 namespace EBOM_Macro.States
 {
-    public class InputState : ReactiveObject
+    public class InputState : ReactiveObject, IDisposable
     {
         [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
@@ -34,8 +34,12 @@ namespace EBOM_Macro.States
 
         ProgressState progressState;
 
+        IDisposable itemsDisposable, externalIdPrefixDisposable;
+
         CancellationTokenSource cancellationTokenSource = null;
         BehaviorSubject<bool> releaseLastValue = new BehaviorSubject<bool>(true);
+
+        private bool disposedValue;
 
         public InputState(ProgressState progressState)
         {
@@ -87,12 +91,12 @@ namespace EBOM_Macro.States
                     return Observable.Return<Dictionary<string, Item>>(default);
                 })).Switch();
 
-            this.WhenAnyValue(x => x.ExternalIdPrefixInput)
+            externalIdPrefixDisposable = this.WhenAnyValue(x => x.ExternalIdPrefixInput)
                 .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
                 .ToPropertyEx(this, x => x.ExternalIdPrefix);
 
-            Observable.CombineLatest(
+            itemsDisposable = Observable.CombineLatest(
                 itemsObservable,
 
                 Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), (existingData, externalIdPrefix, reuseExtIds) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds))
@@ -205,6 +209,45 @@ namespace EBOM_Macro.States
                 progressState.ExistingDataReadMessage = "";
                 progressState.ExistingDataReadProgress = 0;
             });
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    BrowseEBOMReport.Dispose();
+                    BrowseExistingData.Dispose();
+                    BrowseLDIFolder.Dispose();
+                    ClearExistingData.Dispose();
+
+                    lock (this)
+                    {
+                        cancellationTokenSource?.Cancel();
+                    }
+
+                    itemsDisposable.Dispose();
+                    externalIdPrefixDisposable.Dispose();
+
+                    releaseLastValue.Dispose();
+                }
+
+                EBOMReportPath = null;
+                ExistingDataPath = null;
+                LDIFolderPath = null;
+                ReuseExternalIds = default;
+                ExternalIdPrefixInput = null;
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

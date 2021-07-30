@@ -37,7 +37,11 @@ namespace EBOM_Macro.States
 
             OutputState = new OutputState(sessionsObservable);
 
-            CloseSession = ReactiveCommand.Create<SessionState>(s => sessionsSourceList.Remove(s));
+            CloseSession = ReactiveCommand.Create<SessionState>(s =>
+            {
+                sessionsSourceList.Remove(s);
+                s.Dispose();
+            });
 
             AddSession = ReactiveCommand.Create(() =>
             {

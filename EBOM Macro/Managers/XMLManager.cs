@@ -198,7 +198,7 @@ namespace EBOM_Macro.Managers
                         {
                             var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey))
                                 .Where(i => !externalIdTracker.Contains(i.BaseExternalId));
-                            
+
                             foreach (var redundantItem in redundantItems)
                             {
                                 redundantItemTracker[redundantItem.BaseExternalId] = redundantItem;
@@ -351,8 +351,8 @@ namespace EBOM_Macro.Managers
 
                 var progressSoFar = PROGRESS_MAX / 2;
 
-                
-                
+
+
                 /**
                  * Writes redundant items to XML while marking them OLD_LEVEL
                  */

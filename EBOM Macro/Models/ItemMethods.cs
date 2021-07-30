@@ -1,6 +1,5 @@
 ﻿using EBOM_Macro.Extensions;
 using EBOM_Macro.Managers;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -114,7 +113,7 @@ namespace EBOM_Macro.Models
             if (updateChildren && isChecked.HasValue) Children.ForEach(c => c.SetIsChecked(isChecked, true, false));
 
             if (updateParent && Parent != null) Parent.VerifyCheckedState();
-            
+
             NotifyPropertyChanged(nameof(IsChecked));
         }
 
