@@ -227,7 +227,9 @@ namespace EBOM_Macro.Managers
                                                     },
                                                     Type = Item.ItemType.PH,
                                                     BaseExternalId = $"{vehicleLineName}_c",
-                                                    Maturity = EBOMReportRecord.MaturityState.FROZEN
+                                                    Maturity = EBOMReportRecord.MaturityState.FROZEN,
+
+                                                    IsExpanded = true
                                                 };
                                             }
 
