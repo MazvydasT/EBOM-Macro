@@ -410,7 +410,8 @@ namespace EBOM_Macro.Managers
                                 {
                                     BaseExternalId = externalId,
                                     Attributes = new ItemAttributes { Name = element.Element("name")?.Value },
-                                    State = Item.ItemState.Redundant
+                                    State = Item.ItemState.Redundant,
+                                    IsInstance = elementName == "PmPartInstance"
                                 };
 
                                 itemDictionary[externalId] = item;

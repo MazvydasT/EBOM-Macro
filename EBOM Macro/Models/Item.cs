@@ -40,6 +40,8 @@ namespace EBOM_Macro.Models
         public ItemType Type { get; set; }
         [Reactive] public ItemState State { get; set; } = ItemState.New;
 
+        public bool IsInstance { get; set; }
+
         bool? isChecked;
         public bool? IsChecked
         {

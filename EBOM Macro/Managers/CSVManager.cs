@@ -133,10 +133,16 @@ namespace EBOM_Macro.Managers
 
                                 Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item parent) ? parent : null),
 
-                                Type = level == 0 ? Item.ItemType.DS : Item.ItemType.PartAsy
+                                Type = level == 0 ? Item.ItemType.DS : Item.ItemType.PartAsy,
+
+                                IsInstance = true
                             };
 
-                            item.Parent?.Children.Add(item);
+                            if (item.Parent != null)
+                            {
+                                item.Parent.Children.Add(item);
+                                item.Parent.IsInstance = false;
+                            }
 
                             levelTracker[level] = item;
 
@@ -163,7 +169,9 @@ namespace EBOM_Macro.Managers
                                         },
                                         Type = Item.ItemType.PH,
                                         BaseExternalId = $"{level3PHNumber}_c",
-                                        Maturity = EBOMReportRecord.MaturityState.FROZEN
+                                        Maturity = EBOMReportRecord.MaturityState.FROZEN,
+
+                                        IsInstance = false
                                     };
 
                                     placeholderLookup.Add(cpscLevel3Number, level3Placeholder);
@@ -187,7 +195,9 @@ namespace EBOM_Macro.Managers
                                             },
                                             Type = Item.ItemType.PH,
                                             BaseExternalId = $"{level2PHNumber}_c",
-                                            Maturity = EBOMReportRecord.MaturityState.FROZEN
+                                            Maturity = EBOMReportRecord.MaturityState.FROZEN,
+
+                                            IsInstance = false
                                         };
 
                                         placeholderLookup.Add(cpscLevel2Number, level2Placeholder);
@@ -211,7 +221,9 @@ namespace EBOM_Macro.Managers
                                                 },
                                                 Type = Item.ItemType.PH,
                                                 BaseExternalId = $"{level1PHNumber}_c",
-                                                Maturity = EBOMReportRecord.MaturityState.FROZEN
+                                                Maturity = EBOMReportRecord.MaturityState.FROZEN,
+
+                                                IsInstance = false
                                             };
 
                                             placeholderLookup.Add(cpscLevel1Number, level1Placeholder);
@@ -229,7 +241,9 @@ namespace EBOM_Macro.Managers
                                                     BaseExternalId = $"{vehicleLineName}_c",
                                                     Maturity = EBOMReportRecord.MaturityState.FROZEN,
 
-                                                    IsExpanded = true
+                                                    IsExpanded = true,
+
+                                                    IsInstance = false
                                                 };
                                             }
 

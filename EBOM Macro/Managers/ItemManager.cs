@@ -119,7 +119,7 @@ namespace EBOM_Macro.Managers
                     if (!existingData.ContainsKey(itemExternalId))
                     {
                         var matchedNumbers = numberLookup[item.Attributes.Number]
-                            .Where(i => !previouslyMatchedExternalIds.Contains(i.BaseExternalId) && (item.Children.Count > 0 ? i.Children.Count > 0 : i.Children.Count == 0))
+                            .Where(i => !previouslyMatchedExternalIds.Contains(i.BaseExternalId) && item.IsInstance == i.IsInstance)
                             .ToList();
 
                         if (item.Type == Item.ItemType.DS)
@@ -284,7 +284,7 @@ namespace EBOM_Macro.Managers
             var physicalIds = string.Join("_", item.GetDSToSelfPath().Select(i => i.PhysicalId));
             var data = Encoding.UTF8.GetBytes(physicalIds);
             var hash = StaticResources.SHA256.ComputeHash(data);
-            var baseExternalId = BitConverter.ToString(hash).Replace("-", "") + (item.Children.Count > 0 ? "_c" : "_i");
+            var baseExternalId = BitConverter.ToString(hash).Replace("-", "") + (item.IsInstance ? "_i" : "_c");
 
             item.BaseExternalId = baseExternalId;
         }
