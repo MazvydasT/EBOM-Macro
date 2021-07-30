@@ -61,9 +61,12 @@ namespace EBOM_Macro.Managers
                 xmlWriter.WriteStartElement("Objects");
 
                 var externalIdTracker = new HashSet<string>();
+                var redundantItemTracker = new Dictionary<string, Item>();
 
                 var dsCacheKey = new object();
                 var selfAndDescendantsCacheKey = new object();
+
+                long progressValue = 0;
 
                 for (int dataIndex = 0, dataCount = xmlExportData?.Count ?? 0; dataIndex < dataCount; ++dataIndex)
                 {
@@ -78,7 +81,7 @@ namespace EBOM_Macro.Managers
                     var allItems = items.PHs.Concat(items.Items).Prepend(items.Root);
                     var itemCount = items.Items.Count + items.PHs.Count + 1;
 
-                    long progressValue = 0;
+                    progressValue = 0;
                     var itemIndex = 0;
 
                     foreach (var item in allItems)
@@ -96,6 +99,7 @@ namespace EBOM_Macro.Managers
                         if (externalIdTracker.Contains(externalId)) continue;
 
                         externalIdTracker.Add(externalId);
+                        redundantItemTracker.Remove(externalId);
 
                         var externalIdBase = externalId[externalId.Length - 2] == '_' ? externalId.Substring(0, externalId.Length - 1) : $"{externalId}_";
                         var layoutExternalId = externalId + "l";
@@ -190,22 +194,16 @@ namespace EBOM_Macro.Managers
                         xmlWriter.WriteEndElement();
 
 
-                        /*if (item.RedundantChildren != null)
+                        if (item.RedundantChildren != null)
                         {
-                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey));
-
+                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey))
+                                .Where(i => !externalIdTracker.Contains(i.BaseExternalId));
+                            
                             foreach (var redundantItem in redundantItems)
                             {
-                                xmlWriter.WriteStartElement(redundantItem.Children.Count > 0 ? "PmCompoundPart" : "PmPartInstance");
-                                xmlWriter.WriteAttributeString("ExternalId", redundantItem.BaseExternalId);
-
-                                xmlWriter.WriteStartElement("ActiveInCurrentVersion");
-                                xmlWriter.WriteString("OLD_LEVEL");
-                                xmlWriter.WriteEndElement();
-
-                                xmlWriter.WriteEndElement();
+                                redundantItemTracker[redundantItem.BaseExternalId] = redundantItem;
                             }
-                        }*/
+                        }
 
 
                         xmlWriter.WriteStartElement("PmLayout");
@@ -339,14 +337,49 @@ namespace EBOM_Macro.Managers
                             }
                         }
 
-                        var newProgressValue = dataIndex * (PROGRESS_MAX / dataCount) + itemIndex * (PROGRESS_MAX / dataCount) / itemCount;
+                        var writingProgress = dataIndex * (PROGRESS_MAX / dataCount) + itemIndex * (PROGRESS_MAX / dataCount) / itemCount;
+                        var newProgressValue = writingProgress / 2;
 
                         if (newProgressValue > progressValue)
                         {
                             progressValue = newProgressValue;
 
-                            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing XML: {((double)newProgressValue / PROGRESS_MAX):P0}" });
+                            progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing tree data to XML: {((double)writingProgress / PROGRESS_MAX):P0}" });
                         }
+                    }
+                }
+
+                var progressSoFar = PROGRESS_MAX / 2;
+
+                
+                
+                /**
+                 * Writes redundant items to XML while marking them OLD_LEVEL
+                 */
+
+                var redundantItemCount = redundantItemTracker.Count;
+                var redundantItemNumber = 0;
+
+                progressValue = 0;
+
+                foreach (var redundantItem in redundantItemTracker.Values)
+                {
+                    xmlWriter.WriteStartElement(redundantItem.IsInstance ? "PmPartInstance" : "PmCompoundPart");
+                    xmlWriter.WriteAttributeString("ExternalId", redundantItem.BaseExternalId);
+
+                    xmlWriter.WriteStartElement("ActiveInCurrentVersion");
+                    xmlWriter.WriteString("OLD_LEVEL");
+                    xmlWriter.WriteEndElement();
+
+                    xmlWriter.WriteEndElement();
+
+                    var newProgressValue = progressSoFar + ++redundantItemNumber * PROGRESS_MAX / redundantItemCount / 2;
+
+                    if (newProgressValue > progressValue)
+                    {
+                        progressValue = newProgressValue;
+
+                        progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Writing OLD_LEVEL data to XML: {((double)redundantItemNumber / redundantItemCount):P0}" });
                     }
                 }
 
