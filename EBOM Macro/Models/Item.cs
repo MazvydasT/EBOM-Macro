@@ -1,11 +1,14 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace EBOM_Macro.Models
 {
-    public partial class Item : ReactiveObject
+    public partial class Item : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public enum ItemType
         {
             DS,
@@ -30,19 +33,20 @@ namespace EBOM_Macro.Models
 
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
-        [Reactive] public IReadOnlyCollection<Item> RedundantChildren { get; set; }
+        public IReadOnlyCollection<Item> RedundantChildren { get; set; }
 
-        [Reactive] public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
+        public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
 
         public string BaseExternalId { get; set; }
         public string ReusedExternalId { get; set; }
 
         public ItemType Type { get; set; }
-        [Reactive] public ItemState State { get; set; } = ItemState.New;
+        public ItemState State { get; set; } = ItemState.New;
 
         public bool IsInstance { get; set; }
 
         bool? isChecked;
+
         public bool? IsChecked
         {
             get => isChecked;

@@ -2,6 +2,7 @@
 using EBOM_Macro.Managers;
 using ReactiveUI;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -20,6 +21,9 @@ namespace EBOM_Macro.Models
         public ICommand ResetSelection { get; }
 
         private ConditionalWeakTable<object, object> cache = new ConditionalWeakTable<object, object>();
+
+        void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public Item GetDS(object cacheKey = null)
         {
@@ -110,8 +114,8 @@ namespace EBOM_Macro.Models
             if (updateChildren && isChecked.HasValue) Children.ForEach(c => c.SetIsChecked(isChecked, true, false));
 
             if (updateParent && Parent != null) Parent.VerifyCheckedState();
-
-            this.RaisePropertyChanged(nameof(IsChecked));
+            
+            NotifyPropertyChanged(nameof(IsChecked));
         }
 
         void VerifyCheckedState()
