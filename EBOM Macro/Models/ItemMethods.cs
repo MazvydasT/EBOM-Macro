@@ -134,9 +134,5 @@ namespace EBOM_Macro.Models
 
             SetIsChecked(state, false, true);
         }
-
-        public override string ToString() => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
-            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}") +
-            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
     }
 }

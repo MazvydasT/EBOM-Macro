@@ -24,8 +24,9 @@ namespace EBOM_Macro.States
         [Reactive] public bool ReuseExternalIds { get; set; } = true;
         [Reactive] public string ExternalIdPrefixInput { get; set; }
 
-        [ObservableAsProperty] public ItemsContainer Items { get; } = default;
-        [ObservableAsProperty] public string ExternalIdPrefix { get; } = null;
+        [Reactive] public ItemsContainer Items { get; private set; }
+        [Reactive] public Item[] Root { get; private set; }
+        [Reactive] public string ExternalIdPrefix { get; private set; }
 
         public ReactiveCommand<Unit, Unit> BrowseEBOMReport { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseLDIFolder { get; private set; }
@@ -94,7 +95,8 @@ namespace EBOM_Macro.States
             externalIdPrefixDisposable = this.WhenAnyValue(x => x.ExternalIdPrefixInput)
                 .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
-                .ToPropertyEx(this, x => x.ExternalIdPrefix);
+                .Subscribe(v => ExternalIdPrefix = v);
+            //.ToPropertyEx(this, x => x.ExternalIdPrefix);
 
             itemsDisposable = Observable.CombineLatest(
                 itemsObservable,
@@ -130,7 +132,14 @@ namespace EBOM_Macro.States
                         return Observable.FromAsync(() => task).Do(_ => releaseLastValue.OnNext(true));
                     }
                 })
-                .Switch().ToPropertyEx(this, x => x.Items);
+                .Switch()
+                .Subscribe(v =>
+                {
+                    Items = v;
+                    Root = v.Root == null ? new Item[0] : new[] { v.Root };
+                });
+
+            //.ToPropertyEx(this, x => x.Items);
         }
 
         void InitializeCommands()
@@ -238,6 +247,10 @@ namespace EBOM_Macro.States
                 LDIFolderPath = null;
                 ReuseExternalIds = default;
                 ExternalIdPrefixInput = null;
+
+                Items = default;
+                Root = null;
+                ExternalIdPrefix = null;
 
                 disposedValue = true;
             }

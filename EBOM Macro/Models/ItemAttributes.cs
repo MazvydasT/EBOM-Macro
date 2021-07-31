@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using PropertyChanged;
+using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Models
 {
+    [AddINotifyPropertyChangedInterface]
     public class ItemAttributes
     {
         public string Number { get; set; }

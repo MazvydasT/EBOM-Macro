@@ -15,7 +15,7 @@
         <DataTemplate x:Key="BlankDataTemplate"/>
 
         <DataTemplate x:Key="StrikethroughTemplate">
-            <Grid Margin="{Binding Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" RenderTransform="{Binding Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
+            <Grid Margin="{Binding State, Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" RenderTransform="{Binding State, Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
         </DataTemplate>
 
         <templateSelectors:State2StrikethroughTemplateSelector x:Key="State2StrikethroughTemplateSelector" BlankTemplate="{StaticResource BlankDataTemplate}" StrikethroughTemplate="{StaticResource StrikethroughTemplate}"/>
@@ -145,16 +145,11 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
-                <TreeView IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}" ItemsSource="{Binding InputState.Items.Root, Converter={converters:TreeViewItemSourceConverter}, Mode=OneWay}" BorderThickness="0" Margin="5,0,10,0">
+                
+                <TreeView IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}"
+                          ItemsSource="{Binding InputState.Root}" BorderThickness="0" Margin="5,0,10,0">
                     <TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate>
-                            <HierarchicalDataTemplate.ItemsSource>
-                                <MultiBinding Converter="{converters:ItemChildrenConverter}">
-                                    <Binding Path="Children" Mode="OneTime" FallbackValue="{x:Null}"/>
-                                    <Binding Path="RedundantChildren" Mode="OneWay" FallbackValue="{x:Null}"/>
-                                </MultiBinding>
-                            </HierarchicalDataTemplate.ItemsSource>
+                        <HierarchicalDataTemplate ItemsSource="{Binding AllChildren}">
 
                             <Grid Background="{Binding State, Converter={converters:State2ColourConverter}, Mode=OneWay}">
                                 <Grid.ContextMenu>
@@ -181,8 +176,9 @@
                                     <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
 
                                     <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                                        <TextBlock Text="{Binding Mode=OneTime}"/>
-                                        <ContentPresenter Content="{Binding State, Mode=OneTime}" ContentTemplateSelector="{StaticResource State2StrikethroughTemplateSelector}"/>
+                                        <TextBlock Text="{Binding Title, Mode=OneTime}"/>
+                                        <ContentPresenter Content="{Binding State, Mode=OneTime}"
+                                                          ContentTemplateSelector="{StaticResource State2StrikethroughTemplateSelector}"/>
                                     </Grid>
                                 </Grid>
                             </Grid>

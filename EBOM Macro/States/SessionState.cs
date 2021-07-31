@@ -16,7 +16,7 @@ namespace EBOM_Macro.States
         public ProgressState ProgressState { get; private set; }
         public InputState InputState { get; private set; }
 
-        [ObservableAsProperty] public bool IsReadyForExport { get; }
+        [Reactive] public bool IsReadyForExport { get; private set; }
 
         public SessionState()
         {
@@ -39,7 +39,8 @@ namespace EBOM_Macro.States
                 progressData.existingDataReadProgress.IsInExclusiveRange(0, 1) || progressData.existingDataReadError ||
                 progressData.comparisonProgress.IsInExclusiveRange(0, 1) ||
                 !Directory.Exists(ldiPath) ? false : true
-            ).ToPropertyEx(this, x => x.IsReadyForExport);
+            ).Subscribe(v => IsReadyForExport = v);
+            //).ToPropertyEx(this, x => x.IsReadyForExport);
         }
 
         private void Dispose(bool disposing)
@@ -51,6 +52,8 @@ namespace EBOM_Macro.States
                     isReadyForExportDisposable.Dispose();
                     InputState.Dispose();
                 }
+
+                IsReadyForExport = false;
 
                 disposedValue = true;
             }

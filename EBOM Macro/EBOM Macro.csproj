@@ -266,8 +266,6 @@
     <Compile Include="Converters\TreeViewVisibilityConverter.cs" />
     <Compile Include="Converters\ExportCancelButtonVisibilityConverter.cs" />
     <Compile Include="Converters\ExportButtonVisibilityConverter.cs" />
-    <Compile Include="Converters\ItemChildrenConverter.cs" />
-    <Compile Include="Converters\TreeViewItemSourceConverter.cs" />
     <Compile Include="Converters\String2ButtonVisibilityConverter.cs" />
     <Compile Include="Converters\State2ColourConverter.cs" />
     <Compile Include="Converters\State2CheckBoxVisibilityConverter.cs" />

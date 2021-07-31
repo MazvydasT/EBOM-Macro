@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace EBOM_Macro.Models
 {
@@ -32,6 +33,10 @@ namespace EBOM_Macro.Models
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
         public IReadOnlyCollection<Item> RedundantChildren { get; set; }
+        public Item[] AllChildren => Children.Concat(RedundantChildren ?? Enumerable.Empty<Item>())
+            .OrderBy(i => i.Attributes.Number)
+            .ThenBy(i => i.Attributes.Version)
+            .ToArray();
 
         public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
 
@@ -42,6 +47,10 @@ namespace EBOM_Macro.Models
         public ItemState State { get; set; } = ItemState.New;
 
         public bool IsInstance { get; set; }
+
+        public string Title => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
+            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}") +
+            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
 
         bool? isChecked;
 
