@@ -135,13 +135,12 @@ namespace EBOM_Macro.Managers
 
                                 Type = level == 0 ? Item.ItemType.DS : Item.ItemType.PartAsy,
 
-                                IsInstance = true
+                                IsInstance = record.Has3DShape
                             };
 
                             if (item.Parent != null)
                             {
                                 item.Parent.Children.Add(item);
-                                item.Parent.IsInstance = false;
                             }
 
                             levelTracker[level] = item;

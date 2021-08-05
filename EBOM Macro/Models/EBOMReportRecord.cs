@@ -53,10 +53,16 @@ namespace EBOM_Macro.Models
         [Name("CURRENT")]
         public MaturityState Maturity { get; set; }
 
-        [Name("TITLE")]
+        [Name("VL_TITLE")]
         public string Title { get; set; }
 
-        [Name("VEHICLE_LINE_NAME")]
+        [Name("VL_NAME")]
         public string VehicleLineName { get; set; }
+        
+        [Name("MATERIAL")]
+        public string Material { get; set; }
+
+        [Name("HAS_3D_SHAPE")]
+        public bool Has3DShape { get; set; }
     }
 }
