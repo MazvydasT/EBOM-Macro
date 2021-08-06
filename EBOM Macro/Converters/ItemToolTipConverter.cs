@@ -35,8 +35,8 @@ namespace EBOM_Macro.Converters
                 return ((changedAttributes)?.Select(p =>
                 {
                     var title = $"{p.Key}:";
-                    var oldValue = string.IsNullOrWhiteSpace(p.Value.Item1) ? "∅" : p.Value.Item1;
-                    var newValue = string.IsNullOrWhiteSpace(p.Value.Item2) ? "∅" : p.Value.Item2;
+                    var oldValue = string.IsNullOrWhiteSpace(p.Value.Item1) ? "Ø" : p.Value.Item1;
+                    var newValue = string.IsNullOrWhiteSpace(p.Value.Item2) ? "Ø" : p.Value.Item2;
 
                     if (oldValue.Length + newValue.Length > 30)
                         return new TooltipDataContainer { Name = title, Value = oldValue }.Yield()
