@@ -253,6 +253,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\TooltipDataContainer.cs" />
     <Compile Include="Converters\VisibilityInverter.cs" />
     <Compile Include="Converters\AppTitleConverter.cs" />
     <Compile Include="Converters\ReuseExtIdCheckBoxVisibilityConverter.cs" />

@@ -10,11 +10,6 @@ using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Converters
 {
-    public class TooltipDataContainer
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-    }
 
     public class ItemToolTipConverter : MarkupExtension, IMultiValueConverter
     {
@@ -40,10 +35,9 @@ namespace EBOM_Macro.Converters
 
                     if (oldValue.Length + newValue.Length > 30)
                         return new TooltipDataContainer { Name = title, Value = oldValue }.Yield()
-                            .Append(new TooltipDataContainer { Value = "↓" })
-                            .Append(new TooltipDataContainer { Value = newValue });
+                            .Append(new TooltipDataContainer { Name = "→", Value = newValue });
 
-                    return new TooltipDataContainer { Name = title, Value = $"{oldValue} → {newValue}"/*, Separator = "→", NewValue = p.Value.Item2*/ }.Yield();
+                    return new TooltipDataContainer { Name = title, Value = $"{oldValue} → {newValue}" }.Yield();
 
                 }).SelectMany(v => v) ?? Enumerable.Empty<TooltipDataContainer>())
                     .Prepend(new TooltipDataContainer { Name = "Changed attributes:" })
