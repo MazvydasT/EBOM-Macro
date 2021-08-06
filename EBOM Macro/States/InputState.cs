@@ -96,15 +96,15 @@ namespace EBOM_Macro.States
                 .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
                 .Subscribe(v => ExternalIdPrefix = v);
-            //.ToPropertyEx(this, x => x.ExternalIdPrefix);
 
             itemsDisposable = Observable.CombineLatest(
                 itemsObservable,
+                this.WhenAnyValue(x => x.LDIFolderPath),
 
                 Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), (existingData, externalIdPrefix, reuseExtIds) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds))
                     .DistinctUntilChanged(),
 
-                (items, tuple) => (items, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds))
+                (items, ldiFolderPath, tuple) => (items: string.IsNullOrEmpty(ldiFolderPath) ? default : items, ldiFolderPath, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds))
                 .ObserveOn(TaskPoolScheduler.Default)
                 .Throttle(data =>
                 {
@@ -124,7 +124,7 @@ namespace EBOM_Macro.States
 
                         cancellationTokenSource = new CancellationTokenSource();
 
-                        var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, new Progress<ProgressUpdate>(progress =>
+                        var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, data.ldiFolderPath, new Progress<ProgressUpdate>(progress =>
                         {
                             progressState.ComparisonProgress = (double)progress.Value / progress.Max;
                         }), cancellationTokenSource.Token);
@@ -138,8 +138,6 @@ namespace EBOM_Macro.States
                     Items = v;
                     Root = v.Root == null ? new Item[0] : new[] { v.Root };
                 });
-
-            //.ToPropertyEx(this, x => x.Items);
         }
 
         void InitializeCommands()

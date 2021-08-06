@@ -18,6 +18,13 @@ namespace EBOM_Macro.Managers
         private const long PROGRESS_MAX = 300;
         private static readonly Encoding WINDOWS_1252_ENCODING = Encoding.GetEncoding("Windows-1252");
 
+        const string PM_COMPOUND_PART = "PmCompoundPart";
+        const string PM_PART_INSTANCE = "PmPartInstance";
+        const string PM_LAYOUT = "PmLayout";
+        const string PM_PART_PROTOTYPE = "PmPartPrototype";
+        const string PM_3D_REP = "Pm3DRep";
+        const string PM_REFERENCE_FILE = "PmReferenceFile";
+
         public static async Task ItemsToXML(string xmlPath, IReadOnlyList<XMLExportData> xmlExportData, string metaData, IProgress<ProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             using (var fileStream = new FileStream(xmlPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
@@ -108,7 +115,7 @@ namespace EBOM_Macro.Managers
                         var layoutExternalId = externalId + "l";
                         var prototypeExternalId = externalIdBase + "p";
 
-                        xmlWriter.WriteStartElement(isCompound ? "PmCompoundPart" : "PmPartInstance");
+                        xmlWriter.WriteStartElement(isCompound ? PM_COMPOUND_PART : PM_PART_INSTANCE);
                         xmlWriter.WriteAttributeString("ExternalId", externalId);
 
                         xmlWriter.WriteStartElement("ActiveInCurrentVersion");
@@ -199,7 +206,7 @@ namespace EBOM_Macro.Managers
                         }
 
 
-                        xmlWriter.WriteStartElement("PmLayout");
+                        xmlWriter.WriteStartElement(PM_LAYOUT);
                         xmlWriter.WriteAttributeString("ExternalId", layoutExternalId);
 
                         xmlWriter.WriteStartElement("location");
@@ -231,9 +238,8 @@ namespace EBOM_Macro.Managers
 
                         if (!isCompound)
                         {
-                            var ds = item.GetDS(dsCacheKey);
+                            var jtPath = item.Attributes.FilePath;
 
-                            var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
                             string jtPathHash;
                             bool newJTPathHash;
 
@@ -253,7 +259,7 @@ namespace EBOM_Macro.Managers
                             var threeDRepExternalId = externalIdBase + "r";
                             var fileReferenceExternalId = jtPathHash + "_f";
 
-                            xmlWriter.WriteStartElement("PmPartPrototype");
+                            xmlWriter.WriteStartElement(PM_PART_PROTOTYPE);
                             xmlWriter.WriteAttributeString("ExternalId", prototypeExternalId);
 
                             xmlWriter.WriteStartElement("catalogNumber");
@@ -345,7 +351,7 @@ namespace EBOM_Macro.Managers
 
                 foreach (var redundantItem in redundantItemTracker.Values)
                 {
-                    xmlWriter.WriteStartElement(redundantItem.IsInstance ? "PmPartInstance" : "PmCompoundPart");
+                    xmlWriter.WriteStartElement(redundantItem.IsInstance ? PM_PART_INSTANCE : PM_COMPOUND_PART);
                     xmlWriter.WriteAttributeString("ExternalId", redundantItem.BaseExternalId);
 
                     xmlWriter.WriteStartElement("ActiveInCurrentVersion");
@@ -394,10 +400,13 @@ namespace EBOM_Macro.Managers
                 var childIdTracker = new Dictionary<Item, List<string>>();
                 var layoutIdTracker = new Dictionary<Item, string>();
                 var prototypeIdTracker = new Dictionary<Item, string>();
+                var threeDRepIdTracker = new Dictionary<Item, string>();
+                var fileIdTracker = new Dictionary<string, string>();
 
                 var translationTracker = new Dictionary<string, Vector3D>();
                 var rotationTracker = new Dictionary<string, Vector3D>();
                 var prototypeDataTracker = new Dictionary<string, Item>();
+                var fileDataTracker = new Dictionary<string, string>();
 
                 using (var xmlReader = XmlReader.Create(existingDataXMLStream))
                 {
@@ -409,21 +418,22 @@ namespace EBOM_Macro.Managers
 
                         var elementName = xmlReader.Name;
 
-                        if (elementName == "PmCompoundPart" || elementName == "PmPartInstance" || elementName == "PmLayout" || elementName == "PmPartPrototype")
+                        if (elementName == PM_COMPOUND_PART || elementName == PM_PART_INSTANCE || elementName == PM_LAYOUT ||
+                            elementName == PM_PART_PROTOTYPE || elementName == PM_3D_REP || elementName == PM_REFERENCE_FILE)
                         {
                             var element = XElement.Parse(xmlReader.ReadOuterXml());
                             var externalId = element?.Attribute("ExternalId")?.Value?.Trim() ?? "";
 
                             if (externalId.Length == 0) continue;
 
-                            if (elementName == "PmCompoundPart" || elementName == "PmPartInstance")
+                            if (elementName == PM_COMPOUND_PART || elementName == PM_PART_INSTANCE)
                             {
                                 var item = new Item
                                 {
                                     BaseExternalId = externalId,
                                     Attributes = new ItemAttributes { Name = element.Element("name")?.Value },
                                     State = Item.ItemState.Redundant,
-                                    IsInstance = elementName == "PmPartInstance"
+                                    IsInstance = elementName == PM_PART_INSTANCE
                                 };
 
                                 itemDictionary[externalId] = item;
@@ -434,7 +444,7 @@ namespace EBOM_Macro.Managers
 
                                 if (string.IsNullOrWhiteSpace(externalIdPrefix)) externalIdPrefix = element.Element("OriginalPartExtId")?.Value;
 
-                                if (elementName == "PmCompoundPart")
+                                if (elementName == PM_COMPOUND_PART)
                                 {
                                     var childIds = element.Element("children")?.Elements("item").Select(e => e.Value?.Trim() ?? "").Where(v => v.Length > 0).ToList();
 
@@ -456,7 +466,7 @@ namespace EBOM_Macro.Managers
                                 }
                             }
 
-                            else if (elementName == "PmLayout")
+                            else if (elementName == PM_LAYOUT)
                             {
                                 var translation = Vector3D.Parse(string.Join(",", element.Element("location")?.Elements("item").Select(e => e.Value) ?? Enumerable.Empty<string>()));
                                 var rotation = Vector3D.Parse(string.Join(",", element.Element("rotation")?.Elements("item").Select(e => e.Value) ?? Enumerable.Empty<string>()));
@@ -465,9 +475,9 @@ namespace EBOM_Macro.Managers
                                 if (rotation != default) rotationTracker[externalId] = rotation;
                             }
 
-                            else
+                            else if (elementName == PM_PART_PROTOTYPE)
                             {
-                                prototypeDataTracker[externalId] = new Item
+                                var prototypeItem = new Item
                                 {
                                     Attributes = new ItemAttributes
                                     {
@@ -480,6 +490,23 @@ namespace EBOM_Macro.Managers
                                         Suffix = element.Element("Suffix")?.Value
                                     }
                                 };
+
+                                prototypeDataTracker[externalId] = prototypeItem;
+
+                                var threeDRepId = element.Element("threeDRep")?.Value?.Trim() ?? "";
+                                if (threeDRepId.Length > 0) threeDRepIdTracker[prototypeItem] = threeDRepId;
+                            }
+
+                            else if (elementName == PM_3D_REP)
+                            {
+                                var fileId = element.Element("file")?.Value?.Trim() ?? "";
+                                if (fileId.Length > 0) fileIdTracker[externalId] = fileId;
+                            }
+
+                            else if (elementName == PM_REFERENCE_FILE)
+                            {
+                                var fileName = element.Element("fileName")?.Value?.Trim() ?? "";
+                                if (fileName.Length > 0) fileDataTracker[externalId] = fileName;
                             }
                         }
 
@@ -532,6 +559,13 @@ namespace EBOM_Macro.Managers
                         item.Attributes.Prefix = prototypeData.Attributes.Prefix;
                         item.Attributes.Base = prototypeData.Attributes.Base;
                         item.Attributes.Suffix = prototypeData.Attributes.Suffix;
+
+                        if (threeDRepIdTracker.TryGetValue(prototypeData, out var threeDRepId) &&
+                            fileIdTracker.TryGetValue(threeDRepId, out var fileId) &&
+                            fileDataTracker.TryGetValue(fileId, out var filePath))
+                        {
+                            item.Attributes.FilePath = filePath;
+                        }
                     }
 
                     if (progress != null)

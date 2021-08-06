@@ -1,6 +1,8 @@
-﻿using EBOM_Macro.Models;
+﻿using EBOM_Macro.Extensions;
+using EBOM_Macro.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,7 +29,7 @@ namespace EBOM_Macro.Managers
             }
         }
 
-        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, string ldiFolderPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
 
@@ -111,6 +113,15 @@ namespace EBOM_Macro.Managers
                     }
 
                     item.ReusedExternalId = null;
+
+                    if (item.IsInstance)
+                    {
+                        var ds = item.GetDS(dsCacheKey);
+
+                        var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
+
+                        item.Attributes.FilePath = jtPath;
+                    }
 
                     if (item.Type == Item.ItemType.PH || !reuseExternalIds || existingData == null) continue;
 
@@ -250,11 +261,6 @@ namespace EBOM_Macro.Managers
                             progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
                         }
                     }
-
-                    /*if (item.Maturity == EBOMReportRecord.MaturityState.IN_WORK)
-                    {
-                        item.SelectWithoutDescendants.Execute(null);
-                    }*/
 
                     if (item.State == Item.ItemState.New || item.State == Item.ItemState.Modified)
                     {
