@@ -135,40 +135,30 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteString(item.Attributes.Number?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
-                            if (item.Attributes.Version > 0)
-                            {
-                                xmlWriter.WriteStartElement("TCe_Revision");
-                                xmlWriter.WriteString(item.Attributes.Version.ToString());
-                                xmlWriter.WriteEndElement();
-                            }
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Prefix))
-                            {
-                                xmlWriter.WriteStartElement("Prefix");
-                                xmlWriter.WriteString(item.Attributes.Prefix);
-                                xmlWriter.WriteEndElement();
-                            }
+                            xmlWriter.WriteStartElement("TCe_Revision");
+                            if (item.Attributes.Version > 0) xmlWriter.WriteString(item.Attributes.Version.ToString());
+                            xmlWriter.WriteEndElement();
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Base))
-                            {
-                                xmlWriter.WriteStartElement("Base");
-                                xmlWriter.WriteString(item.Attributes.Base);
-                                xmlWriter.WriteEndElement();
-                            }
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Suffix))
-                            {
-                                xmlWriter.WriteStartElement("Suffix");
-                                xmlWriter.WriteString(item.Attributes.Suffix);
-                                xmlWriter.WriteEndElement();
-                            }
+                            xmlWriter.WriteStartElement("Prefix");
+                            xmlWriter.WriteString(item.Attributes.Prefix?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Owner))
-                            {
-                                xmlWriter.WriteStartElement("Data_Source");
-                                xmlWriter.WriteString(item.Attributes.Owner);
-                                xmlWriter.WriteEndElement();
-                            }
+
+                            xmlWriter.WriteStartElement("Base");
+                            xmlWriter.WriteString(item.Attributes.Base?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+
+                            xmlWriter.WriteStartElement("Suffix");
+                            xmlWriter.WriteString(item.Attributes.Suffix?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+
+                            xmlWriter.WriteStartElement("Data_Source");
+                            xmlWriter.WriteString(item.Attributes.Owner?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
 
 
                             xmlWriter.WriteStartElement("children");
@@ -274,40 +264,28 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteString(item.Attributes.Name?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
-                            if (item.Attributes.Version > 0)
-                            {
-                                xmlWriter.WriteStartElement("TCe_Revision");
-                                xmlWriter.WriteString(item.Attributes.Version.ToString());
-                                xmlWriter.WriteEndElement();
-                            }
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Prefix))
-                            {
-                                xmlWriter.WriteStartElement("Prefix");
-                                xmlWriter.WriteString(item.Attributes.Prefix);
-                                xmlWriter.WriteEndElement();
-                            }
+                            xmlWriter.WriteStartElement("TCe_Revision");
+                            if (item.Attributes.Version > 0) xmlWriter.WriteString(item.Attributes.Version.ToString());
+                            xmlWriter.WriteEndElement();
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Base))
-                            {
-                                xmlWriter.WriteStartElement("Base");
-                                xmlWriter.WriteString(item.Attributes.Base);
-                                xmlWriter.WriteEndElement();
-                            }
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Suffix))
-                            {
-                                xmlWriter.WriteStartElement("Suffix");
-                                xmlWriter.WriteString(item.Attributes.Suffix);
-                                xmlWriter.WriteEndElement();
-                            }
+                            xmlWriter.WriteStartElement("Prefix");
+                            xmlWriter.WriteString(item.Attributes.Prefix?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
 
-                            if (!string.IsNullOrWhiteSpace(item.Attributes.Owner))
-                            {
-                                xmlWriter.WriteStartElement("Data_Source");
-                                xmlWriter.WriteString(item.Attributes.Owner);
-                                xmlWriter.WriteEndElement();
-                            }
+
+                            xmlWriter.WriteStartElement("Base");
+                            xmlWriter.WriteString(item.Attributes.Base?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+                            xmlWriter.WriteStartElement("Suffix");
+                            xmlWriter.WriteString(item.Attributes.Suffix?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
+                            xmlWriter.WriteStartElement("Data_Source");
+                            xmlWriter.WriteString(item.Attributes.Owner?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
 
                             xmlWriter.WriteStartElement("threeDRep");
                             xmlWriter.WriteString(threeDRepExternalId);

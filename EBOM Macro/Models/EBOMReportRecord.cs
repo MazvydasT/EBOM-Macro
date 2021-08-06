@@ -1,5 +1,4 @@
-﻿
-using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper.Configuration.Attributes;
 
 namespace EBOM_Macro.Models
 {
@@ -58,7 +57,7 @@ namespace EBOM_Macro.Models
 
         [Name("VL_NAME")]
         public string VehicleLineName { get; set; }
-        
+
         [Name("MATERIAL")]
         public string Material { get; set; }
 
