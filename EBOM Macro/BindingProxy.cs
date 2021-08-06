@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿/**
+ * https://thomaslevesque.com/2011/03/21/wpf-how-to-bind-to-data-when-the-datacontext-is-not-inherited/
+ */
+
+using System.Windows;
 
 namespace EBOM_Macro
 {
