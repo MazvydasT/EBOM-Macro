@@ -251,10 +251,10 @@ namespace EBOM_Macro.Managers
                         }
                     }
 
-                    if (item.Maturity == EBOMReportRecord.MaturityState.IN_WORK)
+                    /*if (item.Maturity == EBOMReportRecord.MaturityState.IN_WORK)
                     {
                         item.SelectWithoutDescendants.Execute(null);
-                    }
+                    }*/
 
                     if (item.State == Item.ItemState.New || item.State == Item.ItemState.Modified)
                     {
