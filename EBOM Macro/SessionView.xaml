@@ -160,11 +160,32 @@
                                 </Grid.ContextMenu>
 
                                 <Grid.ToolTip>
-                                    <MultiBinding Converter="{converters:ItemToolTipConverter}">
-                                        <Binding Path="State" Mode="OneWay" FallbackValue="{x:Null}"/>
-                                        <Binding Path="ChangedAttributes" Mode="OneWay"/>
-                                        <Binding Path="Attributes.AsDictionary" Mode="OneTime"/>
-                                    </MultiBinding>
+                                    <DataGrid HeadersVisibility="None" EnableRowVirtualization="False" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" RowBackground="Transparent" BorderThickness="0" GridLinesVisibility="None" CanUserResizeRows="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTemplateColumn>
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Name}" TextAlignment="Right" Margin="0,0,2.5,0"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+
+                                            <DataGridTemplateColumn>
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Value}" FontStyle="Italic"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                        <DataGrid.ItemsSource>
+                                            <MultiBinding Converter="{converters:ItemToolTipConverter}">
+                                                <Binding Path="State" Mode="OneWay" FallbackValue="{x:Null}"/>
+                                                <Binding Path="ChangedAttributes" Mode="OneWay"/>
+                                                <Binding Path="Attributes.AsDictionary" Mode="OneTime"/>
+                                            </MultiBinding>
+                                        </DataGrid.ItemsSource>
+                                    </DataGrid>
                                 </Grid.ToolTip>
 
                                 <Grid Margin="2,0">
