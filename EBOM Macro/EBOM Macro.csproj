@@ -253,6 +253,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BindingProxy.cs" />
+    <Compile Include="Converters\TooltipValueColumnConverter.cs" />
     <Compile Include="Models\TooltipDataContainer.cs" />
     <Compile Include="Converters\VisibilityInverter.cs" />
     <Compile Include="Converters\AppTitleConverter.cs" />

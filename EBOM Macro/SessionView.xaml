@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:EBOM_Macro.Converters"
              xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
+             xmlns:local="clr-namespace:EBOM_Macro"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="White">
     <UserControl.Resources>
@@ -161,6 +162,10 @@
 
                                 <Grid.ToolTip>
                                     <DataGrid HeadersVisibility="None" EnableRowVirtualization="False" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" RowBackground="Transparent" BorderThickness="0" GridLinesVisibility="None" CanUserResizeRows="False">
+                                        <DataGrid.Resources>
+                                            <local:BindingProxy x:Key="proxy" Data="{Binding}" />
+                                        </DataGrid.Resources>
+                                        
                                         <DataGrid.Columns>
                                             <DataGridTemplateColumn>
                                                 <DataGridTemplateColumn.CellTemplate>
@@ -170,7 +175,7 @@
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
 
-                                            <DataGridTemplateColumn>
+                                            <DataGridTemplateColumn Visibility="{Binding Data.ChangedAttributes, Source={StaticResource proxy}, Converter={converters:TooltipValueColumnConverter}}">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding Value}" FontStyle="Italic"/>
