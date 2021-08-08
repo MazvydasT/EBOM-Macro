@@ -3,9 +3,10 @@
 namespace EBOM_Macro.Models
 {
     [AddINotifyPropertyChangedInterface]
-    public class TooltipDataContainer
+    public class AttributeViewItem
     {
         public string Name { get; set; }
-        public string Value { get; set; }
+        public string CurrentValue { get; set; }
+        public string NewValue { get; set; }
     }
 }

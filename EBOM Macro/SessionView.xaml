@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:EBOM_Macro.Converters"
              xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
-             xmlns:local="clr-namespace:EBOM_Macro"
+             xmlns:states="clr-namespace:EBOM_Macro.States"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=states:SessionState, IsDesignTimeCreatable=True}"
              d:DesignHeight="450" d:DesignWidth="800" Background="White">
     <UserControl.Resources>
         <Style TargetType="{x:Type TreeViewItem}">
@@ -52,6 +53,8 @@
                 <ColumnDefinition MinWidth="100" Width="2*"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition MinWidth="100" Width="3*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition x:Name="AttributesColumn" MinWidth="{Binding ElementName=Attributes, Path=IsExpanded, Converter={converters:ExpanderColumnMinWidthConverter}}" Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" FlowDirection="RightToLeft">
@@ -146,9 +149,9 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
-                <TreeView IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}"
-                          ItemsSource="{Binding InputState.Root}" BorderThickness="0" Margin="5,0,10,0">
+
+                <TreeView x:Name="Items" IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}"
+                          ItemsSource="{Binding InputState.Root}" BorderThickness="0" Margin="5,0">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding AllChildren}">
 
@@ -159,39 +162,6 @@
                                         <MenuItem Command="{Binding ResetSelection}" Icon="{StaticResource Redo}" Header="Reset selection"/>
                                     </ContextMenu>
                                 </Grid.ContextMenu>
-
-                                <Grid.ToolTip>
-                                    <DataGrid HeadersVisibility="None" EnableRowVirtualization="False" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" RowBackground="Transparent" BorderThickness="0" GridLinesVisibility="None" CanUserResizeRows="False">
-                                        <DataGrid.Resources>
-                                            <local:BindingProxy x:Key="proxy" Data="{Binding}" />
-                                        </DataGrid.Resources>
-                                        
-                                        <DataGrid.Columns>
-                                            <DataGridTemplateColumn>
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding Name}" TextAlignment="Right" Margin="0,0,2.5,0"/>
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-
-                                            <DataGridTemplateColumn Visibility="{Binding Data.ChangedAttributes, Source={StaticResource proxy}, Converter={converters:TooltipValueColumnConverter}}">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding Value}" FontStyle="Italic"/>
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-                                        </DataGrid.Columns>
-                                        <DataGrid.ItemsSource>
-                                            <MultiBinding Converter="{converters:ItemToolTipConverter}">
-                                                <Binding Path="State" Mode="OneWay" FallbackValue="{x:Null}"/>
-                                                <Binding Path="ChangedAttributes" Mode="OneWay"/>
-                                                <Binding Path="Attributes.AsDictionary" Mode="OneTime"/>
-                                            </MultiBinding>
-                                        </DataGrid.ItemsSource>
-                                    </DataGrid>
-                                </Grid.ToolTip>
 
                                 <Grid Margin="2,0">
                                     <Grid.ColumnDefinitions>
@@ -226,6 +196,45 @@
                     </ProgressBar.Visibility>
                 </ProgressBar>
             </Grid>
+
+            <GridSplitter Visibility="{Binding ElementName=Attributes, Path=IsExpanded, Converter={converters:SplitterVisibilityConverter}}" Width="5" Grid.Column="3" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted"/>
+
+            <Expander x:Name="Attributes" Grid.Column="4" ExpandDirection="Left" IsExpanded="False" Padding="5,0" Collapsed="Attributes_Collapsed" Expanded="Attributes_Expanded" >
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl DataContext="{Binding ElementName=Items, Path=SelectedItem}" HorizontalContentAlignment="Stretch">
+                        <ItemsControl.ItemsSource>
+                            <MultiBinding Converter="{converters:ItemAttributesToViewConverter}">
+                                <Binding Path="ChangedAttributes" FallbackValue="{x:Null}"/>
+                                <Binding Path="Attributes.AsDictionary" FallbackValue="{x:Null}"/>
+                            </MultiBinding>
+                        </ItemsControl.ItemsSource>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2.5">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.ColumnSpan="2" Text="{Binding Name}" FontWeight="DemiBold"/>
+
+                                    <TextBlock Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="1" Text="Current: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap"/>
+
+                                    <TextBlock x:Name="NewValueLabel" Visibility="{Binding NewValue, Converter={converters:NewAttributeValueVisibilityConverter}}" Grid.Row="2" Text="New: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
+                                    <TextBox Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="2" Grid.Column="1" Text="{Binding NewValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Expander>
         </Grid>
     </Grid>
 </UserControl>

@@ -12,7 +12,16 @@ namespace EBOM_Macro.Models
         public string Name { get; set; }
 
         public Vector3D Translation { get; set; }
+
+        public double TranslationX => Translation.X;
+        public double TranslationY => Translation.Y;
+        public double TranslationZ => Translation.Z;
+
         public Vector3D Rotation { get; set; }
+
+        public double RotationX => Rotation.X;
+        public double RotationY => Rotation.Y;
+        public double RotationZ => Rotation.Z;
 
         public string Prefix { get; set; }
         public string Base { get; set; }
@@ -26,11 +35,16 @@ namespace EBOM_Macro.Models
             new Dictionary<string, string>
             {
                 { nameof(Number), Number },
-                { nameof(Version), Version.ToString() },
+                { nameof(Version), Version == 0 ? "" : Version.ToString() },
                 { nameof(Name), Name },
 
-                { nameof(Translation), Translation.ToString() },
-                { nameof(Rotation), Rotation.ToString() },
+                { "Translation X", TranslationX == 0 ? "" : TranslationX.ToString() },
+                { "Translation Y", TranslationY == 0 ? "" : TranslationY.ToString() },
+                { "Translation Z", TranslationZ == 0 ? "" : TranslationZ.ToString() },
+
+                { "Rotation X", RotationX == 0 ? "" : RotationX.ToString() },
+                { "Rotation Y", RotationY == 0 ? "" : RotationY.ToString() },
+                { "Rotation Z", RotationZ == 0 ? "" : RotationZ.ToString() },
 
                 { nameof(Prefix), Prefix },
                 { nameof(Base), Base },
@@ -38,7 +52,7 @@ namespace EBOM_Macro.Models
 
                 { nameof(Owner), Owner },
 
-                { nameof(FilePath), FilePath }
+                { "File path", FilePath }
             };
     }
 }
