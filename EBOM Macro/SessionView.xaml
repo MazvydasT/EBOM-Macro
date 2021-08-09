@@ -46,7 +46,7 @@
             </Canvas>
         </Viewbox>
     </UserControl.Resources>
-    
+
     <Grid>
         <Grid Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
@@ -202,6 +202,13 @@
             <GridSplitter Visibility="{Binding ElementName=Attributes, Path=IsExpanded, Converter={converters:SplitterVisibilityConverter}}" Width="5" Grid.Column="3" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted"/>
 
             <Expander x:Name="Attributes" Grid.Column="4" ExpandDirection="Left" IsExpanded="False" Padding="5,0" Collapsed="Attributes_Collapsed" Expanded="Attributes_Expanded" >
+                <Expander.Header>
+                    <TextBlock FontSize="14">
+                        <TextBlock.LayoutTransform>
+                            <RotateTransform Angle="90"/>
+                        </TextBlock.LayoutTransform>Attributes</TextBlock>
+                </Expander.Header>
+
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl DataContext="{Binding ElementName=Items, Path=SelectedItem}" HorizontalContentAlignment="Stretch">
                         <ItemsControl.ItemsSource>
