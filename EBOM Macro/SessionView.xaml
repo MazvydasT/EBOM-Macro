@@ -17,7 +17,7 @@
         <DataTemplate x:Key="BlankDataTemplate"/>
 
         <DataTemplate x:Key="StrikethroughTemplate">
-            <Grid Margin="{Binding State, Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" RenderTransform="{Binding State, Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
+            <Grid Margin="{Binding Converter={converters:StrikethroughOffsetConverter -3, -.5}, Mode=OneTime}" RenderTransform="{Binding Converter={converters:StrikethroughAngleConverter -.65, .65}, Mode=OneTime}" Height="1" Background="#A5000000" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
         </DataTemplate>
 
         <templateSelectors:State2StrikethroughTemplateSelector x:Key="State2StrikethroughTemplateSelector" BlankTemplate="{StaticResource BlankDataTemplate}" StrikethroughTemplate="{StaticResource StrikethroughTemplate}"/>
