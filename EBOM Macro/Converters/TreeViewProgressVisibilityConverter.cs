@@ -8,12 +8,13 @@ using System.Windows.Markup;
 
 namespace EBOM_Macro.Converters
 {
-    public class TreeViewVisibilityConverter : MarkupExtension, IMultiValueConverter
+    public class TreeViewProgressVisibilityConverter : MarkupExtension, IMultiValueConverter
     {
         public override object ProvideValue(IServiceProvider serviceProvider) => this;
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture) =>
             values.All(v => v != DependencyProperty.UnsetValue) &&
+            !string.IsNullOrWhiteSpace((string)values[5]) &&
             ((((double)values[0]).IsInExclusiveRange(0.0, 1.0) && !(bool)values[1]) ||
             (((double)values[2]).IsInExclusiveRange(0.0, 1.0) && !(bool)values[3]) ||
             ((double)values[4]) < 1.0) ? Visibility.Visible : Visibility.Collapsed;

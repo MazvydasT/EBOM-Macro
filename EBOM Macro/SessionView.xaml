@@ -184,14 +184,16 @@
 
                 <ProgressBar x:Name="ProcessingProgressBar" Value="{Binding ProgressState.ComparisonProgress, Mode=OneWay}" IsIndeterminate="{Binding ProgressState.ComparisonProgress, Converter={converters:IsIndeterminateConverter}, Mode=OneWay}" Maximum="1" Height="5" Grid.Row="1" Margin="5,2,10,0">
                     <ProgressBar.Visibility>
-                        <MultiBinding Converter="{converters:TreeViewVisibilityConverter}">
-                            <Binding Path="ProgressState.EBOMReportReadProgress" Mode="OneWay" />
-                            <Binding Path="ProgressState.EBOMReportReadError" Mode="OneWay"/>
+                        <MultiBinding Converter="{converters:TreeViewProgressVisibilityConverter}">
+                            <Binding Path="ProgressState.EBOMReportReadProgress"/>
+                            <Binding Path="ProgressState.EBOMReportReadError"/>
 
-                            <Binding Path="ProgressState.ExistingDataReadProgress" Mode="OneWay"/>
-                            <Binding Path="ProgressState.ExistingDataReadError" Mode="OneWay"/>
+                            <Binding Path="ProgressState.ExistingDataReadProgress"/>
+                            <Binding Path="ProgressState.ExistingDataReadError"/>
 
-                            <Binding Path="ProgressState.ComparisonProgress" Mode="OneWay"/>
+                            <Binding Path="ProgressState.ComparisonProgress"/>
+
+                            <Binding Path="InputState.LDIFolderPath"/>
                         </MultiBinding>
                     </ProgressBar.Visibility>
                 </ProgressBar>
