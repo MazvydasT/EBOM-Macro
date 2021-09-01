@@ -28,7 +28,7 @@ namespace EBOM_Macro.Models
 
         public string PhysicalId { get; set; }
 
-        public EBOMReportRecord.MaturityState? Maturity { get; set; }
+        //public string Maturity { get; set; }
 
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
@@ -49,8 +49,8 @@ namespace EBOM_Macro.Models
         public bool IsInstance { get; set; }
 
         public string Title => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
-            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}") +
-            ((Type == ItemType.DS || Type == ItemType.PartAsy) && Maturity.HasValue ? $" [{Maturity}]" : "");
+            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}"); //+
+            //((Type == ItemType.DS || Type == ItemType.PartAsy) && !string.IsNullOrWhiteSpace(Maturity) ? $" [{Maturity}]" : "");
 
         bool? isChecked;
 

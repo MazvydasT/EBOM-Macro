@@ -129,7 +129,7 @@ namespace EBOM_Macro.Managers
 
                                 PhysicalId = record.PhysicalId,
 
-                                Maturity = record.Maturity,
+                                //Maturity = record.Maturity,
 
                                 Parent = level == 0 ? null : (levelTracker.TryGetValue(level - 1, out Item parent) ? parent : null),
 
@@ -168,7 +168,7 @@ namespace EBOM_Macro.Managers
                                         },
                                         Type = Item.ItemType.PH,
                                         BaseExternalId = $"{level3PHNumber}_c",
-                                        Maturity = EBOMReportRecord.MaturityState.FROZEN,
+                                        //Maturity = EBOMReportRecord.MaturityState.FROZEN,
 
                                         IsInstance = false
                                     };
@@ -194,7 +194,7 @@ namespace EBOM_Macro.Managers
                                             },
                                             Type = Item.ItemType.PH,
                                             BaseExternalId = $"{level2PHNumber}_c",
-                                            Maturity = EBOMReportRecord.MaturityState.FROZEN,
+                                            //Maturity = EBOMReportRecord.MaturityState.FROZEN,
 
                                             IsInstance = false
                                         };
@@ -220,7 +220,7 @@ namespace EBOM_Macro.Managers
                                                 },
                                                 Type = Item.ItemType.PH,
                                                 BaseExternalId = $"{level1PHNumber}_c",
-                                                Maturity = EBOMReportRecord.MaturityState.FROZEN,
+                                                //Maturity = EBOMReportRecord.MaturityState.FROZEN,
 
                                                 IsInstance = false
                                             };
@@ -238,7 +238,7 @@ namespace EBOM_Macro.Managers
                                                     },
                                                     Type = Item.ItemType.PH,
                                                     BaseExternalId = $"{vehicleLineName}_c",
-                                                    Maturity = EBOMReportRecord.MaturityState.FROZEN,
+                                                    //Maturity = EBOMReportRecord.MaturityState.FROZEN,
 
                                                     IsExpanded = true,
 

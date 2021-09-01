@@ -4,11 +4,11 @@ namespace EBOM_Macro.Models
 {
     public struct EBOMReportRecord
     {
-        public enum MaturityState
+        /*public enum MaturityState
         {
             IN_WORK,
             FROZEN
-        }
+        }*/
 
         [Name("LEVEL")]
         public int Level { get; set; }
@@ -49,8 +49,8 @@ namespace EBOM_Macro.Models
         [Name("CPSC_LEVEL3")]
         public string CPSCLevel3 { get; set; }
 
-        [Name("CURRENT")]
-        public MaturityState Maturity { get; set; }
+        /*[Name("CURRENT")]
+        public string Maturity { get; set; }*/
 
         [Name("VL_TITLE")]
         public string Title { get; set; }

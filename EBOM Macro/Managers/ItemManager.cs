@@ -24,7 +24,7 @@ namespace EBOM_Macro.Managers
 
             foreach (var i in items)
             {
-                if (i.Maturity == EBOMReportRecord.MaturityState.IN_WORK || i.State == Item.ItemState.New || i.State == Item.ItemState.Modified)
+                if (i.State == Item.ItemState.New || i.State == Item.ItemState.Modified)
                     i.SelectWithoutDescendants.Execute(null);
             }
         }
