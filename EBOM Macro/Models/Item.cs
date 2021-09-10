@@ -28,8 +28,6 @@ namespace EBOM_Macro.Models
 
         public string PhysicalId { get; set; }
 
-        //public string Maturity { get; set; }
-
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
         public IReadOnlyCollection<Item> RedundantChildren { get; set; }
@@ -49,11 +47,9 @@ namespace EBOM_Macro.Models
         public bool IsInstance { get; set; }
 
         public string Title => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
-            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}"); //+
-            //((Type == ItemType.DS || Type == ItemType.PartAsy) && !string.IsNullOrWhiteSpace(Maturity) ? $" [{Maturity}]" : "");
+            (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}");
 
         bool? isChecked;
-
         public bool? IsChecked
         {
             get => isChecked;

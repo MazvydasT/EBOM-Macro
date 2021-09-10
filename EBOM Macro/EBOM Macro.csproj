@@ -253,6 +253,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\TreeViewFilterConverter.cs" />
     <Compile Include="Converters\NewAttributeValueVisibilityConverter.cs" />
     <Compile Include="Converters\ExpanderColumnMinWidthConverter.cs" />
     <Compile Include="Converters\SplitterVisibilityConverter.cs" />
