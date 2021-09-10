@@ -25,7 +25,7 @@ namespace EBOM_Macro.Converters
 
             return children.Where(c =>
             {
-                if(includeUnchanged || includeModified || includeNew || includeDeleted)
+                if (includeUnchanged || includeModified || includeNew || includeDeleted)
                     return c.GetSelfAndDescendants(cacheKey).SelectMany(d => (d.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(d))
                         .Where(d =>
                             (includeUnchanged && d.State == Item.ItemState.Unchanged) ||
@@ -33,7 +33,7 @@ namespace EBOM_Macro.Converters
                             (includeNew && d.State == Item.ItemState.New) ||
                             (includeDeleted && d.State == Item.ItemState.Redundant)
                         ).Any();
-                
+
                 return false;
             }).ToArray();
         }

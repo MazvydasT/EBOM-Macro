@@ -156,7 +156,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <GroupBox Header="Filter" IsEnabled="{Binding ElementName=Items, Path=IsEnabled}">
+                <GroupBox Header="Filter" IsEnabled="{Binding ElementName=Items, Path=IsEnabled}" Margin="5,0,5,5">
                     <WrapPanel Orientation="Horizontal">
                         <CheckBox x:Name="UnchangedFilter" Content="Unchanged" IsChecked="True" Margin="0,0,10,0"/>
                         <CheckBox x:Name="ModifiedFilter" Content="Modified" IsChecked="True" Margin="0,0,10,0"/>
@@ -243,25 +243,27 @@
                         </ItemsControl.ItemsSource>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="0,2.5">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+                                <Grid Background="{Binding NewValue, Converter={converters:AttributeBackgroundColourConverter}}">
+                                    <Grid Margin="2.5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.ColumnSpan="2" Text="{Binding Name}" FontWeight="DemiBold"/>
+                                        <TextBlock Grid.ColumnSpan="2" Text="{Binding Name}" FontWeight="DemiBold"/>
 
-                                    <TextBlock Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="1" Text="Current: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap"/>
+                                        <TextBlock Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="1" Text="Current: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
 
-                                    <TextBlock x:Name="NewValueLabel" Visibility="{Binding NewValue, Converter={converters:NewAttributeValueVisibilityConverter}}" Grid.Row="2" Text="New: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
-                                    <TextBox Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="2" Grid.Column="1" Text="{Binding NewValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="NewValueLabel" Visibility="{Binding NewValue, Converter={converters:NewAttributeValueVisibilityConverter}}" Grid.Row="2" Text="New: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
+                                        <TextBox Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="2" Grid.Column="1" Text="{Binding NewValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
+                                    </Grid>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
