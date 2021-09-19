@@ -1,4 +1,6 @@
-﻿using EBOM_Macro.Extensions;
+﻿using EBOM_Macro.Converters;
+using EBOM_Macro.Extensions;
+using EBOM_Macro.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -23,7 +25,7 @@ namespace EBOM_Macro.States
         [Reactive] public bool IsReadyForExport { get; private set; }
 
         public ReactiveCommand<(bool, bool), Unit> CopyStats { get; }
-        //public ReactiveCommand<Unit, Unit> CopyAttributes { get; }
+        public ReactiveCommand<Item, Unit> CopyAttributes { get; }
 
         public SessionState()
         {
@@ -87,6 +89,33 @@ namespace EBOM_Macro.States
 
                 Clipboard.SetText(string.Join("\n", outputRows.Select(c => string.Join("\t", c))));
             });
+
+            CopyAttributes = ReactiveCommand.Create<Item>(item =>
+            {
+                var attributes = new ItemAttributesToViewConverter().Convert(item);
+
+                var columnHeaderValues = new List<string>(attributes.Count);
+                var currentValues = new List<string>(columnHeaderValues.Count);
+                var newValues = new List<string>(columnHeaderValues.Count);
+
+
+
+                foreach (var attribute in attributes)
+                {
+                    columnHeaderValues.Add($"{attribute.Name}");
+                    currentValues.Add($"{attribute.CurrentValue}");
+                    newValues.Add($"{attribute.NewValue}");
+                }
+
+                var rows = new[]
+                {
+                    columnHeaderValues.Prepend(""),
+                    currentValues.Prepend("Current"),
+                    newValues.Prepend("New")
+                };
+
+                Clipboard.SetText($"{string.Join("\n", rows.Select(r => string.Join("\t", r)))}");
+            });
         }
 
         private void Dispose(bool disposing)
@@ -96,6 +125,7 @@ namespace EBOM_Macro.States
                 if (disposing)
                 {
                     CopyStats.Dispose();
+                    CopyAttributes.Dispose();
 
                     isReadyForExportDisposable.Dispose();
                     InputState.Dispose();

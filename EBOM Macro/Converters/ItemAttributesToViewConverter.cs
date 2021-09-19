@@ -12,6 +12,9 @@ namespace EBOM_Macro.Converters
     {
         public override object ProvideValue(IServiceProvider serviceProvider) => this;
 
+        public List<AttributeViewItem> Convert(Item item) =>
+            (List<AttributeViewItem>)Convert(new object[] { item.ChangedAttributes, item.Attributes.AsDictionary }, null, null, null);
+
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             var attributeList = new List<AttributeViewItem>();

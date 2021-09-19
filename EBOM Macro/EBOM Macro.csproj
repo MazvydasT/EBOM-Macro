@@ -253,6 +253,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\CopyAttributesButtonIsEnabledConverter.cs" />
     <Compile Include="Converters\CopyStatsParametersConverter.cs" />
     <Compile Include="Converters\StatsTableBorderConverter.cs" />
     <Compile Include="Converters\StatsColumnColourConverter.cs" />

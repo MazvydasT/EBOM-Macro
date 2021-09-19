@@ -240,42 +240,50 @@
                         </TextBlock.LayoutTransform>Attributes</TextBlock>
                 </Expander.Header>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl DataContext="{Binding ElementName=Items, Path=SelectedItem}" HorizontalContentAlignment="Stretch">
-                        <ItemsControl.ItemsSource>
-                            <MultiBinding Converter="{converters:ItemAttributesToViewConverter}">
-                                <Binding Path="ChangedAttributes" FallbackValue="{x:Null}"/>
-                                <Binding Path="Attributes.AsDictionary" FallbackValue="{x:Null}"/>
-                            </MultiBinding>
-                        </ItemsControl.ItemsSource>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Background="{Binding NewValue, Converter={converters:AttributeBackgroundColourConverter}}">
-                                    <Grid Margin="2.5">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                <Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl DataContext="{Binding ElementName=Items, Path=SelectedItem}" HorizontalContentAlignment="Stretch">
+                            <ItemsControl.ItemsSource>
+                                <MultiBinding Converter="{converters:ItemAttributesToViewConverter}">
+                                    <Binding Path="ChangedAttributes" FallbackValue="{x:Null}"/>
+                                    <Binding Path="Attributes.AsDictionary" FallbackValue="{x:Null}"/>
+                                </MultiBinding>
+                            </ItemsControl.ItemsSource>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Background="{Binding NewValue, Converter={converters:AttributeBackgroundColourConverter}}">
+                                        <Grid Margin="2.5">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <TextBlock Grid.ColumnSpan="2" Text="{Binding Name}" FontWeight="DemiBold"/>
+                                            <TextBlock Grid.ColumnSpan="2" Text="{Binding Name}" FontWeight="DemiBold"/>
 
-                                        <TextBlock Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="1" Text="Current: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
+                                            <TextBlock Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="1" Text="Current: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
 
-                                        <TextBlock x:Name="NewValueLabel" Visibility="{Binding NewValue, Converter={converters:NewAttributeValueVisibilityConverter}}" Grid.Row="2" Text="New: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
-                                        <TextBox Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="2" Grid.Column="1" Text="{Binding NewValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
+                                            <TextBlock x:Name="NewValueLabel" Visibility="{Binding NewValue, Converter={converters:NewAttributeValueVisibilityConverter}}" Grid.Row="2" Text="New: " HorizontalAlignment="Stretch" TextAlignment="Right" VerticalAlignment="Center" Padding="0"/>
+                                            <TextBox Visibility="{Binding ElementName=NewValueLabel, Path=Visibility}" Grid.Row="2" Grid.Column="1" Text="{Binding NewValue}" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" TextWrapping="Wrap" Background="{x:Null}"/>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <Button Content="{StaticResource CopyIcon}"
+                            Command="{Binding CopyAttributes}"
+                            CommandParameter="{Binding ElementName=Items, Path=SelectedItem}"
+                            IsEnabled="{Binding ElementName=Items, Path=SelectedItem, Converter={converters:CopyAttributesButtonIsEnabledConverter}}"
+                            ToolTip="Copy" Width="20" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+                </Grid>
             </Expander>
 
             <Expander Header="Stats" Grid.Row="1" Grid.ColumnSpan="5" ExpandDirection="Up" Margin="5,0">
@@ -285,6 +293,7 @@
                         <CheckBox x:Name="ShowStatsForAvailable" Content="Available" IsChecked="True" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         <Button Content="{StaticResource CopyIcon}"
                                 Command="{Binding CopyStats}"
+                                ToolTip="Copy"
                                 Margin="5,0,0,0" Height="20" Width="20">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{converters:CopyStatsParametersConverter}">
