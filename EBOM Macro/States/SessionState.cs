@@ -2,8 +2,12 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows;
 
 namespace EBOM_Macro.States
 {
@@ -17,6 +21,9 @@ namespace EBOM_Macro.States
         public InputState InputState { get; private set; }
 
         [Reactive] public bool IsReadyForExport { get; private set; }
+
+        public ReactiveCommand<(bool, bool), Unit> CopyStats { get; }
+        //public ReactiveCommand<Unit, Unit> CopyAttributes { get; }
 
         public SessionState()
         {
@@ -40,7 +47,46 @@ namespace EBOM_Macro.States
                 progressData.comparisonProgress.IsInExclusiveRange(0, 1) ||
                 !Directory.Exists(ldiPath) ? false : true
             ).Subscribe(v => IsReadyForExport = v);
-            //).ToPropertyEx(this, x => x.IsReadyForExport);
+
+            CopyStats = ReactiveCommand.Create<(bool showSelected, bool showAvailable)>(p =>
+            {
+                var statsTable = InputState.StatsState.AsTable;
+
+                var outputRows = new List<string>[statsTable[0].Length];
+
+                for (var ci = 0; ci < statsTable.Length; ++ci)
+                {
+                    var statsTableColumn = statsTable[ci];
+
+                    for (var ri = 0; ri < statsTableColumn.Length; ++ri)
+                    {
+                        if (ci == 0) outputRows[ri] = new List<string>();
+
+                        var statsValue = statsTable[ci][ri];
+
+                        if (ci > 0 && ri > 0)
+                        {
+                            (int selected, int available) pairValue = ((int, int))statsValue;
+
+                            if (p.showSelected && p.showAvailable)
+                                statsValue = $"{pairValue.selected} / {pairValue.available}";
+
+                            else if (p.showSelected)
+                                statsValue = pairValue.selected;
+
+                            else if (p.showAvailable)
+                                statsValue = pairValue.available;
+
+                            else
+                                statsValue = null;
+                        }
+
+                        outputRows[ri].Add($"{statsValue}");
+                    }
+                }
+
+                Clipboard.SetText(string.Join("\n", outputRows.Select(c => string.Join("\t", c))));
+            });
         }
 
         private void Dispose(bool disposing)
@@ -49,6 +95,8 @@ namespace EBOM_Macro.States
             {
                 if (disposing)
                 {
+                    CopyStats.Dispose();
+
                     isReadyForExportDisposable.Dispose();
                     InputState.Dispose();
                 }
