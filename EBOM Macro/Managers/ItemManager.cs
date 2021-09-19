@@ -1,5 +1,6 @@
 ﻿using EBOM_Macro.Extensions;
 using EBOM_Macro.Models;
+using EBOM_Macro.States;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -283,6 +284,100 @@ namespace EBOM_Macro.Managers
                 return items;
 
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        public static async void UpdateStats(ItemsContainer items, StatsState statsState)
+        {
+            statsState.UnchangedAssemblies = 0;
+            statsState.ModifiedAssemblies = 0;
+            statsState.NewAssemblies = 0;
+            statsState.DeletedAssemblies = 0;
+
+            statsState.UnchangedParts = 0;
+            statsState.ModifiedParts = 0;
+            statsState.NewParts = 0;
+            statsState.DeletedParts = 0;
+
+            statsState.SelectedUnchangedAssemblies = 0;
+            statsState.SelectedModifiedAssemblies = 0;
+            statsState.SelectedNewAssemblies = 0;
+            statsState.SelectedDeletedAssemblies = 0;
+
+            statsState.SelectedUnchangedParts = 0;
+            statsState.SelectedModifiedParts = 0;
+            statsState.SelectedNewParts = 0;
+            statsState.SelectedDeletedParts = 0;
+
+            var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
+            var assemblies = (items.PHs ?? Enumerable.Empty<Item>())
+                .SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i))
+                .Concat(itemObjects.Where(i => !i.IsInstance));
+            var parts = itemObjects.Where(i => i.IsInstance);
+
+            await Task.WhenAll(
+                Task.Run(() =>
+                {
+                    foreach (var item in assemblies)
+                    {
+                        var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
+
+                        switch (item.State)
+                        {
+                            case Item.ItemState.HasModifiedDescendants:
+                            case Item.ItemState.Unchanged:
+                                ++statsState.UnchangedAssemblies;
+                                if (countTowardsChecked) ++statsState.SelectedUnchangedAssemblies;
+                                break;
+
+                            case Item.ItemState.Modified:
+                                ++statsState.ModifiedAssemblies;
+                                if (countTowardsChecked) ++statsState.SelectedModifiedAssemblies;
+                                break;
+
+                            case Item.ItemState.New:
+                                ++statsState.NewAssemblies;
+                                if (countTowardsChecked) ++statsState.SelectedNewAssemblies;
+                                break;
+
+                            case Item.ItemState.Redundant:
+                                ++statsState.DeletedAssemblies;
+                                if (countTowardsChecked) ++statsState.SelectedDeletedAssemblies;
+                                break;
+                        }
+                    }
+                }),
+
+                Task.Run(() =>
+                {
+                    foreach (var item in parts)
+                    {
+                        var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
+
+                        switch (item.State)
+                        {
+                            case Item.ItemState.Unchanged:
+                                ++statsState.UnchangedParts;
+                                if (countTowardsChecked) ++statsState.SelectedUnchangedParts;
+                                break;
+
+                            case Item.ItemState.Modified:
+                                ++statsState.ModifiedParts;
+                                if (countTowardsChecked) ++statsState.SelectedModifiedParts;
+                                break;
+
+                            case Item.ItemState.New:
+                                ++statsState.NewParts;
+                                if (countTowardsChecked) ++statsState.SelectedNewParts;
+                                break;
+
+                            case Item.ItemState.Redundant:
+                                ++statsState.DeletedParts;
+                                if (countTowardsChecked) ++statsState.SelectedDeletedParts;
+                                break;
+                        }
+                    }
+                })
+            );
         }
 
         public static void SetBaseExternalId(Item item)

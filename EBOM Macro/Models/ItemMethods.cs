@@ -1,5 +1,6 @@
 ﻿using EBOM_Macro.Extensions;
 using EBOM_Macro.Managers;
+using EBOM_Macro.States;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,10 +15,16 @@ namespace EBOM_Macro.Models
         {
             SelectWithoutDescendants = new Command(_ => SetIsChecked(true, false, true));
             ResetSelection = new Command(_ => ItemManager.ResetItemSelection(this));
+            Click = new Command(parameter =>
+            {
+                var inputState = (InputState)parameter;
+                ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
+            });
         }
 
         public ICommand SelectWithoutDescendants { get; }
         public ICommand ResetSelection { get; }
+        public ICommand Click { get; set; }
 
         private ConditionalWeakTable<object, object> cache = new ConditionalWeakTable<object, object>();
 
@@ -110,7 +117,13 @@ namespace EBOM_Macro.Models
 
             isChecked = value;
 
-            if (updateChildren && isChecked.HasValue) Children.ForEach(c => c.SetIsChecked(isChecked, true, false));
+            if (updateChildren && isChecked.HasValue)
+            {
+                foreach (var child in Children.Concat(RedundantChildren ?? Enumerable.Empty<Item>()))
+                {
+                    child.SetIsChecked(isChecked, true, false);
+                }
+            }
 
             if (updateParent && Parent != null) Parent.VerifyCheckedState();
 

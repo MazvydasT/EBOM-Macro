@@ -34,6 +34,7 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
 
         ProgressState progressState;
+        public StatsState StatsState { get; set; } = new StatsState();
 
         IDisposable itemsDisposable, externalIdPrefixDisposable;
 
@@ -135,6 +136,8 @@ namespace EBOM_Macro.States
                 .Switch()
                 .Subscribe(v =>
                 {
+                    ItemManager.UpdateStats(v, StatsState);
+
                     Items = v;
                     Root = v.Root == null ? new Item[0] : new[] { v.Root };
                 });

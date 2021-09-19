@@ -6,6 +6,7 @@
              xmlns:converters="clr-namespace:EBOM_Macro.Converters"
              xmlns:templateSelectors="clr-namespace:EBOM_Macro.TemplateSelectors"
              xmlns:states="clr-namespace:EBOM_Macro.States"
+             xmlns:local="clr-namespace:EBOM_Macro"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=states:SessionState, IsDesignTimeCreatable=True}"
              d:DesignHeight="450" d:DesignWidth="800" Background="White">
@@ -193,7 +194,7 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
 
-                                    <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Command="{Binding Click}" CommandParameter="{Binding ElementName=Items, Path=DataContext.InputState}"/>
 
                                     <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
                                         <TextBlock Text="{Binding Title, Mode=OneTime}"/>
@@ -271,11 +272,86 @@
                 </ScrollViewer>
             </Expander>
 
-            <!--Expander Header="Stats" Grid.Row="1" Grid.ColumnSpan="5" ExpandDirection="Up" Margin="5,0">
-                <Grid Margin="0,5,0,0">
+            <Expander Header="Stats" Grid.Row="1" Grid.ColumnSpan="5" ExpandDirection="Up" Margin="5,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox x:Name="ShowStatsForSelected" Content="Selected" IsChecked="True"/>
+                        <CheckBox x:Name="ShowStatsForAvailable" Content="Available" IsChecked="True" Margin="5,0,0,0"/>
+                    </StackPanel>
 
-                </Grid>
-            </Expander-->
+                    <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+                        <ItemsControl HorizontalAlignment="Left" Margin="0,5,0,0" DataContext="{Binding InputState.StatsState}">
+                            <ItemsControl.ItemsSource>
+                                <MultiBinding Converter="{converters:StatsConverter}">
+
+                                    <Binding ElementName="ShowStatsForSelected" Path="IsChecked"/>
+                                    <Binding ElementName="ShowStatsForAvailable" Path="IsChecked"/>
+
+                                    <Binding Path="AsTable"/>
+                                </MultiBinding>
+                            </ItemsControl.ItemsSource>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Grid.IsSharedSizeScope="True"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ItemsControl ItemsSource="{Binding}"
+                                              Background="{Binding Converter={converters:StatsColumnColourConverter}}"
+                                              Padding="0,2.5">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="Black" BorderThickness="{Binding Converter={converters:StatsTableBorderConverter}}">
+                                                    <Grid Margin="5,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" SharedSizeGroup="{Binding ColumnIndex, Converter={converters:SharedSizeGroupRowHeaderConverter}}"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Grid Visibility="{Binding Converter={converters:StatsValueVisibilityConverter}}" HorizontalAlignment="Center">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition SharedSizeGroup="{Binding ColumnIndex, ConverterParameter=SelectedValue, Converter={converters:SharedSizeGroupConverter}}" Width="Auto"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition SharedSizeGroup="{Binding ColumnIndex, ConverterParameter=AvailableValue, Converter={converters:SharedSizeGroupConverter}}" Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <TextBlock Text="{Binding SelectedValue, StringFormat={}{0:n0}}"
+                                                               Visibility="{Binding ElementName=ShowStatsForSelected, Path=IsChecked, Converter={converters:StatsValuePartVisibilityConverter}}"
+                                                               Grid.Column="0" TextAlignment="Right"/>
+                                                            <TextBlock Text="/" Grid.Column="1" Margin="2.5,0">
+                                                                <TextBlock.Visibility>
+                                                                    <MultiBinding Converter="{converters:StatsValuePartSeparatorConverter}">
+                                                                        <Binding ElementName="ShowStatsForSelected" Path="IsChecked"/>
+                                                                        <Binding ElementName="ShowStatsForAvailable" Path="IsChecked"/>
+                                                                    </MultiBinding>
+                                                                </TextBlock.Visibility>
+                                                            </TextBlock>
+                                                            <TextBlock Text="{Binding AvailableValue, StringFormat={}{0:n0}}"
+                                                               Visibility="{Binding ElementName=ShowStatsForAvailable, Path=IsChecked, Converter={converters:StatsValuePartVisibilityConverter}}"
+                                                               Grid.Column="2" TextAlignment="Right"/>
+                                                        </Grid>
+
+                                                        <TextBlock Text="{Binding Value}"
+                                                           Visibility="{Binding Converter={converters:StatsHeaderVisibilityConverter}}"
+                                                           FontWeight="{Binding Converter={converters:StatsFontWeightConverter}}"
+                                                           TextAlignment="{Binding Converter={converters:StatsTextAlignemntConverter}}"
+                                                           Padding="2.5,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Expander>
         </Grid>
     </Grid>
 </UserControl>
