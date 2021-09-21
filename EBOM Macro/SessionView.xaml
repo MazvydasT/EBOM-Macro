@@ -189,8 +189,15 @@
                             <Grid Background="{Binding State, Converter={converters:State2ColourConverter}, Mode=OneWay}">
                                 <Grid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Command="{Binding SelectWithoutDescendants}" Icon="{StaticResource Target}" Header="Select without descendants"/>
-                                        <MenuItem Command="{Binding ResetSelection}" Icon="{StaticResource Redo}" Header="Reset selection"/>
+                                        <MenuItem Command="{Binding SelectWithoutDescendants}"
+                                                  CommandParameter="{Binding Source={x:Reference Name=Items}, Path=DataContext.InputState}"
+                                                  Icon="{StaticResource Target}"
+                                                  Header="Select without descendants"/>
+                                        
+                                        <MenuItem Command="{Binding ResetSelection}"
+                                                  CommandParameter="{Binding Source={x:Reference Name=Items}, Path=DataContext.InputState}"
+                                                  Icon="{StaticResource Redo}"
+                                                  Header="Reset selection"/>
                                     </ContextMenu>
                                 </Grid.ContextMenu>
 
@@ -200,7 +207,11 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
 
-                                    <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Command="{Binding Click}" CommandParameter="{Binding ElementName=Items, Path=DataContext.InputState}"/>
+                                    <CheckBox Visibility="{Binding State, Converter={converters:State2CheckBoxVisibilityConverter}, Mode=OneWay}"
+                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                              Command="{Binding Click}"
+                                              CommandParameter="{Binding ElementName=Items, Path=DataContext.InputState}"
+                                              VerticalAlignment="Center"/>
 
                                     <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
                                         <TextBlock Text="{Binding Title, Mode=OneTime}"/>

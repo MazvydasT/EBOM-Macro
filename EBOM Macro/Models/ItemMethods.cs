@@ -13,8 +13,25 @@ namespace EBOM_Macro.Models
     {
         public Item()
         {
-            SelectWithoutDescendants = new Command(_ => SetIsChecked(true, false, true));
-            ResetSelection = new Command(_ => ItemManager.ResetItemSelection(this));
+            SelectWithoutDescendants = new Command(parameter =>
+            {
+                SetIsChecked(true, false, true);
+
+                if(parameter != null)
+                {
+                    var inputState = (InputState)parameter;
+                    ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
+                }
+            });
+
+            ResetSelection = new Command(parameter =>
+            {
+                ItemManager.ResetItemSelection(this);
+
+                var inputState = (InputState)parameter;
+                ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
+            });
+            
             Click = new Command(parameter =>
             {
                 var inputState = (InputState)parameter;

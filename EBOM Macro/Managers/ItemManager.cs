@@ -309,7 +309,7 @@ namespace EBOM_Macro.Managers
             statsState.SelectedDeletedParts = 0;
 
             var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
-            var assemblies = (items.PHs ?? Enumerable.Empty<Item>())
+            var assemblies = (items.PHs ?? Enumerable.Empty<Item>()).Concat(items.Root?.Yield() ?? Enumerable.Empty<Item>())
                 .SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i))
                 .Concat(itemObjects.Where(i => !i.IsInstance));
             var parts = itemObjects.Where(i => i.IsInstance);
