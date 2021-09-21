@@ -17,7 +17,6 @@ namespace EBOM_Macro.Managers
     {
         const long PROGRESS_MAX = 200;
         static readonly Encoding EBOM_REPORT_ENCODING = Encoding.GetEncoding("Windows-1252");
-        static readonly Encoding DS_LIST_ENCODING = new UTF8Encoding(false);
 
         public static async Task<ItemsContainer> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
