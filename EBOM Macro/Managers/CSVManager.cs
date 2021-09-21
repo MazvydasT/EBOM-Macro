@@ -29,11 +29,11 @@ namespace EBOM_Macro.Managers
         static readonly Encoding EBOM_REPORT_ENCODING = new UTF8Encoding(false);
 
         /// <summary>
-        /// 
+        /// Asynchronously returns read eMS EBOM report data to the caller.
         /// </summary>
-        /// <param name="pathToEBOMReport"></param>
-        /// <param name="progress"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="pathToEBOMReport">Path to eMS EBOM report</param>
+        /// <param name="progress">Optional IProgress construct for reporting progress back to caller</param>
+        /// <param name="cancellationToken">Optional cancellation token to allow caller to cancel the task</param>
         /// <returns></returns>
         public static async Task<ItemsContainer> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
@@ -45,6 +45,13 @@ namespace EBOM_Macro.Managers
             }
         }
 
+        /// <summary>
+        /// Asynchronously returns read eMS EBOM report data to the caller.
+        /// </summary>
+        /// <param name="ebomReportStream">Stream containing eMS EBOM report data</param>
+        /// <param name="progress">Optional IProgress construct for reporting progress back to caller</param>
+        /// <param name="cancellationToken">Optional cancellation token to allow caller to cancel the task</param>
+        /// <returns></returns>
         static async Task<ItemsContainer> ReadEBOMReport(Stream ebomReportStream, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             return await Task.Factory.StartNew(() =>
@@ -56,7 +63,7 @@ namespace EBOM_Macro.Managers
                 using (var streamReader = new StreamReader(ebomReportStream))
                 using (var csvReader = new CsvReader(streamReader, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    BadDataFound = null,
+                    BadDataFound = null, // Ignores bad data
                     Delimiter = ",",
                     Encoding = EBOM_REPORT_ENCODING,
                     TrimOptions = TrimOptions.Trim,
@@ -83,7 +90,7 @@ namespace EBOM_Macro.Managers
 
                     try
                     {
-                        foreach (var record in records)
+                        foreach (var record in records) // Iterates over all eMS EBOM reports rows
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -134,6 +141,8 @@ namespace EBOM_Macro.Managers
                                     Name = record.Name,
 
                                     Rotation = transformationMatrix.GetEulerZYX(),
+
+                                    // * 1000 is to convert Catia distances in meters to Process Designer distances in milimeters
                                     Translation = transformationMatrix.GetTranslation() * 1000.0,
 
                                     Prefix = record.Prefix,
