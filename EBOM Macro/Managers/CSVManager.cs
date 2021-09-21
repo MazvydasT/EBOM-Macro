@@ -13,11 +13,28 @@ using System.Threading.Tasks;
 
 namespace EBOM_Macro.Managers
 {
+    /// <summary>
+    /// Class responsible for all CSV reading within application 
+    /// </summary>
     public static class CSVManager
     {
+        /// <summary>
+        /// Constant that adjusts how often progress update is sent
+        /// </summary>
         const long PROGRESS_MAX = 200;
-        static readonly Encoding EBOM_REPORT_ENCODING = Encoding.GetEncoding("Windows-1252");
 
+        /// <summary>
+        /// eMS EBOM report encoding
+        /// </summary>
+        static readonly Encoding EBOM_REPORT_ENCODING = new UTF8Encoding(false);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathToEBOMReport"></param>
+        /// <param name="progress"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public static async Task<ItemsContainer> ReadEBOMReport(string pathToEBOMReport, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(pathToEBOMReport)) return default;
