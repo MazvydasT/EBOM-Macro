@@ -11,10 +11,20 @@ using System.Threading.Tasks;
 
 namespace EBOM_Macro.Managers
 {
+    /// <summary>
+    /// Class responsible for handling Item manipulations
+    /// </summary>
     public static class ItemManager
     {
+        /// <summary>
+        /// Constant that adjusts how often progress update is sent to caller
+        /// </summary>
         const long PROGRESS_MAX = 300;
 
+        /// <summary>
+        /// Resets selection of an Item and a whole branch that belongs to it
+        /// </summary>
+        /// <param name="item">Item that should get its selection reset</param>
         public static void ResetItemSelection(Item item)
         {
             if (item == null) return;
@@ -30,6 +40,18 @@ namespace EBOM_Macro.Managers
             }
         }
 
+        /// <summary>
+        /// Asynchronously compares Item objects sourced from eMS EBOM report against items sourced from eMS XML file,
+        /// performs ExternalId matching and reuse as well as autoselects Item objects that should be updated in eMS.
+        /// </summary>
+        /// <param name="items">Items read from eMS EBOM report</param>
+        /// <param name="existingData">Items read from eMS XML file</param>
+        /// <param name="externalIdPrefix">User selected ExternalId prefix</param>
+        /// <param name="reuseExternalIds">Flag that determines if ExternalIds should be reused</param>
+        /// <param name="ldiFolderPath">Path to LDI folder</param>
+        /// <param name="progress">Optional IProgress construct for reporting progress back to the caller</param>
+        /// <param name="cancellationToken">Optional cancellation token to allow caller to cancel the task</param>
+        /// <returns></returns>
         public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, string ldiFolderPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
@@ -187,7 +209,7 @@ namespace EBOM_Macro.Managers
                 progressValue = 0;
                 itemCounter = 0;
 
-                foreach (var item in allItems)
+                foreach (var item in allItems) // Sets Item State property based on camprison results
                 {
                     if (cancellationToken.IsCancellationRequested) return items;
 
@@ -205,15 +227,18 @@ namespace EBOM_Macro.Managers
 
                     item.IsChecked = false;
 
-                    item.State = Item.ItemState.New;
-                    item.RedundantChildren = null;
-                    item.ChangedAttributes = null;
+                    // Clear previous comparison results
+                    item.State = Item.ItemState.New; // Reset State to New
+                    item.RedundantChildren = null; // Clear all redundant children (Items to be deleted)
+                    item.ChangedAttributes = null; // Clear all Changed attributes
 
                     if (existingData != null && existingData.TryGetValue(item.ReusedExternalId ?? $"{externalIdPrefix}{item.BaseExternalId}", out var matchingItem))
                     {
                         item.State = Item.ItemState.Unchanged;
 
                         var childrenHashSet = item.Children.Select(i => i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}").ToHashSet();
+                        
+                        // Get Items that no longer exists in EBOM and should be removed
                         var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.BaseExternalId)).ToList();
 
                         if (redundantItems.Count > 0)
@@ -247,7 +272,7 @@ namespace EBOM_Macro.Managers
                 progressValue = 0;
                 itemCounter = 0;
 
-                foreach (var item in allItems)
+                foreach (var item in allItems) // Selects Items for export as well as sets flag to show if Item has modified children
                 {
                     if (cancellationToken.IsCancellationRequested) return items;
 
@@ -286,6 +311,11 @@ namespace EBOM_Macro.Managers
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
+        /// <summary>
+        /// Updates stats.
+        /// </summary>
+        /// <param name="items">Struct containing Items read from eMS EBOM report</param>
+        /// <param name="statsState">Reference to StatsState instance</param>
         public static async void UpdateStats(ItemsContainer items, StatsState statsState)
         {
             statsState.UnchangedAssemblies = 0;
@@ -380,6 +410,10 @@ namespace EBOM_Macro.Managers
             );
         }
 
+        /// <summary>
+        /// Sets Item's BaseExternalId property
+        /// </summary>
+        /// <param name="item">Item object</param>
         public static void SetBaseExternalId(Item item)
         {
             var physicalIds = string.Join("_", item.GetDSToSelfPath().Select(i => i.PhysicalId));
