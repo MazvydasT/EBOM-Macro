@@ -31,6 +31,8 @@ namespace EBOM_Macro.Models
 
         public string FilePath { get; set; }
 
+        public string Material { get; set; }
+
         public Dictionary<string, string> AsDictionary =>
             new Dictionary<string, string>
             {
@@ -52,7 +54,9 @@ namespace EBOM_Macro.Models
 
                 { nameof(Owner), Owner },
 
-                { "File path", FilePath }
+                { "File path", FilePath },
+
+                { nameof(Material), Material }
             };
     }
 }

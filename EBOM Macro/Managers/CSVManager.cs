@@ -149,7 +149,9 @@ namespace EBOM_Macro.Managers
                                     Base = record.Base,
                                     Suffix = record.Suffix,
 
-                                    Owner = record.Owner
+                                    Owner = record.Owner,
+
+                                    Material = record.Material
                                 },
 
                                 PhysicalId = record.PhysicalId,

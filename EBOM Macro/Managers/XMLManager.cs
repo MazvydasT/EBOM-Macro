@@ -293,6 +293,10 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteString(item.Attributes.Owner?.Trim() ?? "");
                             xmlWriter.WriteEndElement();
 
+                            xmlWriter.WriteStartElement("material");
+                            xmlWriter.WriteString(item.Attributes.Material?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
                             xmlWriter.WriteStartElement("threeDRep");
                             xmlWriter.WriteString(threeDRepExternalId);
                             xmlWriter.WriteEndElement();
@@ -487,7 +491,8 @@ namespace EBOM_Macro.Managers
                                         Owner = element.Element("Data_Source")?.Value,
                                         Prefix = element.Element("Prefix")?.Value,
                                         Base = element.Element("Base")?.Value,
-                                        Suffix = element.Element("Suffix")?.Value
+                                        Suffix = element.Element("Suffix")?.Value,
+                                        Material = element.Element("material")?.Value
                                     }
                                 };
 
