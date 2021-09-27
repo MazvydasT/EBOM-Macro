@@ -237,7 +237,7 @@ namespace EBOM_Macro.Managers
                         item.State = Item.ItemState.Unchanged;
 
                         var childrenHashSet = item.Children.Select(i => i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}").ToHashSet();
-                        
+
                         // Get Items that no longer exists in EBOM and should be removed
                         var redundantItems = matchingItem.Children.Where(i => !childrenHashSet.Contains(i.BaseExternalId)).ToList();
 

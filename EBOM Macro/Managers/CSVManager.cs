@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -88,6 +89,9 @@ namespace EBOM_Macro.Managers
 
                     var skipRecords = false;
 
+                    var materialRoundBracketsRegex = new Regex(@"\(.*\)", RegexOptions.Compiled);
+                    var materialSquareBracketRegex = new Regex(@"\[.*\].*?$", RegexOptions.Compiled);
+
                     try
                     {
                         foreach (var record in records) // Iterates over all eMS EBOM reports rows
@@ -132,6 +136,29 @@ namespace EBOM_Macro.Managers
 
                             var transformationMatrix = Utils.V6MatrixString2Matrix3D(record.Transformation);
 
+                            var material = record.Material;
+
+                            if (material != null)
+                            {
+                                if (material.Contains("(") || material.Contains("["))
+                                {
+                                    material = string.Join("+", material.Split('+').Select(v =>
+                                    {
+                                        var value = v.Trim();
+
+                                        if (materialSquareBracketRegex.Match(value) is var squareMatch && squareMatch.Success)
+                                            value = squareMatch.Value.Replace("[", "").Replace("]", "");
+
+                                        else if (materialRoundBracketsRegex.Match(value) is var roundMatch && roundMatch.Success)
+                                            value = roundMatch.Value.Trim(new[] { '(', ')' });
+
+                                        else value = null;
+
+                                        return value;
+                                    }).Where(v => v != null));
+                                }
+                            }
+
                             var item = new Item
                             {
                                 Attributes = new ItemAttributes
@@ -151,7 +178,7 @@ namespace EBOM_Macro.Managers
 
                                     Owner = record.Owner,
 
-                                    Material = record.Material
+                                    Material = material
                                 },
 
                                 PhysicalId = record.PhysicalId,

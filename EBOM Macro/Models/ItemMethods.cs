@@ -17,7 +17,7 @@ namespace EBOM_Macro.Models
             {
                 SetIsChecked(true, false, true);
 
-                if(parameter != null)
+                if (parameter != null)
                 {
                     var inputState = (InputState)parameter;
                     ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
@@ -31,7 +31,7 @@ namespace EBOM_Macro.Models
                 var inputState = (InputState)parameter;
                 ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
             });
-            
+
             Click = new Command(parameter =>
             {
                 var inputState = (InputState)parameter;
