@@ -92,6 +92,8 @@ namespace EBOM_Macro.Managers
                     var materialRoundBracketsRegex = new Regex(@"\(.*\)", RegexOptions.Compiled);
                     var materialSquareBracketRegex = new Regex(@"\[.*\].*?$", RegexOptions.Compiled);
 
+                    var roundBrackets = new[] { '(', ')' };
+
                     try
                     {
                         foreach (var record in records) // Iterates over all eMS EBOM reports rows
@@ -150,7 +152,7 @@ namespace EBOM_Macro.Managers
                                             value = squareMatch.Value.Replace("[", "").Replace("]", "");
 
                                         else if (materialRoundBracketsRegex.Match(value) is var roundMatch && roundMatch.Success)
-                                            value = roundMatch.Value.Trim(new[] { '(', ')' });
+                                            value = roundMatch.Value.Trim(roundBrackets);
 
                                         else value = null;
 
