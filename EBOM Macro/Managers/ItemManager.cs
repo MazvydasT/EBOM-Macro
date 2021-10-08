@@ -31,11 +31,11 @@ namespace EBOM_Macro.Managers
 
             item.IsChecked = false;
 
-            var items = item.GetSelfAndDescendants(cacheKey);
+            var items = item.GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
 
             foreach (var i in items)
             {
-                if (i.State == Item.ItemState.New || i.State == Item.ItemState.Modified)
+                if (i.State == Item.ItemState.New || i.State == Item.ItemState.Modified || i.State == Item.ItemState.Redundant)
                     i.SelectWithoutDescendants.Execute(null);
             }
         }
