@@ -31,10 +31,10 @@ namespace EBOM_Macro.Models
         public Item Parent { get; set; }
         public List<Item> Children { get; } = new List<Item>();
         public IReadOnlyCollection<Item> RedundantChildren { get; set; }
-        public Item[] AllChildren => Children.Concat(RedundantChildren ?? Enumerable.Empty<Item>())
+        public IReadOnlyList<Item> AllChildren => Children.Concat(RedundantChildren ?? Enumerable.Empty<Item>())
             .OrderBy(i => i.Attributes.Number)
             .ThenBy(i => i.Attributes.Version)
-            .ToArray();
+            .ToList().AsReadOnly();
 
         public IReadOnlyDictionary<string, (string, string)> ChangedAttributes { get; set; }
 

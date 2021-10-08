@@ -38,7 +38,7 @@ namespace EBOM_Macro.Converters
                         ).Any();
 
                 return false;
-            }).ToArray();
+            }).ToList();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotImplementedException();
