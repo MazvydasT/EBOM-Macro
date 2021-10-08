@@ -9,7 +9,7 @@ namespace EBOM_Macro.Models
         public IReadOnlyCollection<Item> Items { get; }
 
         public string Program { get; }
-        
+
         public object CacheKey { get; private set; }
 
         public object RefreshCacheKey() => CacheKey = new object();
