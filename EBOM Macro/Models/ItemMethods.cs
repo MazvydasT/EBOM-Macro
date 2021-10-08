@@ -26,9 +26,9 @@ namespace EBOM_Macro.Models
 
             ResetSelection = new Command(parameter =>
             {
-                ItemManager.ResetItemSelection(this);
-
                 var inputState = (InputState)parameter;
+
+                ItemManager.ResetItemSelection(this, inputState.Items.CacheKey);
                 ItemManager.UpdateStats(inputState.Items, inputState.StatsState);
             });
 
@@ -43,7 +43,9 @@ namespace EBOM_Macro.Models
         public ICommand ResetSelection { get; }
         public ICommand Click { get; set; }
 
-        private ConditionalWeakTable<object, object> cache = new ConditionalWeakTable<object, object>();
+        private ConditionalWeakTable<object, object> ancestorsCache = new ConditionalWeakTable<object, object>();
+        private ConditionalWeakTable<object, object> dsCache = new ConditionalWeakTable<object, object>();
+        private ConditionalWeakTable<object, object> selfAndDescendantsCache = new ConditionalWeakTable<object, object>();
 
         void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -55,11 +57,11 @@ namespace EBOM_Macro.Models
 
             if (cacheKey != null)
             {
-                if (cache.TryGetValue(cacheKey, out var cachedData)) return (Item)cachedData;
+                if (dsCache.TryGetValue(cacheKey, out var cachedData)) return (Item)cachedData;
                 else
                 {
                     var data = Parent?.GetDS(cacheKey);
-                    cache.Add(cacheKey, data);
+                    dsCache.Add(cacheKey, data);
                     return data;
                 }
             }
@@ -67,23 +69,23 @@ namespace EBOM_Macro.Models
             return Parent?.GetDS(cacheKey);
         }
 
-        public IEnumerable<Item> GetDSToSelfPath()
+        public IEnumerable<Item> GetDSToSelfPath(object cacheKey = null)
         {
             if (Type == ItemType.DS) return this.Yield();
-            if (Type == ItemType.PH || GetDS() == null) return Enumerable.Empty<Item>();
+            if (Type == ItemType.PH || GetDS(cacheKey) == null) return Enumerable.Empty<Item>();
 
-            return (Parent?.GetDSToSelfPath() ?? Enumerable.Empty<Item>()).Append(this);
+            return (Parent?.GetDSToSelfPath(cacheKey) ?? Enumerable.Empty<Item>()).Append(this);
         }
 
         public IEnumerable<Item> GetSelfAndDescendants(object cacheKey = null)
         {
             if (cacheKey != null)
             {
-                if (cache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
+                if (selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
                 else
                 {
                     var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this).ToList();
-                    cache.Add(cacheKey, data);
+                    selfAndDescendantsCache.Add(cacheKey, data);
                     return data;
                 }
             }
@@ -96,11 +98,11 @@ namespace EBOM_Macro.Models
         {
             if (cacheKey != null)
             {
-                if (cache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
+                if (ancestorsCache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
                 else
                 {
                     var data = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
-                    cache.Add(cacheKey, data);
+                    ancestorsCache.Add(cacheKey, data);
                     return data;
                 }
             }

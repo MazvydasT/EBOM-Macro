@@ -25,13 +25,13 @@ namespace EBOM_Macro.Managers
         /// Resets selection of an Item and a whole branch that belongs to it
         /// </summary>
         /// <param name="item">Item that should get its selection reset</param>
-        public static void ResetItemSelection(Item item)
+        public static void ResetItemSelection(Item item, object cacheKey = null)
         {
             if (item == null) return;
 
             item.IsChecked = false;
 
-            var items = item.GetSelfAndDescendants();
+            var items = item.GetSelfAndDescendants(cacheKey);
 
             foreach (var i in items)
             {
@@ -74,10 +74,6 @@ namespace EBOM_Macro.Managers
                 long progressValue = 0, progressSoFar = 0;
 
                 var numberLookup = existingData?.Values.ToLookup(i => i.Attributes.Number);
-
-                var ancestorCacheKey = new object();
-                var selfAndDescendantsCacheKey = new object();
-                var dsCacheKey = new object();
 
                 var previouslyMatchedExternalIds = new HashSet<string>();
 
@@ -139,7 +135,7 @@ namespace EBOM_Macro.Managers
 
                     if (item.IsInstance)
                     {
-                        var ds = item.GetDS(dsCacheKey);
+                        var ds = item.GetDS(items.CacheKey);
 
                         var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
 
@@ -294,7 +290,7 @@ namespace EBOM_Macro.Managers
 
                         if (item.Parent?.State == Item.ItemState.Unchanged)
                         {
-                            var unchangedAncestors = item.GetAncestors(ancestorCacheKey).Where(i => i.State == Item.ItemState.Unchanged);
+                            var unchangedAncestors = item.GetAncestors(items.CacheKey).Where(i => i.State == Item.ItemState.Unchanged);
 
                             foreach (var ancestor in unchangedAncestors)
                             {
@@ -305,6 +301,8 @@ namespace EBOM_Macro.Managers
                 }
 
                 progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX });
+
+                items.RefreshCacheKey();
 
                 return items;
 
@@ -414,9 +412,9 @@ namespace EBOM_Macro.Managers
         /// Sets Item's BaseExternalId property
         /// </summary>
         /// <param name="item">Item object</param>
-        public static void SetBaseExternalId(Item item)
+        public static void SetBaseExternalId(Item item, object cacheKey = null)
         {
-            var physicalIds = string.Join("_", item.GetDSToSelfPath().Select(i => i.PhysicalId));
+            var physicalIds = string.Join("_", item.GetDSToSelfPath(cacheKey).Select(i => i.PhysicalId));
             var data = Encoding.UTF8.GetBytes(physicalIds);
             var hash = StaticResources.SHA256.ComputeHash(data);
             var baseExternalId = BitConverter.ToString(hash).Replace("-", "") + (item.IsInstance ? "_i" : "_c");

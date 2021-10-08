@@ -61,6 +61,8 @@ namespace EBOM_Macro.Managers
 
                 long progressValue = 0;
 
+                var cacheKey = new object();
+
                 using (var streamReader = new StreamReader(ebomReportStream))
                 using (var csvReader = new CsvReader(streamReader, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
@@ -314,7 +316,7 @@ namespace EBOM_Macro.Managers
                                 level3Placeholder.Children.Add(item);
                             }
 
-                            if (items.Count > 1) ItemManager.SetBaseExternalId(items[items.Count - 2]);
+                            if (items.Count > 1) ItemManager.SetBaseExternalId(items[items.Count - 2], cacheKey);
 
                             if (progress != null)
                             {
@@ -329,7 +331,7 @@ namespace EBOM_Macro.Managers
                             }
                         }
 
-                        if (items.Count > 0) ItemManager.SetBaseExternalId(items[items.Count - 1]);
+                        if (items.Count > 0) ItemManager.SetBaseExternalId(items[items.Count - 1], cacheKey);
                     }
 
                     catch (HeaderValidationException headerValidationException)
@@ -339,7 +341,7 @@ namespace EBOM_Macro.Managers
 
                     progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = PROGRESS_MAX, Message = $"Done" });
 
-                    return new ItemsContainer { Root = root, PHs = placeholderLookup.Values, Items = items.AsReadOnly(), Program = program };
+                    return new ItemsContainer(root, placeholderLookup.Values, items, program, cacheKey);
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }

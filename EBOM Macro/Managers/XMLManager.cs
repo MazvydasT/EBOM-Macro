@@ -196,7 +196,7 @@ namespace EBOM_Macro.Managers
 
                         if (item.RedundantChildren != null)
                         {
-                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(selfAndDescendantsCacheKey))
+                            var redundantItems = item.RedundantChildren.SelectMany(rc => rc.GetSelfAndDescendants(items.CacheKey))
                                 .Where(i => !externalIdTracker.Contains(i.BaseExternalId));
 
                             foreach (var redundantItem in redundantItems)

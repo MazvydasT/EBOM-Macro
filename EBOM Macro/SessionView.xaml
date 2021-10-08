@@ -183,6 +183,7 @@
                                     <Binding ElementName="ModifiedFilter" Path="IsChecked"/>
                                     <Binding ElementName="NewFilter" Path="IsChecked"/>
                                     <Binding ElementName="DeletedFilter" Path="IsChecked"/>
+                                    <Binding ElementName="Items" Path="DataContext.InputState.Items"/>
                                 </MultiBinding>
                             </HierarchicalDataTemplate.ItemsSource>
 

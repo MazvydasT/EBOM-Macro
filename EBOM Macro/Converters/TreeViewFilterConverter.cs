@@ -21,12 +21,14 @@ namespace EBOM_Macro.Converters
             var includeNew = (bool)values[3];
             var includeDeleted = (bool)values[4];
 
-            var cacheKey = new object();
+            var items = (ItemsContainer)values[5];
 
-            return children.Where(c =>
+            return children?.Where(c =>
             {
+                if (includeUnchanged && includeModified && includeNew && includeDeleted) return true;
+
                 if (includeUnchanged || includeModified || includeNew || includeDeleted)
-                    return c.GetSelfAndDescendants(cacheKey).SelectMany(d => (d.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(d))
+                    return c.GetSelfAndDescendants(items.CacheKey).SelectMany(d => (d.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(d))
                         .Where(d =>
                             (includeUnchanged && d.State == Item.ItemState.Unchanged) ||
                             (includeModified && d.State == Item.ItemState.Modified) ||
