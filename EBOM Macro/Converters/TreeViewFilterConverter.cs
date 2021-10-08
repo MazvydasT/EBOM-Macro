@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 
@@ -14,7 +15,7 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            var children = (IEnumerable<Item>)values[0];
+            var children = values[0] == DependencyProperty.UnsetValue ? null : (IEnumerable<Item>)values[0];
 
             var includeUnchanged = (bool)values[1];
             var includeModified = (bool)values[2];
