@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,11 @@ namespace EBOM_Macro.Managers
         /// Constant that adjusts how often progress update is sent to caller
         /// </summary>
         const long PROGRESS_MAX = 300;
+
+        /// <summary>
+        /// Used to tracks how many times each ExternalId appears within same eMS EBOM report
+        /// </summary>
+        private static ConditionalWeakTable<object, Dictionary<string, int>> baseExternalIdTrackerCache = new ConditionalWeakTable<object, Dictionary<string, int>>();
 
         /// <summary>
         /// Resets selection of an Item and a whole branch that belongs to it
@@ -414,10 +420,30 @@ namespace EBOM_Macro.Managers
         /// <param name="item">Item object</param>
         public static void SetBaseExternalId(Item item, object cacheKey = null)
         {
-            var physicalIds = string.Join("_", item.GetDSToSelfPath(cacheKey).Select(i => i.PhysicalId));
+            var joinedPhysicalIds = string.Join("_", item.GetDSToSelfPath(cacheKey).Select(i => i.PhysicalId));
+
+            var physicalIds = joinedPhysicalIds;
+
+        RecalculateBaseExternalId:
+
             var data = Encoding.UTF8.GetBytes(physicalIds);
             var hash = StaticResources.SHA256.ComputeHash(data);
             var baseExternalId = BitConverter.ToString(hash).Replace("-", "") + (item.IsInstance ? "_i" : "_c");
+
+            if (cacheKey != null)
+            {
+                if (!baseExternalIdTrackerCache.TryGetValue(cacheKey, out var baseExternalIdTracker))
+                    baseExternalIdTrackerCache.Add(cacheKey, baseExternalIdTracker = new Dictionary<string, int>());
+
+                if (baseExternalIdTracker.TryGetValue(baseExternalId, out var baseExternalIdCounter))
+                {
+                    baseExternalIdTracker[baseExternalId] = ++baseExternalIdCounter;
+                    physicalIds = $"{joinedPhysicalIds}_{baseExternalIdCounter}";
+                    goto RecalculateBaseExternalId;
+                }
+
+                else baseExternalIdTracker[baseExternalId] = 0;
+            }
 
             item.BaseExternalId = baseExternalId;
         }
