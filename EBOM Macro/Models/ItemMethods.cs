@@ -43,10 +43,10 @@ namespace EBOM_Macro.Models
         public ICommand ResetSelection { get; }
         public ICommand Click { get; set; }
 
-        private ConditionalWeakTable<object, object> ancestorsCache = new ConditionalWeakTable<object, object>();
-        private ConditionalWeakTable<object, object> dsCache = new ConditionalWeakTable<object, object>();
-        private ConditionalWeakTable<object, object> selfAndDescendantsCache = new ConditionalWeakTable<object, object>();
-        private ConditionalWeakTable<object, object> selfAndDescendantsWithRedundantCache = new ConditionalWeakTable<object, object>();
+        private ConditionalWeakTable<object, List<Item>> ancestorsCache = new ConditionalWeakTable<object, List<Item>>();
+        private ConditionalWeakTable<object, Item> dsCache = new ConditionalWeakTable<object, Item>();
+        private ConditionalWeakTable<object, List<Item>> selfAndDescendantsCache = new ConditionalWeakTable<object, List<Item>>();
+        private ConditionalWeakTable<object, List<Item>> selfAndDescendantsWithRedundantCache = new ConditionalWeakTable<object, List<Item>>();
 
         void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -58,7 +58,7 @@ namespace EBOM_Macro.Models
 
             if (cacheKey != null)
             {
-                if (dsCache.TryGetValue(cacheKey, out var cachedData)) return (Item)cachedData;
+                if (dsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
                 else
                 {
                     var data = Parent?.GetDS(cacheKey);
@@ -83,13 +83,18 @@ namespace EBOM_Macro.Models
 
             if (!includeRedundantItems)
             {
-                if (cacheKey != null && selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return (List<Item>)cachedData;
+                if (cacheKey != null && selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
 
                 else
                 {
                     var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
 
-                    if (cacheKey != null) selfAndDescendantsCache.Add(cacheKey, data = data.ToList());
+                    if (cacheKey != null)
+                    {
+                        var dataList = data.ToList();
+                        selfAndDescendantsCache.Add(cacheKey, dataList);
+                        data = dataList;
+                    }
 
                     return data;
                 }
@@ -97,13 +102,18 @@ namespace EBOM_Macro.Models
 
             else
             {
-                if (cacheKey != null && selfAndDescendantsWithRedundantCache.TryGetValue(cacheKey, out var cachedWithRedundantData)) return (List<Item>)cachedWithRedundantData;
+                if (cacheKey != null && selfAndDescendantsWithRedundantCache.TryGetValue(cacheKey, out var cachedWithRedundantData)) return cachedWithRedundantData;
 
                 else
                 {
                     var data = GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(i));
 
-                    if (cacheKey != null) selfAndDescendantsWithRedundantCache.Add(cacheKey, data = data.ToList());
+                    if (cacheKey != null)
+                    {
+                        var dataList = data.ToList();
+                        selfAndDescendantsWithRedundantCache.Add(cacheKey, dataList);
+                        data = dataList;
+                    }
 
                     return data;
                 }
@@ -115,7 +125,7 @@ namespace EBOM_Macro.Models
         {
             if (cacheKey != null)
             {
-                if (ancestorsCache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
+                if (ancestorsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
                 else
                 {
                     var data = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
