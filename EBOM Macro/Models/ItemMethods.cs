@@ -46,6 +46,7 @@ namespace EBOM_Macro.Models
         private ConditionalWeakTable<object, object> ancestorsCache = new ConditionalWeakTable<object, object>();
         private ConditionalWeakTable<object, object> dsCache = new ConditionalWeakTable<object, object>();
         private ConditionalWeakTable<object, object> selfAndDescendantsCache = new ConditionalWeakTable<object, object>();
+        private ConditionalWeakTable<object, object> selfAndDescendantsWithRedundantCache = new ConditionalWeakTable<object, object>();
 
         void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -77,20 +78,36 @@ namespace EBOM_Macro.Models
             return (Parent?.GetDSToSelfPath(cacheKey) ?? Enumerable.Empty<Item>()).Append(this);
         }
 
-        public IEnumerable<Item> GetSelfAndDescendants(object cacheKey = null)
+        public IEnumerable<Item> GetSelfAndDescendants(object cacheKey = null, bool includeRedundantItems = false)
         {
-            if (cacheKey != null)
+
+            if (!includeRedundantItems)
             {
-                if (selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return (IList<Item>)cachedData;
+                if (cacheKey != null && selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return (List<Item>)cachedData;
+
                 else
                 {
-                    var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this).ToList();
-                    selfAndDescendantsCache.Add(cacheKey, data);
+                    var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
+
+                    if (cacheKey != null) selfAndDescendantsCache.Add(cacheKey, data = data.ToList());
+
                     return data;
                 }
             }
 
-            return Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
+            else
+            {
+                if (cacheKey != null && selfAndDescendantsWithRedundantCache.TryGetValue(cacheKey, out var cachedWithRedundantData)) return (List<Item>)cachedWithRedundantData;
+
+                else
+                {
+                    var data = GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(i));
+
+                    if(cacheKey != null) selfAndDescendantsWithRedundantCache.Add(cacheKey, data = data.ToList());
+
+                    return data;
+                }
+            }
         }
 
 
