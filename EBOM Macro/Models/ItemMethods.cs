@@ -103,7 +103,7 @@ namespace EBOM_Macro.Models
                 {
                     var data = GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(i));
 
-                    if(cacheKey != null) selfAndDescendantsWithRedundantCache.Add(cacheKey, data = data.ToList());
+                    if (cacheKey != null) selfAndDescendantsWithRedundantCache.Add(cacheKey, data = data.ToList());
 
                     return data;
                 }
