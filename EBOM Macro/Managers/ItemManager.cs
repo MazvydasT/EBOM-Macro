@@ -31,7 +31,7 @@ namespace EBOM_Macro.Managers
 
             item.IsChecked = false;
 
-            var items = item.GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
+            var items = item.GetSelfAndDescendants(cacheKey, true);
 
             foreach (var i in items)
             {

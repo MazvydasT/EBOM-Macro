@@ -29,7 +29,7 @@ namespace EBOM_Macro.Converters
                 if (includeUnchanged && includeModified && includeNew && includeDeleted) return true;
 
                 if (includeUnchanged || includeModified || includeNew || includeDeleted)
-                    return c.GetSelfAndDescendants(items.CacheKey).SelectMany(d => (d.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(d))
+                    return c.GetSelfAndDescendants(items.CacheKey, true)
                         .Where(d =>
                             (includeUnchanged && d.State == Item.ItemState.Unchanged) ||
                             (includeModified && d.State == Item.ItemState.Modified) ||
