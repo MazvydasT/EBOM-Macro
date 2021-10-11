@@ -182,9 +182,9 @@ namespace EBOM_Macro.Managers
 
                             else if (matchedInstances.Count > 1 || siblings.Count > 1)
                             {
-                                var matchedTransformationInstances = matchedInstances.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
+                                var matchedTransformationInstances = matchedInstances.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString()).ToList();
 
-                                var transformationSiblings = siblings.Where(i => i.Attributes.Translation == item.Attributes.Translation && i.Attributes.Rotation == item.Attributes.Rotation).ToList();
+                                var transformationSiblings = siblings.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString()).ToList();
 
                                 if (matchedTransformationInstances.Count == 1 && transformationSiblings.Count == 1)
                                 {
