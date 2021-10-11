@@ -302,12 +302,9 @@
     <Compile Include="States\OutputState.cs" />
     <Compile Include="States\SessionState.cs" />
     <Compile Include="States\StatsState.cs" />
-    <Compile Include="TemplateSelectors\State2StrikethroughTemplateSelector.cs" />
-    <Compile Include="Converters\StrikethroughAngleConverter.cs" />
     <Compile Include="Managers\CSVManager.cs" />
     <Compile Include="Extensions\DoubleExtensions.cs" />
     <Compile Include="Extensions\FreezableExtensions.cs" />
-    <Compile Include="Converters\StrikethroughOffsetConverter.cs" />
     <Compile Include="States\InputState.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="Models\Item.cs" />

@@ -1,5 +1,4 @@
 ﻿using EBOM_Macro.Extensions;
-using System;
 using System.Security.Cryptography;
 using System.Windows.Media;
 
@@ -16,8 +15,6 @@ namespace EBOM_Macro
         public static Brush RedBrush { get; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FB4040")).AsFrozen();
 
         public static Brush ClearBrush { get; } = new SolidColorBrush().AsFrozen();
-
-        public static Random Random { get; } = new Random();
 
         public static SHA256Managed SHA256 { get; } = new SHA256Managed();
 
