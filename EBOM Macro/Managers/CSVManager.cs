@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -28,6 +29,12 @@ namespace EBOM_Macro.Managers
         /// eMS EBOM report encoding
         /// </summary>
         static readonly Encoding EBOM_REPORT_ENCODING = new UTF8Encoding(false);
+
+        /// <summary>
+        /// Lists string type properties of a record object
+        /// </summary>
+        static readonly IReadOnlyList<PropertyInfo> RECORD_STRING_PROPERTIES = typeof(EBOMReportRecord).GetProperties()
+            .Where(p => p.PropertyType == typeof(string)).ToList();
 
         /// <summary>
         /// Asynchronously returns read eMS EBOM report data to the caller.
@@ -101,6 +108,21 @@ namespace EBOM_Macro.Managers
                         foreach (var record in records) // Iterates over all eMS EBOM reports rows
                         {
                             cancellationToken.ThrowIfCancellationRequested();
+
+                            // Iterates over string type properties of a record and converts encoding.
+                            // This is to safeguard against input CSV file where declared encoding is different to actual encoding,
+                            // which causes issues when comparing new data to existing data.
+                            foreach (var property in RECORD_STRING_PROPERTIES)
+                            {
+                                var value = (string)property.GetValue(record);
+
+                                var csvEncodingBytes = EBOM_REPORT_ENCODING.GetBytes(value);
+                                var xmlEncodingBytes = Encoding.Convert(EBOM_REPORT_ENCODING, XMLManager.XML_ENCODING, csvEncodingBytes);
+
+                                value = XMLManager.XML_ENCODING.GetString(xmlEncodingBytes);
+
+                                property.SetValue(record, value);
+                            }
 
                             var level = record.Level;
 
