@@ -116,6 +116,8 @@ namespace EBOM_Macro.Managers
                             {
                                 var value = (string)property.GetValue(record);
 
+                                if (value == null) continue;
+
                                 var csvEncodingBytes = EBOM_REPORT_ENCODING.GetBytes(value);
                                 var xmlEncodingBytes = Encoding.Convert(EBOM_REPORT_ENCODING, XMLManager.XML_ENCODING, csvEncodingBytes);
 
