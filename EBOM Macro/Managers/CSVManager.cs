@@ -63,7 +63,7 @@ namespace EBOM_Macro.Managers
 
                 var cacheKey = new object();
 
-                using (var streamReader = new StreamReader(ebomReportStream))
+                using (var streamReader = new StreamReader(ebomReportStream, EBOM_REPORT_ENCODING))
                 using (var csvReader = new CsvReader(streamReader, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
                     BadDataFound = null, // Ignores bad data
