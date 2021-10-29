@@ -101,6 +101,8 @@ namespace EBOM_Macro.Managers
                     var materialRoundBracketsRegex = new Regex(@"\(.*\)", RegexOptions.Compiled);
                     var materialSquareBracketRegex = new Regex(@"\[.*\].*?$", RegexOptions.Compiled);
 
+                    const char plusChar = '+';
+
                     var roundBrackets = new[] { '(', ')' };
 
                     try
@@ -168,9 +170,12 @@ namespace EBOM_Macro.Managers
 
                             if (material != null)
                             {
+                                // Remove material duplication
+                                material = string.Join($"{plusChar}", material.Split(plusChar).Select(v => v.Trim()).Distinct());
+
                                 if (material.Contains("(") || material.Contains("["))
                                 {
-                                    material = string.Join("+", material.Split('+').Select(v =>
+                                    material = string.Join($"{plusChar}", material.Split(plusChar).Select(v =>
                                     {
                                         var value = v.Trim();
 
@@ -183,8 +188,12 @@ namespace EBOM_Macro.Managers
                                         else value = null;
 
                                         return value;
-                                    }).Where(v => v != null));
+                                    }).Where(v => v != null).Distinct());
                                 }
+
+                                const string ellipsis = "[...]";
+                                const int lengthLimit = 256; // Material field character limit in eMS
+                                if (material.Length > lengthLimit) material = material.Substring(0, lengthLimit - ellipsis.Length) + ellipsis;
                             }
 
                             var item = new Item
