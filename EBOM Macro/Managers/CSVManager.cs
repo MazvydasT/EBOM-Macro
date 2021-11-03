@@ -179,15 +179,24 @@ namespace EBOM_Macro.Managers
                                     {
                                         var value = v.Trim();
 
+                                        string newValue;
+
                                         if (materialSquareBracketRegex.Match(value) is var squareMatch && squareMatch.Success)
-                                            value = squareMatch.Value.Replace("[", "").Replace("]", "");
+                                        {
+                                            newValue = squareMatch.Value.Replace("[", "").Replace("]", "");
+                                        }
 
                                         else if (materialRoundBracketsRegex.Match(value) is var roundMatch && roundMatch.Success)
-                                            value = roundMatch.Value.Trim(roundBrackets);
+                                        {
+                                            newValue = roundMatch.Value.Trim(roundBrackets);
+                                        }
 
-                                        else value = null;
+                                        else newValue = null;
 
-                                        return value;
+                                        // Check if extracted value still contains brackets, if so, revert to original
+                                        if (newValue?.Where(c => "(){}".Contains(c)).Any() ?? false) newValue = value;
+
+                                        return newValue;
                                     }).Where(v => v != null).Distinct());
                                 }
 
