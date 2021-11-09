@@ -564,6 +564,7 @@ namespace EBOM_Macro.Managers
                         item.Attributes.Prefix = prototypeData.Attributes.Prefix;
                         item.Attributes.Base = prototypeData.Attributes.Base;
                         item.Attributes.Suffix = prototypeData.Attributes.Suffix;
+                        item.Attributes.Material = prototypeData.Attributes.Material;
 
                         if (threeDRepIdTracker.TryGetValue(prototypeData, out var threeDRepId) &&
                             fileIdTracker.TryGetValue(threeDRepId, out var fileId) &&
