@@ -153,7 +153,7 @@ namespace EBOM_Macro.Models
 
                 if (!IsInstance || !anotherItem.IsInstance)
                 {
-                    // Matrial is only applicable to instances in eMS
+                    // Material is only applicable to instances in eMS
                     if (pair.Key == nameof(ItemAttributes.Material)) continue;
                 }
 
