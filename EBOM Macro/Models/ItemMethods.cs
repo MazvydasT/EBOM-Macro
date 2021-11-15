@@ -151,6 +151,12 @@ namespace EBOM_Macro.Models
                 var attributeValue = pair.Value ?? "";
                 var anotherItemAttributeValue = anotherItemAttributes[pair.Key] ?? "";
 
+                if (!IsInstance || !anotherItem.IsInstance)
+                {
+                    // Matrial is only applicable to instances in eMS
+                    if (pair.Key == nameof(ItemAttributes.Material)) continue;
+                }
+
                 if (attributeValue != anotherItemAttributeValue) differentAttributes[pair.Key] = (attributeValue, anotherItemAttributeValue);
             }
 
