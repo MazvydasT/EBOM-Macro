@@ -227,7 +227,9 @@ namespace EBOM_Macro.Managers
 
                                     Owner = record.Owner,
 
-                                    Material = material
+                                    Material = material,
+
+                                    // CCR = record.CCR
                                 },
 
                                 PhysicalId = record.PhysicalId,
@@ -236,7 +238,9 @@ namespace EBOM_Macro.Managers
 
                                 Type = level == 0 ? Item.ItemType.DS : Item.ItemType.PartAsy,
 
-                                IsInstance = record.Has3DShape
+                                IsInstance = record.Has3DShape,
+
+                                Filename = record.Filename
                             };
 
                             if (item.Parent != null)

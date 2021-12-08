@@ -46,6 +46,8 @@ namespace EBOM_Macro.Models
 
         public bool IsInstance { get; set; }
 
+        public string Filename { get; set; }
+
         public string Title => $"{Attributes.Number}" + (Attributes.Version == 0 ? "" : $"/{Attributes.Version}") +
             (string.IsNullOrWhiteSpace(Attributes.Name) ? "" : $" - {Attributes.Name}");
 

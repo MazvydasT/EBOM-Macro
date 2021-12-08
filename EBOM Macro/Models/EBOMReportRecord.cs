@@ -54,5 +54,11 @@ namespace EBOM_Macro.Models
 
         [Name("HAS_3D_SHAPE")]
         public bool Has3DShape { get; set; }
+
+        [Name("CCR"), Optional]
+        public string CCR { get; set; }
+
+        [Name("FILENAME"), Optional]
+        public string Filename { get; set; }
     }
 }
