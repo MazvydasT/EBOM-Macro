@@ -250,7 +250,7 @@ namespace EBOM_Macro.Managers
                             if (item.Parent == null)
                             {
                                 var cpscLevel3Parts = record.CPSCLevel3?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                                var cpscLevel3Number = cpscLevel3Parts?.Length > 0 ? cpscLevel3Parts[0].Trim() : "";
+                                var cpscLevel3Number = cpscLevel3Parts?.Length > 0 ? cpscLevel3Parts[0].Trim() : "NO_LEVEL_3_CPSC";
                                 var cpscLevel3Name = cpscLevel3Parts?.Length > 1 ? string.Join("-", cpscLevel3Parts.Skip(1)).Trim() : "";
 
                                 placeholderLookup.TryGetValue(cpscLevel3Number, out Item level3Placeholder);
@@ -275,7 +275,7 @@ namespace EBOM_Macro.Managers
                                     placeholderLookup.Add(cpscLevel3Number, level3Placeholder);
 
                                     var cpscLevel2Parts = record.CPSCLevel2?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                                    var cpscLevel2Number = cpscLevel2Parts?.Length > 0 ? cpscLevel2Parts[0].Trim() : "";
+                                    var cpscLevel2Number = cpscLevel2Parts?.Length > 0 ? cpscLevel2Parts[0].Trim() : "NO_LEVEL_2_CPSC";
                                     var cpscLevel2Name = cpscLevel2Parts?.Length > 1 ? string.Join("-", cpscLevel2Parts.Skip(1)).Trim() : "";
 
                                     placeholderLookup.TryGetValue(cpscLevel2Number, out Item level2Placeholder);
@@ -300,7 +300,7 @@ namespace EBOM_Macro.Managers
                                         placeholderLookup.Add(cpscLevel2Number, level2Placeholder);
 
                                         var cpscLevel1Parts = record.CPSCLevel1?.Split(cpscSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                                        var cpscLevel1Number = cpscLevel1Parts?.Length > 0 ? cpscLevel1Parts[0].Trim() : "";
+                                        var cpscLevel1Number = cpscLevel1Parts?.Length > 0 ? cpscLevel1Parts[0].Trim() : "NO_LEVEL_1_CPSC";
                                         var cpscLevel1Name = cpscLevel1Parts?.Length > 1 ? string.Join("-", cpscLevel1Parts.Skip(1)).Trim() : "";
 
                                         placeholderLookup.TryGetValue(cpscLevel1Number, out Item level1Placeholder);
