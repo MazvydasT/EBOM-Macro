@@ -54,11 +54,12 @@ namespace EBOM_Macro.Managers
         /// <param name="existingData">Items read from eMS XML file</param>
         /// <param name="externalIdPrefix">User selected ExternalId prefix</param>
         /// <param name="reuseExternalIds">Flag that determines if ExternalIds should be reused</param>
+        /// <param name="comFoxTranslationSystemIsUsed">Flag that determines if path to JT should be constructed to match COM/FOX translator output</param>
         /// <param name="ldiFolderPath">Path to LDI folder</param>
         /// <param name="progress">Optional IProgress construct for reporting progress back to the caller</param>
         /// <param name="cancellationToken">Optional cancellation token to allow caller to cancel the task</param>
         /// <returns></returns>
-        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, string ldiFolderPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
+        public static async Task<ItemsContainer> SetStatus(ItemsContainer items, Dictionary<string, Item> existingData, string externalIdPrefix, bool reuseExternalIds, bool comFoxTranslationSystemIsUsed, string ldiFolderPath, IProgress<ProgressUpdate> progress = null, CancellationToken cancellationToken = default)
         {
             progress?.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = 0 });
 
@@ -141,9 +142,20 @@ namespace EBOM_Macro.Managers
 
                     if (item.IsInstance)
                     {
-                        var ds = item.GetDS(items.CacheKey);
+                        string jtPath;
 
-                        var jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
+                        if (comFoxTranslationSystemIsUsed)
+                        {
+                            jtPath = Path.Combine(ldiFolderPath, item.Filename?.GetSafeFileName() ?? "");
+                        }
+
+                        else
+                        {
+                            var ds = item.GetDS(items.CacheKey);
+
+                            jtPath = Path.Combine(ldiFolderPath, $"{ds.Attributes.Number}_{ds.Attributes.Version}__".GetSafeFileName(), $"{item.Attributes.Number}.jt".GetSafeFileName());
+                        }
+
 
                         item.Attributes.FilePath = jtPath;
                     }

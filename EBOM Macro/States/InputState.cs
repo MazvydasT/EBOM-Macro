@@ -23,6 +23,7 @@ namespace EBOM_Macro.States
         [Reactive] public string LDIFolderPath { get; set; }
         [Reactive] public bool ReuseExternalIds { get; set; } = true;
         [Reactive] public string ExternalIdPrefixInput { get; set; }
+        [Reactive] public bool ComFoxTranslationSystemIsUsed { get; set; } = false;
 
         [Reactive] public ItemsContainer Items { get; private set; }
         [Reactive] public Item[] Root { get; private set; }
@@ -102,10 +103,10 @@ namespace EBOM_Macro.States
                 itemsObservable,
                 this.WhenAnyValue(x => x.LDIFolderPath),
 
-                Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), (existingData, externalIdPrefix, reuseExtIds) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds))
+                Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), this.WhenAnyValue(x => x.ComFoxTranslationSystemIsUsed), (existingData, externalIdPrefix, reuseExtIds, comFoxTranslationSystemIsUsed) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds, comFoxTranslationSystemIsUsed))
                     .DistinctUntilChanged(),
 
-                (items, ldiFolderPath, tuple) => (items: string.IsNullOrEmpty(ldiFolderPath) ? default : items, ldiFolderPath, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds))
+                (items, ldiFolderPath, tuple) => (items: string.IsNullOrEmpty(ldiFolderPath) ? default : items, ldiFolderPath, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds, tuple.comFoxTranslationSystemIsUsed))
                 .ObserveOn(TaskPoolScheduler.Default)
                 .Throttle(data =>
                 {
@@ -125,7 +126,7 @@ namespace EBOM_Macro.States
 
                         cancellationTokenSource = new CancellationTokenSource();
 
-                        var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, data.ldiFolderPath, new Progress<ProgressUpdate>(progress =>
+                        var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, data.comFoxTranslationSystemIsUsed, data.ldiFolderPath, new Progress<ProgressUpdate>(progress =>
                         {
                             progressState.ComparisonProgress = (double)progress.Value / progress.Max;
                         }), cancellationTokenSource.Token);
