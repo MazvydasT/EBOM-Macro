@@ -135,18 +135,21 @@ namespace EBOM_Macro.Managers
                                 vehicleLineTitle = (record.Title ?? "").Trim();
                                 vehicleLineName = (record.VehicleLineName ?? "").Trim();
 
-                                var vehicleLineNameParts = vehicleLineName.Split(new[] { '-' });
+                                var programRegex = new Regex(@"[A-Z]+\d+.*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-                                if (vehicleLineNameParts.Length < 2)
+                                program = new Regex("([^A-Z0-9])", RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                                    .Split($"{vehicleLineName}-{vehicleLineTitle}")
+                                    .Where(v => programRegex.IsMatch(v))
+                                    .FirstOrDefault();
+
+                                if (program == null)
                                 {
-                                    var columnName = csvReader.Context.Maps[record.GetType()].MemberMaps
-                                        .Where(m => m.Data.Member.Name == nameof(EBOMReportRecord.VehicleLineName))
-                                        .FirstOrDefault()?.Data.Names.FirstOrDefault();
+                                    var columnNames = string.Join(", ", csvReader.Context.Maps[record.GetType()].MemberMaps
+                                        .Where(m => m.Data.Member.Name == nameof(EBOMReportRecord.VehicleLineName) || m.Data.Member.Name == nameof(EBOMReportRecord.Title))
+                                        .Select(m => m.Data.Names.FirstOrDefault()));
 
-                                    throw new InvalidDataException($"Unexpected {columnName} value: '{record.VehicleLineName}'. Unable to extract program name.");
+                                    throw new InvalidDataException($"Unexpected {columnNames} values: '{record.VehicleLineName}', '{record.Title}'. Unable to extract program name.");
                                 }
-
-                                program = vehicleLineNameParts[1].Trim();
                             }
 
                             if (level == 0)
