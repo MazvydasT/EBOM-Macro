@@ -156,13 +156,15 @@ namespace EBOM_Macro.Managers
                             {
                                 skipRecords = false;
 
-                                if (dsPhysicalIdTracker.Contains(record.PhysicalId))
+                                var uniqueIdentifier = $"{record.PhysicalId}#{record.Transformation}";
+
+                                if (dsPhysicalIdTracker.Contains(uniqueIdentifier))
                                 {
                                     skipRecords = true;
                                     continue;
                                 }
 
-                                else dsPhysicalIdTracker.Add(record.PhysicalId);
+                                else dsPhysicalIdTracker.Add(uniqueIdentifier);
                             }
 
                             if (skipRecords) continue;
