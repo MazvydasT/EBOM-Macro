@@ -63,6 +63,13 @@
                 <StackPanel FlowDirection="LeftToRight" Margin="5,0,10,0">
 
                     <StackPanel>
+                        <TextBlock Text="Translation system:" ToolTip="Affects how path to JT is constructed"/>
+
+                        <RadioButton Content="Theorem" IsChecked="True" GroupName="TranslationSystem"/>
+                        <RadioButton Content="COM/FOX" IsChecked="{Binding InputState.ComFoxTranslationSystemIsUsed}" GroupName="TranslationSystem"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,15,0,0">
                         <TextBlock Text="Path to EBOM report: *" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Top"/>
 
                         <Grid>
@@ -141,13 +148,6 @@
                         </Grid>
                     </StackPanel>
 
-                    <StackPanel Margin="0,15,0,0">
-                        <TextBlock Text="Translation system:" ToolTip="Affects how path to JT is constructed"/>
-
-                        <RadioButton Content="Theorem" IsChecked="True" GroupName="TranslationSystem"/>
-                        <RadioButton Content="COM/FOX" IsChecked="{Binding InputState.ComFoxTranslationSystemIsUsed}" GroupName="TranslationSystem"/>
-                    </StackPanel>
-
                 </StackPanel>
             </ScrollViewer>
 
@@ -168,7 +168,7 @@
                         <CheckBox x:Name="DeletedFilter" Content="Deleted" IsChecked="True"/>
                     </WrapPanel>
                 </GroupBox>
-                
+
                 <TreeView x:Name="Items" IsEnabled="{Binding ElementName=ProcessingProgressBar, Path=Visibility, Mode=OneWay, Converter={converters:TreeViewIsEnabledConverter}}"
                           ItemsSource="{Binding InputState.Root}" BorderThickness="0" Margin="5,0" Grid.Row="1">
                     <TreeView.ItemTemplate>
