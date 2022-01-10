@@ -70,7 +70,7 @@ namespace EBOM_Macro.States
                             {
                                 var metaData = string.Join("\n", new[]
                                 {
-                                    $"        Timestamp: {DateTime.Now:G}",
+                                    $"                          Timestamp: {DateTime.Now:G}",
                                     ""
                                 }.Concat(inputs.SelectMany(i => new[]
                                 {
