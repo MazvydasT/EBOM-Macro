@@ -62,7 +62,7 @@ namespace EBOM_Macro.States
                         ExportError = false;
 
                         var inputs = sessions.Select(s => s.InputState);
-                        var exportDataList = inputs.Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix, LDIFolderPath = i.LDIFolderPath }).ToList();
+                        var exportDataList = inputs.Select(i => new XMLExportData { Items = i.Items, ExternalIdPrefix = i.ExternalIdPrefix }).ToList();
 
                         using (cancellationTokenSource = new CancellationTokenSource())
                         {
@@ -74,11 +74,13 @@ namespace EBOM_Macro.States
                                     ""
                                 }.Concat(inputs.SelectMany(i => new[]
                                 {
-                                    $"      EBOM report: {i.EBOMReportPath}",
-                                    $"      Path to LDI: {i.LDIFolderPath}",
-                                    $"    Existing data: {i.ExistingDataPath}",
-                                    $" ExternalId reuse: {(string.IsNullOrWhiteSpace(i.ExistingDataPath) ? false : i.ReuseExternalIds)}",
-                                    $"ExternalId prefix: {i.ExternalIdPrefix}",
+                                    $"                        EBOM report: {i.EBOMReportPath}",
+                                    $"Path to LDI is System Root relative: {i.SystemRootRelativePath}",
+                                    $"                Path to System Root: {i.SystemRootFolderPath}",
+                                    $"                        Path to LDI: {i.LDIFolderPath}",
+                                    $"                      Existing data: {i.ExistingDataPath}",
+                                    $"                   ExternalId reuse: {(string.IsNullOrWhiteSpace(i.ExistingDataPath) ? false : i.ReuseExternalIds)}",
+                                    $"                  ExternalId prefix: {i.ExternalIdPrefix}",
                                     ""
                                 })));
 

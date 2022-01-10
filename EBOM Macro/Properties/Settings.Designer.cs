@@ -70,5 +70,29 @@ namespace EBOM_Macro.Properties {
                 this["LastUsedLDIDirectory"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastUsedSystemRootDirectory {
+            get {
+                return ((string)(this["LastUsedSystemRootDirectory"]));
+            }
+            set {
+                this["LastUsedSystemRootDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseSystemRootRelativePath {
+            get {
+                return ((bool)(this["UseSystemRootRelativePath"]));
+            }
+            set {
+                this["UseSystemRootRelativePath"] = value;
+            }
+        }
     }
 }

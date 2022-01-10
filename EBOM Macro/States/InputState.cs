@@ -18,8 +18,27 @@ namespace EBOM_Macro.States
 {
     public class InputState : ReactiveObject, IDisposable
     {
+        bool systemRootRelativePath = Properties.Settings.Default.UseSystemRootRelativePath;
+        public bool SystemRootRelativePath
+        {
+            get => systemRootRelativePath;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref systemRootRelativePath, value);
+
+                var properties = Properties.Settings.Default;
+
+                if (properties.UseSystemRootRelativePath != value)
+                {
+                    properties.UseSystemRootRelativePath = value;
+                    properties.Save();
+                }
+            }
+        }
+
         [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
+        [Reactive] public string SystemRootFolderPath { get; set; } = Properties.Settings.Default.LastUsedSystemRootDirectory;
         [Reactive] public string LDIFolderPath { get; set; }
         [Reactive] public bool ReuseExternalIds { get; set; } = true;
         [Reactive] public string ExternalIdPrefixInput { get; set; }
@@ -28,8 +47,10 @@ namespace EBOM_Macro.States
         [Reactive] public ItemsContainer Items { get; private set; }
         [Reactive] public Item[] Root { get; private set; }
         [Reactive] public string ExternalIdPrefix { get; private set; }
+        [Reactive] public string AdjustedLDIPath { get; private set; }
 
         public ReactiveCommand<Unit, Unit> BrowseEBOMReport { get; private set; }
+        public ReactiveCommand<Unit, Unit> BrowseSystemRootFolder { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseLDIFolder { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
@@ -37,7 +58,7 @@ namespace EBOM_Macro.States
         ProgressState progressState;
         public StatsState StatsState { get; set; } = new StatsState();
 
-        IDisposable itemsDisposable, externalIdPrefixDisposable;
+        IDisposable itemsDisposable, externalIdPrefixDisposable, adjustedLDIPathDisposable;
 
         CancellationTokenSource cancellationTokenSource = null;
         BehaviorSubject<bool> releaseLastValue = new BehaviorSubject<bool>(true);
@@ -94,6 +115,17 @@ namespace EBOM_Macro.States
                     return Observable.Return<Dictionary<string, Item>>(default);
                 })).Switch();
 
+            adjustedLDIPathDisposable = Observable.CombineLatest(
+                this.WhenAnyValue(x => x.SystemRootRelativePath),
+                this.WhenAnyValue(x => x.SystemRootFolderPath),
+                this.WhenAnyValue(x => x.LDIFolderPath),
+
+                (isSystemRootRelative, systemRootFolderPath, ldiFolderPath) =>
+                    !isSystemRootRelative ? ldiFolderPath :
+                        (!string.IsNullOrEmpty(systemRootFolderPath) && (ldiFolderPath?.StartsWith(systemRootFolderPath) ?? false) ?
+                            ldiFolderPath.Replace(systemRootFolderPath, "#") : null)
+            ).Subscribe(v => AdjustedLDIPath = v);
+
             externalIdPrefixDisposable = this.WhenAnyValue(x => x.ExternalIdPrefixInput)
                 .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select(prefix => prefix?.Trim().ToUpper() ?? "")
@@ -101,10 +133,16 @@ namespace EBOM_Macro.States
 
             itemsDisposable = Observable.CombineLatest(
                 itemsObservable,
-                this.WhenAnyValue(x => x.LDIFolderPath),
+                this.WhenAnyValue(x => x.AdjustedLDIPath),
 
-                Observable.CombineLatest(existingDataObservable, this.WhenAnyValue(x => x.ExternalIdPrefix), this.WhenAnyValue(x => x.ReuseExternalIds), this.WhenAnyValue(x => x.ComFoxTranslationSystemIsUsed), (existingData, externalIdPrefix, reuseExtIds, comFoxTranslationSystemIsUsed) => (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds, comFoxTranslationSystemIsUsed))
-                    .DistinctUntilChanged(),
+                Observable.CombineLatest(
+                    existingDataObservable,
+                    this.WhenAnyValue(x => x.ExternalIdPrefix),
+                    this.WhenAnyValue(x => x.ReuseExternalIds),
+                    this.WhenAnyValue(x => x.ComFoxTranslationSystemIsUsed),
+                    (existingData, externalIdPrefix, reuseExtIds, comFoxTranslationSystemIsUsed) =>
+                        (existingData, externalIdPrefix: existingData == null ? "" : externalIdPrefix, reuseExternalIds: existingData == null ? false : reuseExtIds, comFoxTranslationSystemIsUsed)
+                ).DistinctUntilChanged(),
 
                 (items, ldiFolderPath, tuple) => (items: string.IsNullOrEmpty(ldiFolderPath) ? default : items, ldiFolderPath, tuple.existingData, tuple.externalIdPrefix, tuple.reuseExternalIds, tuple.comFoxTranslationSystemIsUsed))
                 .ObserveOn(TaskPoolScheduler.Default)
@@ -170,6 +208,27 @@ namespace EBOM_Macro.States
                 }
             });
 
+            BrowseSystemRootFolder = ReactiveCommand.Create(() =>
+            {
+                var properties = Properties.Settings.Default;
+
+                var lastUsedSystemRootDirectory = string.IsNullOrWhiteSpace(properties.LastUsedSystemRootDirectory) ?
+                    (string.IsNullOrWhiteSpace(SystemRootFolderPath) ? Environment.CurrentDirectory : Path.GetDirectoryName(SystemRootFolderPath)) : properties.LastUsedSystemRootDirectory;
+
+                var dialog = new FolderSelect.FolderSelectDialog
+                {
+                    InitialDirectory = lastUsedSystemRootDirectory,
+                    Title = "Select System Root folder"
+                };
+
+                if (dialog.ShowDialog(new WindowInteropHelper(App.Current.MainWindow).Handle))
+                {
+                    SystemRootFolderPath = Utils.PathToUNC(dialog.FileName);
+                    properties.LastUsedSystemRootDirectory = SystemRootFolderPath;
+                    properties.Save();
+                }
+            });
+
             BrowseLDIFolder = ReactiveCommand.Create(() =>
             {
                 var properties = Properties.Settings.Default;
@@ -230,6 +289,7 @@ namespace EBOM_Macro.States
                 {
                     BrowseEBOMReport.Dispose();
                     BrowseExistingData.Dispose();
+                    BrowseSystemRootFolder.Dispose();
                     BrowseLDIFolder.Dispose();
                     ClearExistingData.Dispose();
 
@@ -240,12 +300,14 @@ namespace EBOM_Macro.States
 
                     itemsDisposable.Dispose();
                     externalIdPrefixDisposable.Dispose();
+                    adjustedLDIPathDisposable.Dispose();
 
                     releaseLastValue.Dispose();
                 }
 
                 EBOMReportPath = null;
                 ExistingDataPath = null;
+                SystemRootFolderPath = null;
                 LDIFolderPath = null;
                 ReuseExternalIds = default;
                 ExternalIdPrefixInput = null;

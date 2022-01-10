@@ -254,7 +254,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\CopyAttributesButtonIsEnabledConverter.cs" />
+    <Compile Include="Converters\LDIFolderPathBrowseEnabledConverter.cs" />
     <Compile Include="Converters\CopyStatsParametersConverter.cs" />
+    <Compile Include="Converters\SystemRootPathVisibilityConverter.cs" />
     <Compile Include="Converters\StatsTableBorderConverter.cs" />
     <Compile Include="Converters\StatsColumnColourConverter.cs" />
     <Compile Include="Converters\SharedSizeGroupRowHeaderConverter.cs" />

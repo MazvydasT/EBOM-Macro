@@ -86,7 +86,6 @@ namespace EBOM_Macro.Managers
 
                     var items = data.Items;
                     var externalIdPrefix = data.ExternalIdPrefix;
-                    var ldiFolderPath = data.LDIFolderPath;
 
                     var allItems = items.PHs.Concat(items.Items).Prepend(items.Root);
                     var itemCount = items.Items.Count + items.PHs.Count + 1;
