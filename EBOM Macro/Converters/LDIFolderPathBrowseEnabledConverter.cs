@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 
@@ -11,6 +13,8 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if (values.Any(v => v == DependencyProperty.UnsetValue)) return false;
+
             var isPathSystemRootRelative = (bool)values[0];
 
             return !isPathSystemRootRelative || (isPathSystemRootRelative && !string.IsNullOrEmpty((string)values[1]));
