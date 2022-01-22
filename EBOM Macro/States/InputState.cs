@@ -36,13 +36,16 @@ namespace EBOM_Macro.States
             }
         }
 
+        [Reactive] public bool ComFoxTranslationSystemIsUsed { get; set; } = false;
         [Reactive] public string EBOMReportPath { get; set; }
         [Reactive] public string ExistingDataPath { get; set; }
         [Reactive] public string SystemRootFolderPath { get; set; } = Properties.Settings.Default.LastUsedSystemRootDirectory;
         [Reactive] public string LDIFolderPath { get; set; }
         [Reactive] public bool ReuseExternalIds { get; set; } = true;
         [Reactive] public string ExternalIdPrefixInput { get; set; }
-        [Reactive] public bool ComFoxTranslationSystemIsUsed { get; set; } = false;
+        [Reactive] public string CopyFilesFromPath { get; set; }
+        [Reactive] public bool OverwriteExistingFiles { get; set; } = false;
+
 
         [Reactive] public ItemsContainer Items { get; private set; }
         [Reactive] public Item[] Root { get; private set; }
@@ -54,6 +57,8 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> BrowseLDIFolder { get; private set; }
         public ReactiveCommand<Unit, Unit> BrowseExistingData { get; private set; }
         public ReactiveCommand<Unit, Unit> ClearExistingData { get; private set; }
+        public ReactiveCommand<Unit, Unit> BrowseLDIFolderToCopyFilesFrom { get; private set; }
+        public ReactiveCommand<Unit, Unit> ClearFileCopyFromPath { get; private set; }
 
         ProgressState progressState;
         public StatsState StatsState { get; set; } = new StatsState();
@@ -279,6 +284,32 @@ namespace EBOM_Macro.States
                 progressState.ExistingDataReadMessage = "";
                 progressState.ExistingDataReadProgress = 0;
             });
+
+            BrowseLDIFolderToCopyFilesFrom = ReactiveCommand.Create(() =>
+            {
+                var properties = Properties.Settings.Default;
+
+                var lastUsedLDIToCopyFilesFromDirectory = string.IsNullOrWhiteSpace(properties.LastUsedLDIToCopyFilesFromDirectory) ?
+                    (string.IsNullOrWhiteSpace(LDIFolderPath) ? Environment.CurrentDirectory : Path.GetDirectoryName(LDIFolderPath)) : properties.LastUsedLDIToCopyFilesFromDirectory;
+
+                var dialog = new FolderSelect.FolderSelectDialog
+                {
+                    InitialDirectory = lastUsedLDIToCopyFilesFromDirectory,
+                    Title = "Select LDI folder to copy JT files from"
+                };
+
+                if (dialog.ShowDialog(new WindowInteropHelper(App.Current.MainWindow).Handle))
+                {
+                    CopyFilesFromPath = Utils.PathToUNC(dialog.FileName);
+                    properties.LastUsedLDIToCopyFilesFromDirectory = CopyFilesFromPath;
+                    properties.Save();
+                }
+            });
+
+            ClearFileCopyFromPath = ReactiveCommand.Create(() =>
+            {
+                CopyFilesFromPath = "";
+            });
         }
 
         protected virtual void Dispose(bool disposing)
@@ -292,6 +323,8 @@ namespace EBOM_Macro.States
                     BrowseSystemRootFolder.Dispose();
                     BrowseLDIFolder.Dispose();
                     ClearExistingData.Dispose();
+                    BrowseLDIFolderToCopyFilesFrom.Dispose();
+                    ClearFileCopyFromPath.Dispose();
 
                     lock (this)
                     {
@@ -311,6 +344,7 @@ namespace EBOM_Macro.States
                 LDIFolderPath = null;
                 ReuseExternalIds = default;
                 ExternalIdPrefixInput = null;
+                CopyFilesFromPath = null;
 
                 Items = default;
                 Root = null;

@@ -27,6 +27,12 @@
             </Canvas>
         </Viewbox>
 
+        <Viewbox x:Key="FileCopy" x:Shared="False">
+            <Canvas Width="576" Height="512">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M384 121.9c0-6.3-2.5-12.4-7-16.9L279.1 7c-4.5-4.5-10.6-7-17-7H256v128h128zM571 308l-95.7-96.4c-10.1-10.1-27.4-3-27.4 11.3V288h-64v64h64v65.2c0 14.3 17.3 21.4 27.4 11.3L571 332c6.6-6.6 6.6-17.4 0-24zm-379 28v-32c0-8.8 7.2-16 16-16h176V160H248c-13.2 0-24-10.8-24-24V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V352H208c-8.8 0-16-7.2-16-16z"/>
+            </Canvas>
+        </Viewbox>
+
         <Style TargetType="{x:Type Button}"
            x:Key="CloseButtonStyle">
             <Style.Resources>
@@ -178,89 +184,147 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="200"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition x:Name="FileCopyRow" MinHeight="{Binding ElementName=FileCopyPanel, Path=IsExpanded, Converter={converters:ExpandedMinDimensionConverter MinValue=200}}" Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ct:ChromeTabControl ItemsSource="{Binding Sessions}"
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <ct:ChromeTabControl ItemsSource="{Binding Sessions}"
                              SelectedItem="{Binding SelectedSession}"
                              AddTabCommand="{Binding AddSession}" CloseTabCommand="{Binding CloseSession}"
                              ReorderTabsCommand="{Binding ReorderSession}"
                              MaximumTabWidth="200"
                              DragWindowWithOneTab="False">
-            <ct:ChromeTabControl.IsEnabled>
-                <MultiBinding Converter="{converters:InputsEnabledConverter}">
-                    <Binding Path="OutputState.ExportProgress" Mode="OneWay"/>
-                    <Binding Path="OutputState.ExportError" Mode="OneWay"/>
-                </MultiBinding>
-            </ct:ChromeTabControl.IsEnabled>
+                <ct:ChromeTabControl.IsEnabled>
+                    <MultiBinding Converter="{converters:InputsEnabledConverter}">
+                        <Binding Path="OutputState.ExportProgress" Mode="OneWay"/>
+                        <Binding Path="OutputState.ExportError" Mode="OneWay"/>
+                        <Binding Path="OutputState.FilesCopied" Mode="OneWay"/>
+                        <Binding Path="OutputState.FilesToCopyCount" Mode="OneWay"/>
+                    </MultiBinding>
+                </ct:ChromeTabControl.IsEnabled>
 
-            <ct:ChromeTabControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
-                        <TextBlock.Text>
-                            <MultiBinding Converter="{converters:TabHeaderConverter}">
-                                <Binding Path="InputState.Items" Mode="OneWay" FallbackValue="{x:Null}"/>
-                                <Binding Path="InputState.ExternalIdPrefix" Mode="OneWay" FallbackValue="{x:Null}"/>
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                </DataTemplate>
-            </ct:ChromeTabControl.ItemTemplate>
+                <ct:ChromeTabControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{converters:TabHeaderConverter}">
+                                    <Binding Path="InputState.Items" Mode="OneWay" FallbackValue="{x:Null}"/>
+                                    <Binding Path="InputState.ExternalIdPrefix" Mode="OneWay" FallbackValue="{x:Null}"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ct:ChromeTabControl.ItemTemplate>
 
-            <ct:ChromeTabControl.Template>
-                <ControlTemplate TargetType="{x:Type ct:ChromeTabControl}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0,0,0,1" BorderBrush="#FF999999" Grid.Row="0" Padding="10,5,10,0">
-                            <ct:ChromeTabPanel IsItemsHost="True" Background="{TemplateBinding Background}"/>
-                        </Border>
+                <ct:ChromeTabControl.Template>
+                    <ControlTemplate TargetType="{x:Type ct:ChromeTabControl}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border Background="{TemplateBinding Background}" BorderThickness="0,0,0,1" BorderBrush="#FF999999" Grid.Row="0" Padding="10,5,10,0">
+                                <ct:ChromeTabPanel IsItemsHost="True" Background="{TemplateBinding Background}"/>
+                            </Border>
 
-                        <ContentPresenter Content="{TemplateBinding SelectedContent}" Grid.Row="1"
+                            <ContentPresenter Content="{TemplateBinding SelectedContent}" Grid.Row="1"
                                           Visibility="{Binding Source={x:Static states:AppState.State}, Path=Sessions.Count, Converter={converters:SessionCountToVisibilityConverter}}">
-                            <ContentPresenter.ContentTemplate>
-                                <DataTemplate>
-                                    <local:SessionView/>
-                                </DataTemplate>
-                            </ContentPresenter.ContentTemplate>
-                        </ContentPresenter>
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <local:SessionView/>
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
 
-                    </Grid>
-                </ControlTemplate>
-            </ct:ChromeTabControl.Template>
+                        </Grid>
+                    </ControlTemplate>
+                </ct:ChromeTabControl.Template>
 
-        </ct:ChromeTabControl>
+            </ct:ChromeTabControl>
 
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <ProgressBar Value="{Binding OutputState.ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
+                    <ProgressBar Value="{Binding OutputState.ExportProgress, Mode=OneWay}" Maximum="1" Height="10" VerticalAlignment="Center"/>
 
-                <Button Visibility="{Binding ElementName=SaveXMLButton, Path=Visibility, Converter={converters:ExportCancelButtonVisibilityConverter}}" Command="{Binding OutputState.CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+                    <Button Visibility="{Binding ElementName=SaveXMLButton, Path=Visibility, Converter={converters:CancelButtonVisibilityConverter}}" Command="{Binding OutputState.CancelExport}" Content="{StaticResource Cancel}" ToolTip="Cancel export" Grid.Column="2" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
 
-                <Button x:Name="SaveXMLButton" Command="{Binding OutputState.SaveXML}" Content="{StaticResource FileDownload}" IsEnabled="{Binding OutputState.AllSessionsAreReadyForExport}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
-                    <Button.Visibility>
-                        <MultiBinding Converter="{converters:ExportButtonVisibilityConverter}">
-                            <Binding Path="OutputState.ExportProgress"/>
-                            <Binding Path="OutputState.ExportError"/>
-                        </MultiBinding>
-                    </Button.Visibility>
-                </Button>
+                    <Button x:Name="SaveXMLButton" Command="{Binding OutputState.SaveXML}" Content="{StaticResource FileDownload}" IsEnabled="{Binding OutputState.AllSessionsAreReadyForExport}" ToolTip="Save XML" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{converters:ExportButtonVisibilityConverter}">
+                                <Binding Path="OutputState.ExportProgress"/>
+                                <Binding Path="OutputState.ExportError"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <TextBox Text="{Binding OutputState.ExportMessage}" IsReadOnly="True" BorderThickness="0" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Top"/>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <GridSplitter Visibility="{Binding ElementName=FileCopyPanel, Path=IsExpanded, Converter={converters:SplitterVisibilityConverter}}" Grid.Row="1" Grid.ColumnSpan="2" Height="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" Margin="10,0,10,0"/>
+
+        <Expander x:Name="FileCopyPanel" IsExpanded="False" Header="Copy JT files" FlowDirection="RightToLeft" Grid.Row="2" Grid.ColumnSpan="2" Margin="10,0,10,10" ExpandDirection="Up" Collapsed="FileCopyPanel_Collapsed" Expanded="FileCopyPanel_Expanded">
+            <Grid FlowDirection="LeftToRight">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="AUto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ProgressBar Value="{Binding OutputState.FilesCopied}" Maximum="{Binding OutputState.FilesToCopyCount, Converter={converters:ProgressBarMax0To1Converter}}" Height="10" VerticalAlignment="Center"/>
+
+                    <Button Visibility="{Binding ElementName=CopyFilesButton, Path=Visibility, Converter={converters:CancelButtonVisibilityConverter}}" Command="{Binding OutputState.CancelFileCopy}" Content="{StaticResource Cancel}" ToolTip="Cancel file copying" Grid.Column="1" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0"/>
+
+                    <Button x:Name="CopyFilesButton" Command="{Binding OutputState.CopyFiles}" Content="{StaticResource FileCopy}" ToolTip="Copy JT files" Grid.Column="3" VerticalAlignment="Center" Height="30" Width="30" Margin="5,0,0,0">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{converters:CopyFilesButtonVisibilityConverter}">
+                                <Binding Path="OutputState.FilesCopied"/>
+                                <Binding Path="OutputState.FilesToCopyCount"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                        
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{converters:CopyFilesButtonIsEnabledConverter}">
+                                <Binding Path="OutputState.AllSessionsAreReadyForExport"/>
+                                <Binding Path="OutputState.FilesToCopyCount"/>
+                            </MultiBinding>
+                        </Button.IsEnabled>
+                    </Button>
+                </Grid>
+
+                <TextBlock FontSize="11" Grid.Row="1">
+                    <Run Text="0"/>
+                    <Run Text="/"/>
+                    <Run Text="{Binding OutputState.FilesToCopyCount, Mode=OneWay}"/>
+                </TextBlock>
+
+                <DataGrid ItemsSource="{Binding OutputState.FileCopyErrors}" Grid.Row="2" Margin="0,5,0,5" CanUserAddRows="False"/>
             </Grid>
-
-            <Grid>
-                <TextBox Text="{Binding OutputState.ExportMessage}" IsReadOnly="True" BorderThickness="0" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Top"/>
-            </Grid>
-        </StackPanel>
+        </Expander>
     </Grid>
 </Window>
