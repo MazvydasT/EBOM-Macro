@@ -1,6 +1,7 @@
 ﻿using EBOM_Macro.Models;
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 
@@ -12,6 +13,8 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (value == DependencyProperty.UnsetValue || value == null) return null;
+
             var statsValue = (StatsValue)((object[])value)[0];
 
             switch (statsValue.ColumnIndex)
