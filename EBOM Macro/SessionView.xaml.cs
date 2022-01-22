@@ -25,13 +25,8 @@ namespace EBOM_Macro
         private void Attributes_Collapsed(object sender, RoutedEventArgs e) =>
             AttributesColumn.Width = new GridLength(0, GridUnitType.Auto);
 
-        private void Attributes_Expanded(object sender, RoutedEventArgs e)
-        {
-            if (attributesColumnWidth.HasValue)
-                AttributesColumn.Width = attributesColumnWidth.Value;
-
-            else
-                AttributesColumn.Width = new GridLength(AttributesColumn.MinWidth, GridUnitType.Pixel);
-        }
+        private void Attributes_Expanded(object sender, RoutedEventArgs e) =>
+            AttributesColumn.Width = attributesColumnWidth.HasValue ? attributesColumnWidth.Value :
+            new GridLength(0, GridUnitType.Star);
     }
 }
