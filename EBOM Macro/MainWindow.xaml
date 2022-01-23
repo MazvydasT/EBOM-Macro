@@ -323,7 +323,7 @@
                     <Run Text="{Binding OutputState.FilesToCopyCount, Mode=OneWay}"/>
                 </TextBlock>
 
-                <DataGrid ItemsSource="{Binding OutputState.FileCopyErrors}" Grid.Row="2" Margin="0,5,0,5" CanUserAddRows="False"/>
+                <DataGrid ItemsSource="{Binding OutputState.FileCopyErrors}" Grid.Row="2" Margin="0,5,0,5" CanUserAddRows="False" CanUserReorderColumns="False"/>
             </Grid>
         </Expander>
     </Grid>
