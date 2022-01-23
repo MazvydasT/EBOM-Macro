@@ -1,4 +1,5 @@
 ﻿using DynamicData;
+using EBOM_Macro.Extensions;
 using EBOM_Macro.Managers;
 using EBOM_Macro.Models;
 using Microsoft.Win32;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Windows;
 
 namespace EBOM_Macro.States
 {
@@ -32,6 +34,8 @@ namespace EBOM_Macro.States
         public ReactiveCommand<Unit, Unit> CancelExport { get; }
         public ReactiveCommand<Unit, Unit> CopyFiles { get; }
         public ReactiveCommand<Unit, Unit> CancelFileCopy { get; }
+        public ReactiveCommand<Unit, Unit> CopyFileCopyMessages { get; }
+        public ReactiveCommand<Unit, Unit> ClearFileCopyMessages { get; }
 
         IObservable<IReadOnlyCollection<SessionState>> sessionsChangeSetObservable;
 
@@ -176,6 +180,29 @@ namespace EBOM_Macro.States
             CancelFileCopy = ReactiveCommand.Create(() =>
             {
                 fileCopyCancellationTokenSource.Cancel();
+            });
+
+            ClearFileCopyMessages = ReactiveCommand.Create(() => FileCopyErrors.Clear());
+
+            CopyFileCopyMessages = ReactiveCommand.Create(() =>
+            {
+                var outputRows = new[]
+                {
+                    "Timestamp",
+                    "Type",
+                    "Message",
+                    "Source file path",
+                    "Destination file path"
+                }.Yield().Concat(FileCopyErrors.Select(e => new[]
+                {
+                    e.Timestamp.ToString("G"),
+                    e.Type.ToString(),
+                    e.Message,
+                    e.SourceFilePath,
+                    e.DestinationFilePath
+                }));
+
+                Clipboard.SetText(string.Join("\n", outputRows.Select(c => string.Join("\t", c))));
             });
         }
     }

@@ -31,12 +31,6 @@
             </Canvas>
         </Viewbox>
 
-        <Viewbox x:Key="CopyIcon" x:Shared="False">
-            <Canvas Width="448" Height="512">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M320,448L320,488C320,501.255,309.255,512,296,512L24,512C10.745,512,0,501.255,0,488L0,120C0,106.745,10.745,96,24,96L96,96 96,392C96,422.879,121.121,448,152,448L320,448z M320,104L320,0 152,0C138.745,0,128,10.745,128,24L128,392C128,405.255,138.745,416,152,416L424,416C437.255,416,448,405.255,448,392L448,128 344,128C330.8,128,320,117.2,320,104z M440.971,72.971L375.029,7.029A24,24,0,0,0,358.059,0L352,0 352,96 448,96 448,89.941A24,24,0,0,0,440.971,72.971z"/>
-            </Canvas>
-        </Viewbox>
-
         <Viewbox x:Key="OpenFolder" x:Shared="False">
             <Canvas Width="576" Height="512">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Data="M572.694,292.093L500.27,416.248A63.997,63.997,0,0,1,444.989,448L45.025,448C26.502,448,14.961,427.907,24.294,411.907L96.718,287.752A64,64,0,0,1,152,256L551.964,256C570.487,256,582.028,276.093,572.694,292.093z M152,224L480,224 480,176C480,149.49,458.51,128,432,128L272,128 208,64 48,64C21.49,64,0,85.49,0,112L0,390.046 69.077,271.628C86.214,242.25,117.989,224,152,224z"/>
@@ -331,7 +325,7 @@
                             Command="{Binding CopyAttributes}"
                             CommandParameter="{Binding ElementName=Items, Path=SelectedItem}"
                             IsEnabled="{Binding ElementName=Items, Path=SelectedItem, Converter={converters:CopyAttributesButtonIsEnabledConverter}}"
-                            ToolTip="Copy" Width="20" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+                            ToolTip="Copy to clipboard" Width="20" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
                 </Grid>
             </Expander>
 
@@ -342,7 +336,7 @@
                         <CheckBox x:Name="ShowStatsForAvailable" Content="Available" IsChecked="True" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         <Button Content="{StaticResource CopyIcon}"
                                 Command="{Binding CopyStats}"
-                                ToolTip="Copy"
+                                ToolTip="Copy to clipboard"
                                 Margin="5,0,0,0" Height="20" Width="20">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{converters:CopyStatsParametersConverter}">
