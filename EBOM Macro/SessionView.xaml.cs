@@ -10,7 +10,7 @@ namespace EBOM_Macro
     /// </summary>
     public partial class SessionView : UserControl
     {
-        private GridLength? attributesColumnWidth = null;
+        private GridLength attributesColumnWidth = new GridLength(0, GridUnitType.Star);
 
         public SessionView()
         {
@@ -22,11 +22,8 @@ namespace EBOM_Macro
         private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) =>
             attributesColumnWidth = AttributesColumn.Width;
 
-        private void Attributes_Collapsed(object sender, RoutedEventArgs e) =>
-            AttributesColumn.Width = new GridLength(0, GridUnitType.Auto);
+        private void Attributes_Collapsed(object sender, RoutedEventArgs e) => AttributesColumn.Width = new GridLength(0, GridUnitType.Auto);
 
-        private void Attributes_Expanded(object sender, RoutedEventArgs e) =>
-            AttributesColumn.Width = attributesColumnWidth.HasValue ? attributesColumnWidth.Value :
-            new GridLength(0, GridUnitType.Star);
+        private void Attributes_Expanded(object sender, RoutedEventArgs e) => AttributesColumn.Width = attributesColumnWidth;
     }
 }

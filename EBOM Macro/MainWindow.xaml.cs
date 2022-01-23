@@ -7,7 +7,7 @@ namespace EBOM_Macro
     /// </summary>
     public partial class MainWindow : Window
     {
-        private GridLength? copyFilesRowHeight = null;
+        private GridLength copyFilesRowHeight = new GridLength(0, GridUnitType.Star);
 
         public MainWindow()
         {
@@ -17,11 +17,8 @@ namespace EBOM_Macro
         private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) =>
             copyFilesRowHeight = FileCopyRow.Height;
 
-        private void FileCopyPanel_Collapsed(object sender, RoutedEventArgs e) =>
-            FileCopyRow.Height = new GridLength(0, GridUnitType.Auto);
+        private void FileCopyPanel_Collapsed(object sender, RoutedEventArgs e) => FileCopyRow.Height = new GridLength(0, GridUnitType.Auto);
 
-        private void FileCopyPanel_Expanded(object sender, RoutedEventArgs e) =>
-            FileCopyRow.Height = copyFilesRowHeight.HasValue ? copyFilesRowHeight.Value :
-            new GridLength(0, GridUnitType.Star);
+        private void FileCopyPanel_Expanded(object sender, RoutedEventArgs e) => FileCopyRow.Height = copyFilesRowHeight;
     }
 }
