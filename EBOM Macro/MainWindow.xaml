@@ -324,7 +324,7 @@
                 </Grid>
 
                 <TextBlock FontSize="11" Grid.Row="1">
-                    <Run Text="0"/>
+                    <Run Text="{Binding OutputState.FilesCopied}"/>
                     <Run Text="/"/>
                     <Run Text="{Binding OutputState.FilesToCopyCount, Mode=OneWay}"/>
                 </TextBlock>

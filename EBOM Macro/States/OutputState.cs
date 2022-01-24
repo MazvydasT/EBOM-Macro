@@ -154,6 +154,7 @@ namespace EBOM_Macro.States
                             await FileManager.CopyFiles(fileCopyDataList, new Progress<FileCopyProgressUpdate>(fileCopyProgress =>
                             {
                                 FileCopyErrors.Insert(0, fileCopyProgress.FileCopyMessage);
+                                FilesCopied = fileCopyProgress.Value;
                             }), fileCopyCancellationTokenSource.Token);
                         }
 
