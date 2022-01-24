@@ -4,8 +4,10 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows.Markup;
 
 namespace EBOM_Macro.States
 {
@@ -24,6 +26,8 @@ namespace EBOM_Macro.States
         public ReactiveCommand<TabReorder, Unit> ReorderSession { get; }
 
         public OutputState OutputState { get; }
+
+        public XmlLanguage Language => XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag);
 
         private AppState()
         {

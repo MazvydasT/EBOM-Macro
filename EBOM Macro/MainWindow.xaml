@@ -11,6 +11,7 @@
         xmlns:ctConv="clr-namespace:ChromeTabs.Converters;assembly=ChromeTabs"
         mc:Ignorable="d"
         DataContext="{x:Static states:AppState.State}"
+        Language="{Binding Language}"
         Title="{Binding ConverterParameter=Macro, Converter={converters:AppTitleConverter}, Mode=OneTime}"
         Icon="eBOMb.ico"
         d:DesignHeight="427" d:DesignWidth="658">
@@ -329,7 +330,7 @@
                     <Run Text="{Binding OutputState.FilesToCopyCount, Mode=OneWay}"/>
                 </TextBlock>
 
-                <DataGrid ItemsSource="{Binding OutputState.FileCopyErrors}" Grid.Row="2" Margin="0,5,0,5" CanUserAddRows="False" CanUserReorderColumns="False" AutoGenerateColumns="False" AlternationCount="2">
+                <DataGrid ItemsSource="{Binding OutputState.FileCopyErrors}" Grid.Row="2" Margin="0,5,0,5" CanUserAddRows="False" CanUserReorderColumns="False" AutoGenerateColumns="False" AlternationCount="2" AlternatingRowBackground="WhiteSmoke">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="20" CanUserResize="False"/>
                         <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat=G}"/>
