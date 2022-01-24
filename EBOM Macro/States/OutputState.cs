@@ -132,7 +132,7 @@ namespace EBOM_Macro.States
             CopyFiles = ReactiveCommand.Create(() =>
             {
                 FileCopyErrors.Clear();
-                FilesCopied = -1;
+                FilesCopied = 0;
 
                 this.sessionsChangeSetObservable.Take(1).Subscribe(async sessions =>
                 {
