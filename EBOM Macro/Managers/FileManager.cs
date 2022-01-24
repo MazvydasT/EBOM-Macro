@@ -21,6 +21,8 @@ namespace EBOM_Macro.Managers
             {
                 var fileCounter = 0;
 
+                var processedFiles = new HashSet<(string, string)>();
+
                 foreach (var fileCopyData in fileCopyDataList)
                 {
                     foreach (var instance in fileCopyData.Items.Items.Where(i => (i.IsChecked ?? true) && i.IsInstance))
@@ -34,6 +36,19 @@ namespace EBOM_Macro.Managers
                         string message = null;
                         var messageType = MessageType.Information;
 
+                        var sourceDestinationTouple = (sourceFilePath, destinationFilePath);
+                        if (processedFiles.Contains(sourceDestinationTouple))
+                        {
+                            message = "File copied already - skipping";
+                            messageType = MessageType.Information;
+
+                            goto ReportProgress;
+                        }
+
+                        else processedFiles.Add(sourceDestinationTouple);
+
+
+
                         if (!File.Exists(sourceFilePath))
                         {
                             message = "Source file does not exist";
@@ -41,6 +56,8 @@ namespace EBOM_Macro.Managers
 
                             goto ReportProgress;
                         }
+
+
 
                         var destinationFileExists = File.Exists(destinationFilePath);
 
