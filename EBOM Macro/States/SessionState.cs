@@ -17,12 +17,13 @@ namespace EBOM_Macro.States
     {
         private bool disposedValue;
 
-        private IDisposable isReadyForExportDisposable;
+        private IDisposable isReadyForExportDisposable, filesToCopyCountDisposable;
 
         public ProgressState ProgressState { get; private set; }
         public InputState InputState { get; private set; }
 
         [Reactive] public bool IsReadyForExport { get; private set; }
+        [Reactive] public int FilesToCopyCount { get; private set; }
 
         public ReactiveCommand<(bool, bool), Unit> CopyStats { get; }
         public ReactiveCommand<Item, Unit> CopyAttributes { get; }
@@ -49,6 +50,13 @@ namespace EBOM_Macro.States
                 progressData.comparisonProgress.IsInExclusiveRange(0, 1) ||
                 !Directory.Exists(ldiPath) ? false : true
             ).Subscribe(v => IsReadyForExport = v);
+
+            filesToCopyCountDisposable = Observable.CombineLatest(
+                this.WhenAnyValue(x => x.IsReadyForExport),
+                InputState.WhenAnyValue(x => x.CopyFilesFromPath),
+                InputState.StatsState.WhenAnyValue(x => x.SelectedTotalParts),
+                (isReadyForExport, pathToCopyFilesFrom, selectedPartsCount) => !isReadyForExport || string.IsNullOrWhiteSpace(pathToCopyFilesFrom) ? 0 : selectedPartsCount
+            ).Subscribe(v => FilesToCopyCount = v);
 
             CopyStats = ReactiveCommand.Create<(bool showSelected, bool showAvailable)>(p =>
             {
@@ -128,10 +136,12 @@ namespace EBOM_Macro.States
                     CopyAttributes.Dispose();
 
                     isReadyForExportDisposable.Dispose();
+                    filesToCopyCountDisposable.Dispose();
                     InputState.Dispose();
                 }
 
                 IsReadyForExport = false;
+                FilesToCopyCount = 0;
 
                 disposedValue = true;
             }

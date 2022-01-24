@@ -43,13 +43,11 @@ namespace EBOM_Macro.States
 
         public OutputState(IObservable<IChangeSet<SessionState>> sessionsChangeSetObservable)
         {
-            this.sessionsChangeSetObservable = sessionsChangeSetObservable.AutoRefresh(s => s.IsReadyForExport)
+            this.sessionsChangeSetObservable = sessionsChangeSetObservable.AutoRefresh()
                 .ToCollection().Replay(1).RefCount();
 
             this.sessionsChangeSetObservable.Select(c => c.Count > 0 && c.All(s => s.IsReadyForExport)).ToPropertyEx(this, x => x.AllSessionsAreReadyForExport);
-            this.sessionsChangeSetObservable.Select(
-                c => c.Count > 0 ?
-                c.Where(s => !string.IsNullOrWhiteSpace(s.InputState.CopyFilesFromPath)).Sum(s => s.InputState.StatsState.SelectedTotalParts) : 0)
+            this.sessionsChangeSetObservable.Select(c => c.Sum(s => s.FilesToCopyCount))
                 .ToPropertyEx(this, x => x.FilesToCopyCount);
 
             SaveXML = ReactiveCommand.Create(() =>
