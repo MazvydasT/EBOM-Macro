@@ -11,6 +11,8 @@ namespace EBOM_Macro.Managers
 {
     public static class FileManager
     {
+        private static char[] directorySeparatorCharacters = new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
         public static async Task CopyFiles(IReadOnlyList<FileCopyData> fileCopyDataList, IProgress<FileCopyProgressUpdate> progress = default, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -26,8 +28,8 @@ namespace EBOM_Macro.Managers
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var directoryRelativeFilePath = instance.Attributes.FilePath.Replace(fileCopyData.SystemRootRelativeLDIPath, "");
-                        var sourceFilePath = Path.Combine(fileCopyData.SourceLDIPath, directoryRelativeFilePath);
-                        var destinationFilePath = Path.Combine(fileCopyData.DestinationLDIPath, directoryRelativeFilePath);
+                        var sourceFilePath = Path.Combine(fileCopyData.SourceLDIPath, directoryRelativeFilePath.Trim(directorySeparatorCharacters));
+                        var destinationFilePath = Path.Combine(fileCopyData.DestinationLDIPath, directoryRelativeFilePath.Trim(directorySeparatorCharacters));
 
                         string message = null;
                         var messageType = MessageType.Information;
