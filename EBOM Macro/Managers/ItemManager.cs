@@ -361,7 +361,7 @@ namespace EBOM_Macro.Managers
 
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
+                var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren?.SelectMany(rc => rc.GetSelfAndDescendants(items.CacheKey)) ?? Enumerable.Empty<Item>()).Prepend(i));
                 var assemblies = (items.PHs ?? Enumerable.Empty<Item>()).Concat(items.Root?.Yield() ?? Enumerable.Empty<Item>())
                     .SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i))
                     .Concat(itemObjects.Where(i => !i.IsInstance));
