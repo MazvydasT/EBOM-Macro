@@ -443,7 +443,7 @@ namespace EBOM_Macro.Managers
                 statsState.UnchangedAssemblies = statsStateUnchangedAssemblies;
                 statsState.ModifiedAssemblies = statsStateModifiedAssemblies;
                 statsState.NewAssemblies = statsStateNewAssemblies;
-                statsState.DeletedAssemblies = 0;
+                statsState.DeletedAssemblies = statsStateDeletedAssemblies;
 
                 statsState.UnchangedParts = statsStateUnchangedParts;
                 statsState.ModifiedParts = statsStateModifiedParts;
