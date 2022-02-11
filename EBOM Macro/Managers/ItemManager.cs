@@ -323,103 +323,159 @@ namespace EBOM_Macro.Managers
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
+
+
+        private static ConditionalWeakTable<object, Tuple<CancellationTokenSource, Task>> updateStatsCancellationTokens = new ConditionalWeakTable<object, Tuple<CancellationTokenSource, Task>>();
+
         /// <summary>
         /// Updates stats.
         /// </summary>
         /// <param name="items">Struct containing Items read from eMS EBOM report</param>
         /// <param name="statsState">Reference to StatsState instance</param>
-        public static async void UpdateStats(ItemsContainer items, StatsState statsState)
+        public static void UpdateStats(ItemsContainer items, StatsState statsState)
         {
-            statsState.UnchangedAssemblies = 0;
-            statsState.ModifiedAssemblies = 0;
-            statsState.NewAssemblies = 0;
-            statsState.DeletedAssemblies = 0;
+            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = cancellationTokenSource.Token;
 
-            statsState.UnchangedParts = 0;
-            statsState.ModifiedParts = 0;
-            statsState.NewParts = 0;
-            statsState.DeletedParts = 0;
+            var updateStatsTask = new Task(async () =>
+            {
+                var statsStateUnchangedAssemblies = 0;
+                var statsStateModifiedAssemblies = 0;
+                var statsStateNewAssemblies = 0;
+                var statsStateDeletedAssemblies = 0;
 
-            statsState.SelectedUnchangedAssemblies = 0;
-            statsState.SelectedModifiedAssemblies = 0;
-            statsState.SelectedNewAssemblies = 0;
-            statsState.SelectedDeletedAssemblies = 0;
+                var statsStateUnchangedParts = 0;
+                var statsStateModifiedParts = 0;
+                var statsStateNewParts = 0;
+                var statsStateDeletedParts = 0;
 
-            statsState.SelectedUnchangedParts = 0;
-            statsState.SelectedModifiedParts = 0;
-            statsState.SelectedNewParts = 0;
-            statsState.SelectedDeletedParts = 0;
+                var statsStateSelectedUnchangedAssemblies = 0;
+                var statsStateSelectedModifiedAssemblies = 0;
+                var statsStateSelectedNewAssemblies = 0;
+                var statsStateSelectedDeletedAssemblies = 0;
 
-            var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
-            var assemblies = (items.PHs ?? Enumerable.Empty<Item>()).Concat(items.Root?.Yield() ?? Enumerable.Empty<Item>())
-                .SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i))
-                .Concat(itemObjects.Where(i => !i.IsInstance));
-            var parts = itemObjects.Where(i => i.IsInstance);
+                var statsStateSelectedUnchangedParts = 0;
+                var statsStateSelectedModifiedParts = 0;
+                var statsStateSelectedNewParts = 0;
+                var statsStateSelectedDeletedParts = 0;
 
-            await Task.WhenAll(
-                Task.Run(() =>
-                {
-                    foreach (var item in assemblies)
+                if (cancellationToken.IsCancellationRequested) return;
+
+                var itemObjects = (items.Items ?? Enumerable.Empty<Item>()).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i));
+                var assemblies = (items.PHs ?? Enumerable.Empty<Item>()).Concat(items.Root?.Yield() ?? Enumerable.Empty<Item>())
+                    .SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).Prepend(i))
+                    .Concat(itemObjects.Where(i => !i.IsInstance));
+                var parts = itemObjects.Where(i => i.IsInstance);
+
+                if (cancellationToken.IsCancellationRequested) return;
+
+                await Task.WhenAll(
+                    Task.Run(() =>
                     {
-                        var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
-
-                        switch (item.State)
+                        foreach (var item in assemblies)
                         {
-                            case Item.ItemState.HasModifiedDescendants:
-                            case Item.ItemState.Unchanged:
-                                ++statsState.UnchangedAssemblies;
-                                if (countTowardsChecked) ++statsState.SelectedUnchangedAssemblies;
-                                break;
+                            if (cancellationToken.IsCancellationRequested) return;
 
-                            case Item.ItemState.Modified:
-                                ++statsState.ModifiedAssemblies;
-                                if (countTowardsChecked) ++statsState.SelectedModifiedAssemblies;
-                                break;
+                            var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
 
-                            case Item.ItemState.New:
-                                ++statsState.NewAssemblies;
-                                if (countTowardsChecked) ++statsState.SelectedNewAssemblies;
-                                break;
+                            switch (item.State)
+                            {
+                                case Item.ItemState.HasModifiedDescendants:
+                                case Item.ItemState.Unchanged:
+                                    ++statsStateUnchangedAssemblies;
+                                    if (countTowardsChecked) ++statsStateSelectedUnchangedAssemblies;
+                                    break;
 
-                            case Item.ItemState.Redundant:
-                                ++statsState.DeletedAssemblies;
-                                if (countTowardsChecked) ++statsState.SelectedDeletedAssemblies;
-                                break;
+                                case Item.ItemState.Modified:
+                                    ++statsStateModifiedAssemblies;
+                                    if (countTowardsChecked) ++statsStateSelectedModifiedAssemblies;
+                                    break;
+
+                                case Item.ItemState.New:
+                                    ++statsStateNewAssemblies;
+                                    if (countTowardsChecked) ++statsStateSelectedNewAssemblies;
+                                    break;
+
+                                case Item.ItemState.Redundant:
+                                    ++statsStateDeletedAssemblies;
+                                    if (countTowardsChecked) ++statsStateSelectedDeletedAssemblies;
+                                    break;
+                            }
                         }
-                    }
-                }),
+                    }),
 
-                Task.Run(() =>
-                {
-                    foreach (var item in parts)
+                    Task.Run(() =>
                     {
-                        var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
-
-                        switch (item.State)
+                        foreach (var item in parts)
                         {
-                            case Item.ItemState.Unchanged:
-                                ++statsState.UnchangedParts;
-                                if (countTowardsChecked) ++statsState.SelectedUnchangedParts;
-                                break;
+                            if (cancellationToken.IsCancellationRequested) return;
 
-                            case Item.ItemState.Modified:
-                                ++statsState.ModifiedParts;
-                                if (countTowardsChecked) ++statsState.SelectedModifiedParts;
-                                break;
+                            var countTowardsChecked = !(item.IsChecked == false || (item.IsChecked == null && item.State == Item.ItemState.HasModifiedDescendants));
 
-                            case Item.ItemState.New:
-                                ++statsState.NewParts;
-                                if (countTowardsChecked) ++statsState.SelectedNewParts;
-                                break;
+                            switch (item.State)
+                            {
+                                case Item.ItemState.Unchanged:
+                                    ++statsStateUnchangedParts;
+                                    if (countTowardsChecked) ++statsStateSelectedUnchangedParts;
+                                    break;
 
-                            case Item.ItemState.Redundant:
-                                ++statsState.DeletedParts;
-                                if (countTowardsChecked) ++statsState.SelectedDeletedParts;
-                                break;
+                                case Item.ItemState.Modified:
+                                    ++statsStateModifiedParts;
+                                    if (countTowardsChecked) ++statsStateSelectedModifiedParts;
+                                    break;
+
+                                case Item.ItemState.New:
+                                    ++statsStateNewParts;
+                                    if (countTowardsChecked) ++statsStateSelectedNewParts;
+                                    break;
+
+                                case Item.ItemState.Redundant:
+                                    ++statsStateDeletedParts;
+                                    if (countTowardsChecked) ++statsStateSelectedDeletedParts;
+                                    break;
+                            }
                         }
-                    }
-                })
-            );
+                    })
+                );
+
+                if (cancellationToken.IsCancellationRequested) return;
+
+                statsState.UnchangedAssemblies = statsStateUnchangedAssemblies;
+                statsState.ModifiedAssemblies = statsStateModifiedAssemblies;
+                statsState.NewAssemblies = statsStateNewAssemblies;
+                statsState.DeletedAssemblies = 0;
+
+                statsState.UnchangedParts = statsStateUnchangedParts;
+                statsState.ModifiedParts = statsStateModifiedParts;
+                statsState.NewParts = statsStateNewParts;
+                statsState.DeletedParts = statsStateDeletedParts;
+
+                statsState.SelectedUnchangedAssemblies = statsStateSelectedUnchangedAssemblies;
+                statsState.SelectedModifiedAssemblies = statsStateSelectedModifiedAssemblies;
+                statsState.SelectedNewAssemblies = statsStateSelectedNewAssemblies;
+                statsState.SelectedDeletedAssemblies = statsStateSelectedDeletedAssemblies;
+
+                statsState.SelectedUnchangedParts = statsStateSelectedUnchangedParts;
+                statsState.SelectedModifiedParts = statsStateSelectedModifiedParts;
+                statsState.SelectedNewParts = statsStateSelectedNewParts;
+                statsState.SelectedDeletedParts = statsStateSelectedDeletedParts;
+            }, cancellationToken);
+
+            lock (statsState)
+            {
+                if (updateStatsCancellationTokens.TryGetValue(statsState, out var pair))
+                {
+                    pair.Item1.Cancel();
+
+                    pair.Item2.Wait();
+
+                    updateStatsCancellationTokens.Remove(statsState);
+                }
+
+                updateStatsCancellationTokens.Add(statsState, new Tuple<CancellationTokenSource, Task>(cancellationTokenSource, updateStatsTask));
+
+                updateStatsTask.Start();
+            }
         }
 
         /// <summary>
