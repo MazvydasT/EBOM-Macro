@@ -156,6 +156,7 @@ namespace EBOM_Macro.States
                     lock (this)
                     {
                         cancellationTokenSource?.Cancel();
+                        cancellationTokenSource?.Dispose();
                     }
 
                     return releaseLastValue;
