@@ -1,6 +1,7 @@
 ﻿using EBOM_Macro.Extensions;
 using EBOM_Macro.Managers;
 using EBOM_Macro.States;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -75,40 +76,22 @@ namespace EBOM_Macro.Models
 
             if (!includeRedundantItems)
             {
-                if (cacheKey != null && selfAndDescendantsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
+                Func<object, IEnumerable<Item>> getSelfAndDescendants = (object key) => Children.SelectMany(c => c.GetSelfAndDescendants(key)).Prepend(this);
 
-                else
-                {
-                    var data = Children.SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(this);
+                if (cacheKey != null)
+                    return selfAndDescendantsCache.GetValue(cacheKey, key => getSelfAndDescendants(key).ToList());
 
-                    if (cacheKey != null)
-                    {
-                        var dataList = data.ToList();
-                        selfAndDescendantsCache.Add(cacheKey, dataList);
-                        data = dataList;
-                    }
-
-                    return data;
-                }
+                return getSelfAndDescendants(cacheKey);
             }
 
             else
             {
-                if (cacheKey != null && selfAndDescendantsWithRedundantCache.TryGetValue(cacheKey, out var cachedWithRedundantData)) return cachedWithRedundantData;
+                Func<object, IEnumerable<Item>> getSelfAndDescendants = (object key) => GetSelfAndDescendants(key).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).SelectMany(c => c.GetSelfAndDescendants(key)).Prepend(i));
 
-                else
-                {
-                    var data = GetSelfAndDescendants(cacheKey).SelectMany(i => (i.RedundantChildren ?? Enumerable.Empty<Item>()).SelectMany(c => c.GetSelfAndDescendants(cacheKey)).Prepend(i));
+                if (cacheKey != null)
+                    return selfAndDescendantsWithRedundantCache.GetValue(cacheKey, key => getSelfAndDescendants(key).ToList());
 
-                    if (cacheKey != null)
-                    {
-                        var dataList = data.ToList();
-                        selfAndDescendantsWithRedundantCache.Add(cacheKey, dataList);
-                        data = dataList;
-                    }
-
-                    return data;
-                }
+                return getSelfAndDescendants(cacheKey);
             }
         }
 
