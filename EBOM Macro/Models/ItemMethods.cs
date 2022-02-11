@@ -57,15 +57,7 @@ namespace EBOM_Macro.Models
             if (Type == ItemType.PH) return null;
 
             if (cacheKey != null)
-            {
-                if (dsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
-                else
-                {
-                    var data = Parent?.GetDS(cacheKey);
-                    dsCache.Add(cacheKey, data);
-                    return data;
-                }
-            }
+                return dsCache.GetValue(cacheKey, key => Parent?.GetDS(cacheKey));
 
             return Parent?.GetDS(cacheKey);
         }
