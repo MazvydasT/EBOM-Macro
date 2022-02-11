@@ -166,62 +166,49 @@ namespace EBOM_Macro.Managers
 
                     if (!existingData.ContainsKey(itemExternalId))
                     {
-                        var matchedNumbers = numberLookup[item.Attributes.Number].AsParallel()
-                            .Where(i => item.IsInstance == i.IsInstance && !previouslyMatchedExternalIds.Contains(i.BaseExternalId));
+                        var matchedInstances = numberLookup[item.Attributes.Number].Where(i => item.IsInstance == i.IsInstance &&
+                            (item.Type == Item.ItemType.DS || i.Parent.BaseExternalId == (item.Parent.ReusedExternalId ?? $"{externalIdPrefix}{item.Parent.BaseExternalId}")) &&
+                            !previouslyMatchedExternalIds.Contains(i.BaseExternalId));
 
-                        if (item.Type == Item.ItemType.DS)
+                        var siblings = item.Parent.Children.Where(i => i.Attributes.Number == item.Attributes.Number && !previouslyMatchedExternalIds.Contains(i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}"));
+
+                        // if (matchedInstances.Count == 1 && siblings.Count == 1)
+                        if (matchedInstances.Any() && !matchedInstances.Skip(1).Any() && siblings.Any() && !siblings.Skip(1).Any())
                         {
-                            // if (matchedNumbers.Count == 1)
-                            if (matchedNumbers.Any() && !matchedNumbers.Skip(1).Any())
-                            {
-                                item.ReusedExternalId = matchedNumbers.First().BaseExternalId;
-                                previouslyMatchedExternalIds.Add(item.ReusedExternalId);
-                            }
+                            item.ReusedExternalId = matchedInstances.First().BaseExternalId;
+                            previouslyMatchedExternalIds.Add(item.ReusedExternalId);
                         }
 
-                        else // Item is instance or sub DS assembly
+                        // else if (matchedInstances.Count > 1 || siblings.Count > 1)
+                        else if (matchedInstances.Skip(1).Any() || siblings.Skip(1).Any())
                         {
-                            var matchedInstances = matchedNumbers.Where(i => i.Parent.BaseExternalId == (item.Parent.ReusedExternalId ?? $"{externalIdPrefix}{item.Parent.BaseExternalId}"));
-                            var siblings = item.Parent.Children.AsParallel().Where(i => i.Attributes.Number == item.Attributes.Number && !previouslyMatchedExternalIds.Contains(i.ReusedExternalId ?? $"{externalIdPrefix}{i.BaseExternalId}"));
+                            var matchedTransformationInstances = matchedInstances.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString());
 
-                            // if (matchedInstances.Count == 1 && siblings.Count == 1)
-                            if (matchedInstances.Any() && !matchedInstances.Skip(1).Any() && siblings.Any() && !siblings.Skip(1).Any())
+                            var transformationSiblings = siblings.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString());
+
+                            // if (matchedTransformationInstances.Count == 1 && transformationSiblings.Count == 1)
+                            if (matchedTransformationInstances.Any() && !matchedTransformationInstances.Skip(1).Any() && transformationSiblings.Any() && !transformationSiblings.Skip(1).Any())
                             {
-                                item.ReusedExternalId = matchedInstances.First().BaseExternalId;
+                                item.ReusedExternalId = matchedTransformationInstances.First().BaseExternalId;
                                 previouslyMatchedExternalIds.Add(item.ReusedExternalId);
                             }
 
-                            // else if (matchedInstances.Count > 1 || siblings.Count > 1)
-                            else if (matchedInstances.Skip(1).Any() || siblings.Skip(1).Any())
+                            //else if (matchedTransformationInstances.Count > 1 || transformationSiblings.Count > 1)
+                            else if (matchedTransformationInstances.Skip(1).Any() || transformationSiblings.Skip(1).Any())
                             {
-                                var matchedTransformationInstances = matchedInstances.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString());
+                                var siblingIndex = transformationSiblings.Select((transformationSibling, index) => (index, transformationSibling))
+                                    .Where(pair => pair.transformationSibling == item)
+                                    .Select(pair => pair.index + 1)
+                                    .FirstOrDefault() - 1;
 
-                                var transformationSiblings = siblings.Where(i => i.Attributes.Translation.ToString() == item.Attributes.Translation.ToString() && i.Attributes.Rotation.ToString() == item.Attributes.Rotation.ToString());
+                                if (siblingIndex < 0) continue;
 
-                                // if (matchedTransformationInstances.Count == 1 && transformationSiblings.Count == 1)
-                                if (matchedTransformationInstances.Any() && !matchedTransformationInstances.Skip(1).Any() && transformationSiblings.Any() && !transformationSiblings.Skip(1).Any())
+                                var matchedTransformationInstance = matchedTransformationInstances.ElementAtOrDefault(siblingIndex);
+
+                                if (matchedTransformationInstance != null)
                                 {
-                                    item.ReusedExternalId = matchedTransformationInstances.First().BaseExternalId;
+                                    item.ReusedExternalId = matchedTransformationInstance.BaseExternalId;
                                     previouslyMatchedExternalIds.Add(item.ReusedExternalId);
-                                }
-
-                                //else if (matchedTransformationInstances.Count > 1 || transformationSiblings.Count > 1)
-                                else if (matchedTransformationInstances.Skip(1).Any() || transformationSiblings.Skip(1).Any())
-                                {
-                                    var siblingIndex = transformationSiblings.Select((transformationSibling, index) => (index, transformationSibling))
-                                        .Where(pair => pair.transformationSibling == item)
-                                        .Select(pair => pair.index + 1)
-                                        .FirstOrDefault() - 1;
-
-                                    if (siblingIndex < 0) continue;
-
-                                    var matchedTransformationInstance = matchedTransformationInstances.ElementAtOrDefault(siblingIndex);
-
-                                    if (matchedTransformationInstance != null)
-                                    {
-                                        item.ReusedExternalId = matchedTransformationInstance.BaseExternalId;
-                                        previouslyMatchedExternalIds.Add(item.ReusedExternalId);
-                                    }
                                 }
                             }
                         }
