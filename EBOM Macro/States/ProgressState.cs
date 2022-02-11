@@ -14,5 +14,6 @@ namespace EBOM_Macro.States
         [Reactive] public bool ExistingDataReadError { get; set; }
 
         [Reactive] public double ComparisonProgress { get; set; }
+        [Reactive] public string ComparisonMessage { get; set; }
     }
 }

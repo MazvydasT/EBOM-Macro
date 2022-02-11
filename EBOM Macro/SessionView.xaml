@@ -203,6 +203,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <GroupBox Header="Filter" IsEnabled="{Binding ElementName=Items, Path=IsEnabled}" Margin="5,0,5,5">
@@ -271,6 +272,15 @@
                         </MultiBinding>
                     </ProgressBar.Visibility>
                 </ProgressBar>
+
+                <TextBox Visibility="{Binding ElementName=ProcessingProgressBar, Path=Visibility}" IsReadOnly="True" TextWrapping="Wrap" FontSize="11" BorderThickness="0" Grid.Row="3" Margin="5,0,10,0">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{converters:ComparisonMessageConverter}">
+                            <Binding ElementName="ProcessingProgressBar" Path="IsIndeterminate"/>
+                            <Binding Path="ProgressState.ComparisonMessage"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
             </Grid>
 
             <GridSplitter Visibility="{Binding ElementName=Attributes, Path=IsExpanded, Converter={converters:SplitterVisibilityConverter}}" Width="5" Grid.Column="3" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted"/>

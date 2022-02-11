@@ -172,6 +172,7 @@ namespace EBOM_Macro.States
                         var task = ItemManager.SetStatus(data.items, data.existingData, data.externalIdPrefix, data.reuseExternalIds, data.comFoxTranslationSystemIsUsed, data.ldiFolderPath, new Progress<ProgressUpdate>(progress =>
                         {
                             progressState.ComparisonProgress = (double)progress.Value / progress.Max;
+                            progressState.ComparisonMessage = progress.Message;
                         }), cancellationTokenSource.Token);
 
                         return Observable.FromAsync(() => task).Do(_ => releaseLastValue.OnNext(true));

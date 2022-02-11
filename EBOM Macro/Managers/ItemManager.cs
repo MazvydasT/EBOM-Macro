@@ -107,7 +107,7 @@ namespace EBOM_Macro.Managers
                             {
                                 progressValue = comparisonProgress;
 
-                                progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                                progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Checking ExternalIds within existing data: {((double)itemCounter / allItemCount):P0}" });
                             }
                         }
                     }
@@ -134,7 +134,7 @@ namespace EBOM_Macro.Managers
                         {
                             progressValue = comparisonProgress;
 
-                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Matching new items to existing ExternalIds: {((double)itemCounter / allItemCount):P0}" });
                         }
                     }
 
@@ -231,7 +231,7 @@ namespace EBOM_Macro.Managers
                         {
                             progressValue = comparisonProgress;
 
-                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Updating item states: {((double)itemCounter / allItemCount):P0}" });
                         }
                     }
 
@@ -294,7 +294,7 @@ namespace EBOM_Macro.Managers
                         {
                             progressValue = comparisonProgress;
 
-                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue });
+                            progress.Report(new ProgressUpdate { Max = PROGRESS_MAX, Value = progressValue, Message = $"Selecting items for export: {((double)itemCounter / allItemCount):P0}" });
                         }
                     }
 
