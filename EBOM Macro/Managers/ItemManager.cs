@@ -469,6 +469,8 @@ namespace EBOM_Macro.Managers
 
                     pair.Item2.Wait();
 
+                    pair.Item1.Dispose();
+
                     updateStatsCancellationTokens.Remove(statsState);
                 }
 
