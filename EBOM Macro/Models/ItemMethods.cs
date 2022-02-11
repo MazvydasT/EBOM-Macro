@@ -98,18 +98,12 @@ namespace EBOM_Macro.Models
 
         public IEnumerable<Item> GetAncestors(object cacheKey = null)
         {
-            if (cacheKey != null)
-            {
-                if (ancestorsCache.TryGetValue(cacheKey, out var cachedData)) return cachedData;
-                else
-                {
-                    var data = (Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent)).ToList();
-                    ancestorsCache.Add(cacheKey, data);
-                    return data;
-                }
-            }
+            Func<object, IEnumerable<Item>> getAncestors = (object key) => Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(key).Append(Parent);
 
-            return Parent == null ? Enumerable.Empty<Item>() : Parent.GetAncestors(cacheKey).Append(Parent);
+            if (cacheKey != null)
+                return ancestorsCache.GetValue(cacheKey, key => getAncestors(key).ToList());
+
+            return getAncestors(cacheKey);
         }
 
         public Dictionary<string, (string, string)> GetDifferentAttributes(Item anotherItem)
