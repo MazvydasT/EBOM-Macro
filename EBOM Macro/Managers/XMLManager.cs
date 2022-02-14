@@ -167,6 +167,10 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteEndElement();
 
 
+                            xmlWriter.WriteStartElement("CCR");
+                            xmlWriter.WriteString(item.Attributes.CCR?.Trim() ?? "");
+                            xmlWriter.WriteEndElement();
+
                             xmlWriter.WriteStartElement("children");
 
                             var children = item.Children.OrderBy(c => c.Attributes.Number).ThenBy(c => c.Attributes.Version);
@@ -460,6 +464,7 @@ namespace EBOM_Macro.Managers
                                     item.Attributes.Prefix = element.Element("Prefix")?.Value;
                                     item.Attributes.Base = element.Element("Base")?.Value;
                                     item.Attributes.Suffix = element.Element("Suffix")?.Value;
+                                    item.Attributes.CCR = element.Element("CCR")?.Value;
                                 }
 
                                 else

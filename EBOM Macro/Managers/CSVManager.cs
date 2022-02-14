@@ -231,7 +231,7 @@ namespace EBOM_Macro.Managers
 
                                     Material = material,
 
-                                    // CCR = record.CCR
+                                    CCR = record.CCR
                                 },
 
                                 PhysicalId = record.PhysicalId,
