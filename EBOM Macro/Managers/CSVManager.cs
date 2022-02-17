@@ -202,7 +202,7 @@ namespace EBOM_Macro.Managers
                                         if (newValue?.Where(c => "(){}".Contains(c)).Any() ?? false) newValue = value;
 
                                         return newValue;
-                                    }).Where(v => v != null).Distinct());
+                                    }).Where(v => v != null).Distinct()).Trim();
                                 }
 
                                 const string ellipsis = "[...]";
