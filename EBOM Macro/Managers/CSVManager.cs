@@ -201,7 +201,7 @@ namespace EBOM_Macro.Managers
                                         // Check if extracted value still contains brackets, if so, revert to original
                                         if (newValue?.Where(c => "(){}".Contains(c)).Any() ?? false) newValue = value;
 
-                                        return newValue;
+                                        return newValue?.Trim();
                                     }).Where(v => v != null).Distinct()).Trim();
                                 }
 
