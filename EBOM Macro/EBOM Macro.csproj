@@ -254,6 +254,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\BoolInverter.cs" />
     <Compile Include="Converters\CopyFileCopyErrorsButtonIsEnabledConverter.cs" />
     <Compile Include="Converters\ComparisonMessageConverter.cs" />
     <Compile Include="Converters\ProgressBarMax0To1Converter.cs" />

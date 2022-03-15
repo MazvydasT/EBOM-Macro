@@ -59,8 +59,13 @@
                     <StackPanel>
                         <TextBlock Text="Translation system:" ToolTip="Affects how path to JT is constructed"/>
 
-                        <RadioButton Content="Theorem" IsChecked="True" GroupName="TranslationSystem"/>
-                        <RadioButton Content="COM/FOX" IsChecked="{Binding InputState.ComFoxTranslationSystemIsUsed}" GroupName="TranslationSystem"/>
+                        <Border>
+                            <RadioButton Content="Theorem" IsChecked="{Binding InputState.ComFoxTranslationSystemIsUsed, Converter={converters:BoolInverter}}"/>
+                        </Border>
+
+                        <Border>
+                            <RadioButton Content="COM/FOX" IsChecked="{Binding InputState.ComFoxTranslationSystemIsUsed}"/>
+                        </Border>
                     </StackPanel>
 
                     <StackPanel Margin="0,15,0,0">
