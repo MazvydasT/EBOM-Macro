@@ -55,7 +55,8 @@ namespace EBOM_Macro.States
                 this.WhenAnyValue(x => x.IsReadyForExport),
                 InputState.WhenAnyValue(x => x.CopyFilesFromPath),
                 InputState.StatsState.WhenAnyValue(x => x.SelectedTotalParts),
-                (isReadyForExport, pathToCopyFilesFrom, selectedPartsCount) => !isReadyForExport || string.IsNullOrWhiteSpace(pathToCopyFilesFrom) ? 0 : selectedPartsCount
+                InputState.StatsState.WhenAnyValue(x => x.SelectedDeletedParts),
+                (isReadyForExport, pathToCopyFilesFrom, selectedPartsCount, selectedDeletedParts) => !isReadyForExport || string.IsNullOrWhiteSpace(pathToCopyFilesFrom) ? 0 : (selectedPartsCount - selectedDeletedParts)
             ).Subscribe(v => FilesToCopyCount = v);
 
             CopyStats = ReactiveCommand.Create<(bool showSelected, bool showAvailable)>(p =>
