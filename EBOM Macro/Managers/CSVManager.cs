@@ -94,6 +94,8 @@ namespace EBOM_Macro.Managers
                     var placeholderLookup = new Dictionary<string, Item>();
                     Item root = null;
 
+                    string currentMP = null;
+
                     var cpscSplitChars = new[] { '-' };
 
                     var skipRecords = false;
@@ -156,6 +158,8 @@ namespace EBOM_Macro.Managers
                             {
                                 skipRecords = false;
 
+                                currentMP = record.MP;
+
                                 var uniqueIdentifier = $"{record.PhysicalId}#{record.Transformation}";
 
                                 if (dsPhysicalIdTracker.Contains(uniqueIdentifier))
@@ -167,7 +171,7 @@ namespace EBOM_Macro.Managers
                                 else dsPhysicalIdTracker.Add(uniqueIdentifier);
                             }
 
-                            if (skipRecords) continue;
+                            if (skipRecords || currentMP != record.MP) continue;
 
                             var transformationMatrix = Utils.V6MatrixString2Matrix3D(record.Transformation);
 

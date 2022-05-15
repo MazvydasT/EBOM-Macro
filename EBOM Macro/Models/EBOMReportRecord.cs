@@ -4,6 +4,9 @@ namespace EBOM_Macro.Models
 {
     public class EBOMReportRecord
     {
+        [Name("MP")]
+        public string MP { get; set; }
+
         [Name("LEVEL")]
         public int Level { get; set; }
 
