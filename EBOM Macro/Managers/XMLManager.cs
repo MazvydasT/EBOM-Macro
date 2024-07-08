@@ -2,6 +2,7 @@
 using EBOM_Macro.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -233,6 +234,43 @@ namespace EBOM_Macro.Managers
                             xmlWriter.WriteEndElement();
                         }
 
+                        xmlWriter.WriteEndElement();
+
+
+                        xmlWriter.WriteStartElement("NodeInfo");
+                        xmlWriter.WriteStartElement("absoluteLocation");
+
+                        var absoluteLocation = item.AbsoluteTransformationMatrix.GetTranslation() * 1000.0;
+                        
+                        xmlWriter.WriteStartElement("x");
+                        xmlWriter.WriteString(absoluteLocation.X.ToString());
+                        xmlWriter.WriteEndElement();
+
+                        xmlWriter.WriteStartElement("y");
+                        xmlWriter.WriteString(absoluteLocation.Y.ToString());
+                        xmlWriter.WriteEndElement();
+
+                        xmlWriter.WriteStartElement("z");
+                        xmlWriter.WriteString(absoluteLocation.Z.ToString());
+                        xmlWriter.WriteEndElement();
+
+
+                        var absoluteRotation = item.AbsoluteTransformationMatrix.GetEulerZYX();
+
+                        xmlWriter.WriteStartElement("rx");
+                        xmlWriter.WriteString(absoluteRotation.X.ToString());
+                        xmlWriter.WriteEndElement();
+
+                        xmlWriter.WriteStartElement("ry");
+                        xmlWriter.WriteString(absoluteRotation.Y.ToString());
+                        xmlWriter.WriteEndElement();
+
+                        xmlWriter.WriteStartElement("rz");
+                        xmlWriter.WriteString(absoluteRotation.Z.ToString());
+                        xmlWriter.WriteEndElement();
+
+
+                        xmlWriter.WriteEndElement();
                         xmlWriter.WriteEndElement();
 
 

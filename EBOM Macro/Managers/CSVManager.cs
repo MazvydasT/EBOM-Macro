@@ -246,7 +246,9 @@ namespace EBOM_Macro.Managers
 
                                 IsInstance = record.Has3DShape,
 
-                                Filename = record.Filename
+                                Filename = record.Filename,
+
+                                LocalTransformationMatrix = transformationMatrix
                             };
 
                             if (item.Parent != null)

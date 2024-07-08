@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Media.Media3D;
 
 namespace EBOM_Macro.Models
 {
@@ -59,5 +60,26 @@ namespace EBOM_Macro.Models
         }
 
         public bool IsExpanded { get; set; }
+
+        public Matrix3D LocalTransformationMatrix { get; set; } = Matrix3D.Identity;
+
+        Matrix3D? absoluteTransformationMatrix;
+        public Matrix3D AbsoluteTransformationMatrix
+        {
+            get
+            {
+                if (!absoluteTransformationMatrix.HasValue)
+                {
+                    if (Parent == null)
+                        absoluteTransformationMatrix = LocalTransformationMatrix;
+
+                    else
+                        absoluteTransformationMatrix =  Parent.AbsoluteTransformationMatrix * LocalTransformationMatrix;
+                }
+
+                return absoluteTransformationMatrix.Value;
+            }
+        }
+
     }
 }
