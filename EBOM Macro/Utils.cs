@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Data.Common;
 using System.IO;
 using System.Management;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 
@@ -123,6 +125,12 @@ namespace EBOM_Macro
                     return null;
                 }
             }
+        }
+
+        public static string GetAppVersion()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            return $"v{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 }

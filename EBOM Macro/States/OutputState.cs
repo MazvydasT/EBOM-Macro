@@ -85,6 +85,8 @@ namespace EBOM_Macro.States
                                 var metaData = string.Join("\n", new[]
                                 {
                                     $"                          Timestamp: {DateTime.Now:G}",
+                                    "",
+                                    $"                        App version: {Utils.GetAppVersion()}",
                                     ""
                                 }.Concat(inputs.SelectMany(i => new[]
                                 {

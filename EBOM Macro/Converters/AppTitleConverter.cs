@@ -12,8 +12,8 @@ namespace EBOM_Macro.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"{parameter} v{version.Major}.{version.Minor}.{version.Build}";
+            var version = Utils.GetAppVersion();
+            return $"{parameter} {version}";
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
     }
